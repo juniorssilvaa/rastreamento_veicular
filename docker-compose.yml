@@ -59,6 +59,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       
+      - TRACCAR_URL=${TRACCAR_URL:-http://localhost:8082}
+      - TRACCAR_USER=${TRACCAR_USER:-contato@niochat.com.br}
+      - TRACCAR_PASSWORD=${TRACCAR_PASSWORD:-admin}
+      
       - SECRET_KEY=${SECRET_KEY:-django-insecure-blrastreamento123}
       - DEBUG=${DEBUG:-False}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}

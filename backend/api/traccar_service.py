@@ -1,8 +1,12 @@
+import os
 import requests
 from requests.auth import HTTPBasicAuth
 
 class TraccarClient:
-    def __init__(self, base_url="http://localhost:8082", username="contato@niochat.com.br", password="admin"):
+    def __init__(self, base_url=None, username=None, password=None):
+        base_url = base_url or os.environ.get("TRACCAR_URL", "http://localhost:8082")
+        username = username or os.environ.get("TRACCAR_USER", "contato@niochat.com.br")
+        password = password or os.environ.get("TRACCAR_PASSWORD", "admin")
         self.base_url = f"{base_url}/api"
         self.auth = HTTPBasicAuth(username, password)
         self.headers = {
