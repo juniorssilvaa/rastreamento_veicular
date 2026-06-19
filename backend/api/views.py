@@ -750,40 +750,54 @@ class ConfigSmsGatewayView(APIView):
         token = request.data.get('token')
         if not provider or not login or not token:
             return Response({"error": "Provider, login e token são obrigatórios"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        traccar_conf_path = r'e:\blrastreamento\Traccar\conf\traccar.xml'
-        
-        try:
-            with open(traccar_conf_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # Remove qualquer config antiga de sms
-            content = re.sub(r'\s*<entry key=\'sms\.http\..*?\'[^>]*>.*?</entry>', '', content, flags=re.DOTALL)
-            content = re.sub(r'\s*<entry key=\'sms\.http\..*?\'[^>]*/>', '', content)
-            
-            # Formata a URL dependendo do provider
-            if provider == 'kingsms':
-                sms_url = f"http://painel.kingsms.com.br/kingsms/api.php?acao=sendsms&amp;login={login}&amp;token={token}&amp;numero={{phone}}&amp;msg={{message}}"
-            elif provider == 'smsmarket':
-                sms_url = f"https://api.smsmarket.com.br/webservice-rest/send-single?user={login}&amp;password={token}&amp;number={{phone}}&amp;content={{message}}&amp;type=2&amp;country_code=55"
-            else:
-                return Response({"error": "Provedor SMS inválido"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Adiciona a nova config antes de </properties>
-            nova_config = f"""
-    <!-- SMS Gateway Configuration -->
-    <entry key='notificator.types'>web,mail,sms</entry>
-    <entry key='sms.http.url'>{sms_url}</entry>
-    <entry key='sms.http.template'>
-    </entry>
-</properties>"""
-            
-            content = content.replace('</properties>', nova_config)
-            
-            with open(traccar_conf_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-                
-            return Response({"success": f"Gateway {provider} configurado no traccar.xml"}, status=status.HTTP_200_OK)
+        # Formata a URL dependendo do provider
+        if provider == 'kingsms':
+            sms_url = f"http://painel.kingsms.com.br/kingsms/api.php?acao=sendsms&login={login}&token={token}&numero={{phone}}&msg={{message}}"
+        elif provider == 'smsmarket':
+            sms_url = f"https://api.smsmarket.com.br/webservice-rest/send-single?user={login}&password={token}&number={{phone}}&content={{message}}&type=2&country_code=55"
+        else:
+            return Response({"error": "Provedor SMS inválido"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Usa a API REST do Traccar para atualizar as configs do servidor
+            traccar_url = os.environ.get("TRACCAR_URL", "http://blrastreamento-traccar:8082")
+            traccar_user = os.environ.get("TRACCAR_USER", "admin")
+            traccar_pass = os.environ.get("TRACCAR_PASSWORD", "admin")
+
+            from requests.auth import HTTPBasicAuth
+            # 1. Busca a config atual do servidor
+            get_resp = requests.get(
+                f"{traccar_url}/api/server",
+                auth=HTTPBasicAuth(traccar_user, traccar_pass),
+                headers={"Accept": "application/json"},
+                timeout=10
+            )
+            if get_resp.status_code != 200:
+                return Response({"error": f"Não foi possível buscar config do Traccar: {get_resp.text}"}, status=status.HTTP_502_BAD_GATEWAY)
+
+            server_data = get_resp.json()
+
+            # 2. Atualiza os atributos do SMS
+            attributes = server_data.get("attributes", {})
+            attributes["notificator.types"] = "web,mail,sms"
+            attributes["sms.http.url"] = sms_url
+            attributes["sms.http.template"] = ""
+            server_data["attributes"] = attributes
+
+            # 3. Salva de volta no Traccar
+            put_resp = requests.put(
+                f"{traccar_url}/api/server",
+                json=server_data,
+                auth=HTTPBasicAuth(traccar_user, traccar_pass),
+                headers={"Accept": "application/json", "Content-Type": "application/json"},
+                timeout=10
+            )
+            if put_resp.status_code not in (200, 204):
+                return Response({"error": f"Falha ao salvar no Traccar: {put_resp.text}"}, status=status.HTTP_502_BAD_GATEWAY)
+
+            return Response({"success": f"Gateway {provider} configurado com sucesso no Traccar"}, status=status.HTTP_200_OK)
+
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
