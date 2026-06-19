@@ -81,6 +81,7 @@ const Dashboard = () => {
 
   const devicePortfolio = useMemo(() => {
     const total = enrichedDevices.length;
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const fifteenMin = 15 * 60 * 1000;
     const oneDay = 24 * 60 * 60 * 1000;

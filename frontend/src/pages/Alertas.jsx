@@ -36,10 +36,6 @@ const Alertas = () => {
     attributes: {}
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       const [alertRes, typeRes, devRes] = await Promise.all([
@@ -55,7 +51,13 @@ const Alertas = () => {
     }
   };
 
-  const toggleCell = (dayIndex, hourIndex) => {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDelete = (id) => {
+    console.log("Delete", id);
+  };  const toggleCell = (dayIndex, hourIndex) => {
     const newSchedule = [...schedule];
     newSchedule[dayIndex][hourIndex] = !newSchedule[dayIndex][hourIndex];
     setSchedule(newSchedule);
