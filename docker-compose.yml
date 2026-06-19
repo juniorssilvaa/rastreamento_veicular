@@ -35,8 +35,7 @@ services:
       dockerfile: Dockerfile
     image: ghcr.io/juniorssilvaa/rastreamento_veicular-backend:latest
     depends_on:
-      blrastreamento-postgres:
-        condition: service_healthy
+      - blrastreamento-postgres
     logging:
       driver: "json-file"
       options:
