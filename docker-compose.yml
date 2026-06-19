@@ -6,8 +6,10 @@ services:
   # ===============================
   blrastreamento-postgres:
     image: postgres:14
-    env_file:
-      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-blrastreamento}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
     volumes:
       - blrastreamento-postgres-data:/var/lib/postgresql/data
     networks:
@@ -46,8 +48,21 @@ services:
       - blnet
     volumes:
       - blrastreamento-media:/app/media
-    env_file:
-      - .env
+    environment:
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-admin}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}
+      
+      - POSTGRES_HOST=blrastreamento-postgres
+      - POSTGRES_DB=${POSTGRES_DB:-blrastreamento}
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-blrastreamento123}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
+      - CORS_ALLOW_ALL_ORIGINS=${CORS_ALLOW_ALL_ORIGINS:-True}
     deploy:
       resources:
         limits:
