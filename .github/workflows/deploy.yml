@@ -7,7 +7,27 @@ on:
       - master
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Instalar dependências (Frontend)
+        working-directory: ./frontend
+        run: npm install
+        
+      - name: Rodar Lint (Frontend)
+        working-directory: ./frontend
+        run: npm run lint
+
   build-and-push:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,7 +58,7 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}-frontend:latest
 
-  deploy-portainer:
+  deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
