@@ -100,9 +100,8 @@ services:
       - "5013:5013/tcp" # H02 protocol
       - "5001:5001/tcp" # GPS103 protocol
     volumes:
-      - ./Traccar/conf/traccar.xml:/opt/traccar/conf/traccar.xml:ro
-      - ./Traccar/data:/opt/traccar/data
-      - ./Traccar/logs:/opt/traccar/logs
+      - blrastreamento-traccar-data:/opt/traccar/data
+      - blrastreamento-traccar-logs:/opt/traccar/logs
     deploy:
       resources:
         limits:
@@ -158,3 +157,5 @@ networks:
 volumes:
   blrastreamento-media:
   blrastreamento-postgres-data:
+  blrastreamento-traccar-data:
+  blrastreamento-traccar-logs:
