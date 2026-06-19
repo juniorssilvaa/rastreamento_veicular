@@ -54,7 +54,7 @@ const Gerenciar = () => {
 
     // Salvar configuração direto no servidor via API para o Traccar
     try {
-      const response = await fetch('http://localhost:8000/api/config/smsgateway/', {
+      const response = await fetch('/api/config/smsgateway/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider, login, token })

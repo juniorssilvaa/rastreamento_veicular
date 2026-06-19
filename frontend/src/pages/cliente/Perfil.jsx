@@ -28,7 +28,7 @@ const Perfil = () => {
   useEffect(() => {
     const customerId = localStorage.getItem('customer_id');
     if (customerId) {
-      fetch(`http://localhost:8000/api/auth/users/${customerId}/profile/`)
+      fetch(`/api/auth/users/${customerId}/profile/`)
         .then(res => res.json())
         .then(data => {
           setPerfilData(prev => ({
@@ -73,7 +73,7 @@ const Perfil = () => {
       if (perfilData.username) body.username = perfilData.username;
       if (perfilData.senha) body.password = perfilData.senha;
 
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/update-profile/`, {
+      const response = await fetch(`/api/auth/users/${customerId}/update-profile/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -123,7 +123,7 @@ const Perfil = () => {
 
     if (customerId) {
       try {
-        await fetch(`http://localhost:8000/api/auth/users/${customerId}/update-2fa/`, {
+        await fetch(`/api/auth/users/${customerId}/update-2fa/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ otp_secret: currentSecret })

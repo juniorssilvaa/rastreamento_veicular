@@ -42,9 +42,9 @@ const Comando = () => {
     const loadInitialData = async () => {
         try {
             const [devRes, savedRes, typesRes] = await Promise.all([
-                fetch('http://localhost:8000/api/traccar/devices/'),
-                fetch('http://localhost:8000/api/traccar/entity/commands/'),
-                fetch('http://localhost:8000/api/traccar/command-types/') // Busca TODOS os tipos
+                fetch('/api/traccar/devices/'),
+                fetch('/api/traccar/entity/commands/'),
+                fetch('/api/traccar/command-types/') // Busca TODOS os tipos
             ]);
             setDevices(await devRes.json());
             setSavedCommands(await savedRes.json());
@@ -58,7 +58,7 @@ const Comando = () => {
 
   useEffect(() => {
     if (selectedDevice) {
-      fetch(`http://localhost:8000/api/traccar/command-types/?deviceId=${selectedDevice}`)
+      fetch(`/api/traccar/command-types/?deviceId=${selectedDevice}`)
         .then(res => res.json())
         .then(json => {
             const hasSms = json.some(c => c.type === 'sendSms');
@@ -67,7 +67,7 @@ const Comando = () => {
         })
         .catch(err => console.error("Erro ao carregar tipos de comando:", err));
     } else {
-      fetch('http://localhost:8000/api/traccar/command-types/')
+      fetch('/api/traccar/command-types/')
         .then(res => res.json())
         .then(json => {
             const hasSms = json.some(c => c.type === 'sendSms');
@@ -145,7 +145,7 @@ const Comando = () => {
           }
       }
 
-      const response = await fetch('http://localhost:8000/api/traccar/commands/', {
+      const response = await fetch('/api/traccar/commands/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -174,7 +174,7 @@ const Comando = () => {
     setLoadingInbound(true);
     setInboundStatus('');
     try {
-      const res = await fetch(`http://localhost:8000/api/sms/inbound/?flag=${flag}`);
+      const res = await fetch(`/api/sms/inbound/?flag=${flag}`);
       const data = await res.json();
       if (Array.isArray(data)) {
         if (data.length === 0) {

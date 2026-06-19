@@ -10,7 +10,7 @@ const Acessos = () => {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/auth/users/');
+      const response = await fetch('/api/auth/users/');
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -28,7 +28,7 @@ const Acessos = () => {
 
   const handleCreateAccess = async (customerId) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/`, {
+      const response = await fetch(`/api/auth/users/${customerId}/`, {
         method: 'POST',
       });
       const data = await response.json();
@@ -45,7 +45,7 @@ const Acessos = () => {
 
   const handleToggleStatus = async (customerId, currentStatus) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/`, {
+      const response = await fetch(`/api/auth/users/${customerId}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_active: !currentStatus })
@@ -65,7 +65,7 @@ const Acessos = () => {
     if (!window.confirm("Deseja realmente gerar uma nova senha aleatória para este cliente?")) return;
     
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/reset-password/`, {
+      const response = await fetch(`/api/auth/users/${customerId}/reset-password/`, {
         method: 'POST',
       });
       const data = await response.json();
@@ -83,7 +83,7 @@ const Acessos = () => {
     if (!window.confirm("Deseja remover o 2FA deste usuário? Ele fará login apenas com senha até configurar novamente.")) return;
     
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/remove-2fa/`, {
+      const response = await fetch(`/api/auth/users/${customerId}/remove-2fa/`, {
         method: 'POST',
       });
       if (response.ok) {

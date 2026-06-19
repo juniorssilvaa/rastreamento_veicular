@@ -39,9 +39,9 @@ const Alertas = () => {
   const fetchData = async () => {
     try {
       const [alertRes, typeRes, devRes] = await Promise.all([
-        fetch('http://localhost:8000/api/traccar/notifications/'),
-        fetch('http://localhost:8000/api/traccar/notifications/types/'),
-        fetch('http://localhost:8000/api/traccar/devices/')
+        fetch('/api/traccar/notifications/'),
+        fetch('/api/traccar/notifications/types/'),
+        fetch('/api/traccar/devices/')
       ]);
       setAlerts(await alertRes.json());
       setNotificationTypes(await typeRes.json());
@@ -104,7 +104,7 @@ const Alertas = () => {
       
       // 1. Se não for "always", cria um calendário
       if (!formData.always) {
-        const calRes = await fetch('http://localhost:8000/api/traccar/calendars/', {
+        const calRes = await fetch('/api/traccar/calendars/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -117,7 +117,7 @@ const Alertas = () => {
       }
 
       // 2. Cria a Notificação
-      const notifRes = await fetch('http://localhost:8000/api/traccar/notifications/', {
+      const notifRes = await fetch('/api/traccar/notifications/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, calendarId })
@@ -126,7 +126,7 @@ const Alertas = () => {
 
       // 3. Vincula aos dispositivos
       if (selectedDevices.length > 0) {
-        await fetch('http://localhost:8000/api/traccar/permissions/', {
+        await fetch('/api/traccar/permissions/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -48,7 +48,7 @@ const Clientes = () => {
   const fetchCustomers = async () => {
     setIsFetching(true);
     try {
-      const response = await fetch('http://localhost:8000/api/asaas/customers/');
+      const response = await fetch('/api/asaas/customers/');
       if (response.ok) {
         const data = await response.json();
         setCustomers(data);
@@ -101,7 +101,7 @@ const Clientes = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/asaas/customers/${asaas_id}/`, {
+      const response = await fetch(`/api/asaas/customers/${asaas_id}/`, {
         method: 'DELETE',
         headers: {
           'X-Asaas-Token': asaasToken,
@@ -120,7 +120,7 @@ const Clientes = () => {
 
   const handleCreateAccess = async (customerId) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/`, { method: 'POST' });
+      const response = await fetch(`/api/auth/users/${customerId}/`, { method: 'POST' });
       const data = await response.json();
       if (response.ok) {
         toast.success(`Acesso criado! Login: ${data.username} Senha: ${data.password}`, { duration: 10000 });
@@ -133,7 +133,7 @@ const Clientes = () => {
 
   const handleToggleStatus = async (customerId, currentStatus) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/`, {
+      const response = await fetch(`/api/auth/users/${customerId}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_active: !currentStatus })
@@ -148,7 +148,7 @@ const Clientes = () => {
   const handleResetPassword = async (customerId) => {
     if (!window.confirm("Deseja gerar nova senha aleatória para este cliente?")) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/reset-password/`, { method: 'POST' });
+      const response = await fetch(`/api/auth/users/${customerId}/reset-password/`, { method: 'POST' });
       const data = await response.json();
       if (response.ok) {
         toast.success(`Nova senha gerada: ${data.new_password}`, { duration: 10000 });
@@ -160,7 +160,7 @@ const Clientes = () => {
     if (!window.confirm("Deseja remover a Autenticação em Duas Etapas (2FA) deste usuário? Ele poderá logar apenas com senha até reconfigurar.")) return;
     
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/users/${customerId}/remove-2fa/`, { method: 'POST' });
+      const response = await fetch(`/api/auth/users/${customerId}/remove-2fa/`, { method: 'POST' });
       const data = await response.json();
       if (response.ok) {
         toast.success('Autenticação 2FA removida com sucesso. O cliente pode logar apenas com senha agora.');
@@ -194,8 +194,8 @@ const Clientes = () => {
 
     try {
       const url = editingCustomer 
-        ? `http://localhost:8000/api/asaas/customers/${editingCustomer.asaas_id}/` 
-        : 'http://localhost:8000/api/asaas/customers/';
+        ? `/api/asaas/customers/${editingCustomer.asaas_id}/` 
+        : '/api/asaas/customers/';
         
       const response = await fetch(url, {
         method: editingCustomer ? 'PUT' : 'POST',

@@ -239,8 +239,8 @@ const Mapa = () => {
   const fetchData = async () => {
     try {
       const [devRes, posRes] = await Promise.all([
-        fetch('http://localhost:8000/api/traccar/devices/'),
-        fetch('http://localhost:8000/api/traccar/positions/')
+        fetch('/api/traccar/devices/'),
+        fetch('/api/traccar/positions/')
       ]);
       const devicesArr = await devRes.json();
       const posArr = await posRes.json();

@@ -264,8 +264,8 @@ const CercasVirtuais = () => {
         setLoading(true);
         try {
             const [geoRes, devRes] = await Promise.all([
-                fetch('http://localhost:8000/api/traccar/entity/geofences/'),
-                fetch('http://localhost:8000/api/traccar/devices/')
+                fetch('/api/traccar/entity/geofences/'),
+                fetch('/api/traccar/devices/')
             ]);
             setGeofences(await geoRes.json());
             setDevices(await devRes.json());
@@ -332,7 +332,7 @@ const CercasVirtuais = () => {
         }
 
         try {
-            const res = await fetch('http://localhost:8000/api/traccar/entity/geofences/', {
+            const res = await fetch('/api/traccar/entity/geofences/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -343,7 +343,7 @@ const CercasVirtuais = () => {
                 
                 // Link devices
                 if (selectedDevices.length > 0) {
-                    await fetch('http://localhost:8000/api/traccar/permissions/', {
+                    await fetch('/api/traccar/permissions/', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -365,7 +365,7 @@ const CercasVirtuais = () => {
     const handleUpdateGeofence = async () => {
         if (!selectedGeofence || !editedWkt) return;
         try {
-            const res = await fetch(`http://localhost:8000/api/traccar/entity/geofences/${selectedGeofence.id}/`, {
+            const res = await fetch(`/api/traccar/entity/geofences/${selectedGeofence.id}/`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -386,7 +386,7 @@ const CercasVirtuais = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Deseja realmente excluir esta cerca?")) return;
         try {
-            const res = await fetch(`http://localhost:8000/api/traccar/entity/geofences/${id}/`, {
+            const res = await fetch(`/api/traccar/entity/geofences/${id}/`, {
                 method: 'DELETE'
             });
             if (res.ok) fetchData();

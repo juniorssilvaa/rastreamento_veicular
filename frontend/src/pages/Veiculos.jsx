@@ -136,10 +136,10 @@ const Veiculos = () => {
     setLoading(true);
     try {
       const [devRes, groupRes, calRes, posRes] = await Promise.all([
-        fetch('http://localhost:8000/api/traccar/devices/?all=true'),
-        fetch('http://localhost:8000/api/traccar/entity/groups/'),
-        fetch('http://localhost:8000/api/traccar/entity/calendars/'),
-        fetch('http://localhost:8000/api/traccar/positions/')
+        fetch('/api/traccar/devices/?all=true'),
+        fetch('/api/traccar/entity/groups/'),
+        fetch('/api/traccar/entity/calendars/'),
+        fetch('/api/traccar/positions/')
       ]);
 
       const devs = await devRes.json();
@@ -168,7 +168,7 @@ const Veiculos = () => {
     uploadData.append('photo', file);
 
     try {
-      const response = await fetch('http://localhost:8000/api/traccar/upload-photo/', {
+      const response = await fetch('/api/traccar/upload-photo/', {
         method: 'POST',
         body: uploadData
       });
@@ -223,8 +223,8 @@ const Veiculos = () => {
     }
 
     const url = editingId
-      ? `http://localhost:8000/api/traccar/devices/${editingId}/`
-      : 'http://localhost:8000/api/traccar/devices/';
+      ? `/api/traccar/devices/${editingId}/`
+      : '/api/traccar/devices/';
 
     const method = editingId ? 'PUT' : 'POST';
 
@@ -310,7 +310,7 @@ const Veiculos = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Deseja realmente excluir este veículo?")) {
       try {
-        const response = await fetch(`http://localhost:8000/api/traccar/devices/${id}/`, { method: 'DELETE' });
+        const response = await fetch(`/api/traccar/devices/${id}/`, { method: 'DELETE' });
         if (response.ok) {
           toast.success("Veículo excluído com sucesso!");
           fetchInitialData();

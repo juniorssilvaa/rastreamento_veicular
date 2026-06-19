@@ -18,10 +18,10 @@ const Dashboard = () => {
         const headers = { 'X-Asaas-Token': asaasToken, 'X-Asaas-Env': asaasEnv };
 
         const [devicesRes, positionsRes, summaryRes, overdueRes] = await Promise.all([
-          fetch('http://localhost:8000/api/traccar/devices/'),
-          fetch('http://localhost:8000/api/traccar/positions/'),
-          fetch('http://localhost:8000/api/dashboard-v2/'),
-          fetch('http://localhost:8000/api/asaas/overdue-customers/', { headers: asaasToken ? headers : {} })
+          fetch('/api/traccar/devices/'),
+          fetch('/api/traccar/positions/'),
+          fetch('/api/dashboard-v2/'),
+          fetch('/api/asaas/overdue-customers/', { headers: asaasToken ? headers : {} })
         ]);
 
         const devicesData = await devicesRes.json();
