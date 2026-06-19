@@ -59,7 +59,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       
-      - TRACCAR_URL=${TRACCAR_URL:-http://localhost:8082}
+      - TRACCAR_URL=${TRACCAR_URL:-http://blrastreamento-traccar:8082}
       - TRACCAR_USER=${TRACCAR_USER:-contato@niochat.com.br}
       - TRACCAR_PASSWORD=${TRACCAR_PASSWORD:-admin}
       
@@ -85,6 +85,37 @@ services:
         - "traefik.http.routers.blrastreamento-api.priority=20"
         - "traefik.http.routers.blrastreamento-api.service=blrastreamento-api-svc"
         - "traefik.http.services.blrastreamento-api-svc.loadbalancer.server.port=8000"
+
+  # ===============================
+  # 📍 TRACCAR ENGINE
+  # ===============================
+  blrastreamento-traccar:
+    image: traccar/traccar:latest
+    networks:
+      - internal
+      - blnet
+    ports:
+      - "5000-5050:5000-5050/tcp"
+      - "5000-5050:5000-5050/udp"
+    volumes:
+      - ./Traccar/conf/traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - ./Traccar/data:/opt/traccar/data
+      - ./Traccar/logs:/opt/traccar/logs
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=blnet"
+        - "traefik.http.routers.blrastreamento-traccar.rule=Host(`traccar.blrastreamentoveicular.com.br`)"
+        - "traefik.http.routers.blrastreamento-traccar.entrypoints=websecure"
+        - "traefik.http.routers.blrastreamento-traccar.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.blrastreamento-traccar.loadbalancer.server.port=8082"
 
   # ===============================
   # 🌐 FRONTEND (REACT/VITE)
