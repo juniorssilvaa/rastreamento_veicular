@@ -1,0 +1,1174 @@
+
+API SMSMarket | Guia de Integração
+API
+SMSMarket Developers
+Guia de integração
+Documentação
+API REST
+SMPP
+API REST
+Comece aqui
+Autenticação
+Tipos
+Cobrança SMS
+Envio individual
+Template WhatsApp
+Envio em massa
+Consultas
+Callbacks
+Status
+Problemas comuns
+SMPP
+Integração SMPP
+API REST
+HTTP/JSON para SMS, WhatsApp, consultas e callbacks.
+SMPP
+TCP 54.233.99.254:2775 para submit_sm e deliver_sm.
+Comece aqui
+Autenticação
+Tipos
+Cobrança SMS
+Envio individual
+Template WhatsApp
+Envio em massa
+Consultas
+Callbacks
+Status
+Problemas comuns
+Integração SMPP
+Referência da API
+API para SMS e WhatsApp
+Envie mensagens transacionais, campanhas, templates aprovados, mídias e acompanhe retornos de entrega com uma integração REST simples.
+SMS
+Envio simples, interativo e Flash.
+WhatsApp
+Texto, mídia e templates aprovados.
+Consultas
+Status, saldo e mensagens recebidas.
+Callbacks
+Atualizações enviadas para sua URL.
+Endpoint base
+https://api.smsmarket.com.br/webservice-rest/
+Todas as respostas da API são retornadas em JSON e podem ser acompanhadas por consulta ou callback.
+20
+conexões simultâneas por usuário
+5000
+mensagens por requisição em lote
+32 dias
+janela de consulta de histórico
+Autenticação
+Use usuário e senha da conta SMSMarket pelo header 
+Authorization: Basic
+.
+Obrigatório
+O valor do Basic é formado por 
+base64(usuario:senha)
+. Também é possível enviar 
+user
+ e 
+password
+ por parâmetro, mas o header é a forma recomendada.
+Padrão de credenciais:
+ use o usuário da conta SMSMarket no campo 
+user
+ e a senha cadastrada na conta no campo 
+password
+.
+Liberação de acesso:
+ novas contas saem com a API bloqueada para todos por padrão. Antes de consumir a API, acesse 
+Perfil > Webhook / API > Controle de acesso
+ no dashboard e libere o IP desejado ou marque 
+Permitir livre acesso
+.
+Header
+Copiar
+Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==
+Uso
+Headers
+Envio individual e consultas
+Content-Type: application/x-www-form-urlencoded
+Envio em massa por lote
+Content-Type: application/json
+Accept: application/json
+Tipos de mensagem
+O parâmetro 
+type
+ define o serviço usado no envio.
+type
+type
+Serviço
+Campos principais
+Quando usar
+0
+SMS não interativo
+content
+SMS simples, sem resposta.
+1
+SMS interativo Flash
+content
+SMS interativo em modo Flash.
+2
+SMS interativo
+content
+SMS com possibilidade de resposta.
+3
+WhatsApp Template
+template_name
+, 
+content
+Template aprovado do WhatsApp.
+4
+WhatsApp áudio
+media
+Enviar áudio por URL.
+5
+WhatsApp texto
+content
+Enviar somente texto.
+6
+WhatsApp imagem
+media
+, 
+caption
+Imagem JPG/JPEG com legenda opcional.
+7
+WhatsApp documento
+media
+, 
+caption
+Documento PDF com legenda opcional.
+8
+WhatsApp vídeo
+media
+, 
+caption
+Vídeo MP4 com legenda opcional.
+WhatsApp mídia:
+ para 
+type=4
+, 
+type=6
+, 
+type=7
+ e 
+type=8
+, envie a URL no parâmetro 
+media
+. O 
+type=5
+ é apenas texto.
+Cobrança por caracteres SMS
+Esta regra vale para SMS enviados pela API REST e também por SMPP.
+SMS
+Caracteres da tabela básica são cobrados a cada 160 caracteres na primeira parte ou 153 caracteres em mensagens concatenadas. Qualquer caractere fora da tabela básica usa a regra de 70 caracteres na primeira parte ou 63 caracteres em mensagens concatenadas.
+Tipo de conteúdo
+1 parte
+Multipart
+Somente caracteres básicos, incluindo quebra de linha
+Até 160 caracteres
+153 caracteres por parte
+Acentos fora da tabela, símbolos especiais, emojis ou caracteres estendidos
+Até 70 caracteres
+63 caracteres por parte
+SMS longo:
+ para permitir mensagens longas pela API REST, envie 
+concatenation=1
+. Para SMS com acentos e caracteres especiais pela API REST, envie 
+utf8=1
+.
+Caracteres básicos
+Copiar
+Espaço, quebra de linha, letras A-Z, letras a-z, números 0-9
+! " # $ % & ' ( ) * + , - . / : ; < = > ? @ _ `
+Aspas curvas: “ ” ‘ ’
+Caracteres especiais/estendidos:
+ 
+[
+, 
+]
+, 
+{
+, 
+}
+, 
+\
+, 
+^
+, 
+|
+, 
+~
+ e 
+€
+ não fazem parte da tabela básica. Em SMS com 
+utf8=1
+, alguns caracteres estendidos podem contar como mais de um caractere no cálculo.
+Envio individual
+Use este endpoint para enviar uma mensagem para um único destinatário.
+send-single
+POST
+https://api.smsmarket.com.br/webservice-rest/send-single
+Campos aceitos
+Campo
+Obrigatório
+Descrição
+user
+Não, se usar Basic Auth
+Usuário da conta.
+password
+Não, se usar Basic Auth
+Senha cadastrada na conta SMSMarket.
+type
+Sim
+Tipo da mensagem.
+country_code
+Não
+DDI do país. Padrão Brasil: 
+55
+.
+number
+Sim
+Número do destinatário sem DDI, sem espaços e sem símbolos.
+sender
+Sim para WhatsApp
+Canal remetente do WhatsApp, normalmente o 
+phone_number_id
+.
+content
+Sim para SMS, texto e template com variáveis
+Texto da mensagem ou variáveis do template.
+media
+Sim para WhatsApp mídia
+URL pública HTTPS para áudio, imagem, documento ou vídeo.
+caption
+Não
+Legenda para imagem, documento ou vídeo. Áudio não aceita legenda.
+contact_name
+ / 
+recipient_name
+Não
+Nome do destinatário usado apenas quando WhatsApp normal (
+type=4
+ a 
+type=8
+) cair no OPT-IN automático fora da janela de 24h. Não altera 
+type=3
+.
+template_name
+Sim para 
+type=3
+Nome exato do template aprovado no WhatsApp.
+campaign_id
+Não
+Identificador da mensagem no seu sistema.
+schedule
+Não
+Data de agendamento em 
+YYYY-MM-DD HH:MM:SS
+.
+timezone
+Não
+Fuso horário, por exemplo 
+-03:00
+.
+utf8
+Não
+Use 
+1
+ para SMS com acentos e caracteres especiais.
+concatenation
+Não
+Use 
+1
+ para permitir SMS longo.
+Enviar SMS
+cURL
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=2' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'content=Mensagem de teste SMSMarket' \
+  --data-urlencode 'campaign_id=pedido-123'
+Enviar WhatsApp texto
+cURL
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=5' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'contact_name=Maria Silva' \
+  --data-urlencode 'content=Olá! Sua solicitação foi recebida.' \
+  --data-urlencode 'campaign_id=whatsapp-texto-001'
+Enviar WhatsApp imagem, documento, vídeo ou áudio
+Tipo
+Extensão aceita
+Campo da URL
+Legenda
+type=4
+ áudio
+.mp3
+, 
+.ogg
+media
+Não
+type=6
+ imagem
+.jpg
+, 
+.jpeg
+media
+caption
+ opcional
+type=7
+ documento
+.pdf
+media
+caption
+ opcional
+type=8
+ vídeo
+.mp4
+media
+caption
+ opcional
+Imagem
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=6' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'media=https://seudominio.com.br/imagens/produto.jpg' \
+  --data-urlencode 'caption=Veja a imagem do produto solicitado.' \
+  --data-urlencode 'campaign_id=whatsapp-imagem-001'
+Documento PDF
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=7' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'media=https://seudominio.com.br/arquivos/boleto.pdf' \
+  --data-urlencode 'caption=Segue o documento solicitado.' \
+  --data-urlencode 'campaign_id=whatsapp-documento-001'
+Vídeo MP4
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=8' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'media=https://seudominio.com.br/videos/apresentacao.mp4' \
+  --data-urlencode 'caption=Assista ao vídeo de apresentação.' \
+  --data-urlencode 'campaign_id=whatsapp-video-001'
+Áudio
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=4' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'media=https://seudominio.com.br/audios/audio.mp3' \
+  --data-urlencode 'campaign_id=whatsapp-audio-001'
+Resposta de sucesso
+JSON
+Copiar
+{
+  "success": true,
+  "responseCode": "000",
+  "responseDescription": "Success queued",
+  "credit": "1",
+  "balance": "99984",
+  "id": "813831"
+}
+Template WhatsApp
+O 
+type=3
+ envia templates aprovados. A API grava as tags que o worker de disparo lê para montar o payload oficial do WhatsApp.
+type=3
+Obrigatório:
+ informe 
+sender
+, 
+template_name
+, 
+number
+ e 
+type=3
+. Se o template tiver variáveis, informe-as em 
+content
+.
+Como a API monta as tags internas
+Quando você chama o endpoint, a API transforma os parâmetros em tags antes de gravar na fila. O worker de disparo lê essas tags.
+Parâmetro enviado
+Tag gravada
+Uso no worker
+template_name=pedido_status
+<template_name>pedido_status</template_name>
+Localiza o template aprovado do canal.
+content=Willian;12345;enviado
+<variable>Willian;12345;enviado</variable>
+Preenche variáveis do corpo na ordem 
+{{1}}
+, 
+{{2}}
+, 
+{{3}}
+.
+content={...JSON...}
+<variable>{...JSON...}</variable>
+Preenche header, body e botões dinâmicos.
+Template com variáveis simples no corpo
+Se o template aprovado for 
+Olá {{1}}, seu pedido {{2}} foi atualizado para {{3}}.
+, envie os valores no 
+content
+, separados por ponto e vírgula.
+cURL
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=3' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'template_name=pedido_status' \
+  --data-urlencode 'content=Willian;12345;enviado' \
+  --data-urlencode 'campaign_id=whatsapp-template-001'
+Tags gravadas na fila
+Copiar
+<template_name>pedido_status</template_name>
+<variable>Willian;12345;enviado</variable>
+Template sem variáveis
+Se o template não tiver campos dinâmicos, envie apenas 
+template_name
+.
+cURL
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=3' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'template_name=aviso_simples' \
+  --data-urlencode 'campaign_id=whatsapp-template-002'
+Template com header, body ou botão dinâmico
+Quando o template tiver cabeçalho com mídia, cabeçalho com texto variável ou botão com parâmetro, envie o 
+content
+ em JSON.
+Formato do content em JSON
+Copiar
+{
+  "header": {
+    "text": ["valor do cabeçalho de texto"],
+    "link": "https://seudominio.com.br/arquivo.pdf"
+  },
+  "body": ["valor de {{1}}", "valor de {{2}}"],
+  "buttons": {
+    "0": ["valor do botão 0"],
+    "1": ["valor do botão 1"]
+  }
+}
+Header com mídia:
+ para template com cabeçalho de imagem, vídeo ou documento, envie a URL em 
+content.header.link
+. O worker monta o componente do template a partir da tag 
+<variable>
+.
+Template com documento no header
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=3' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'template_name=boleto_cliente' \
+  --data-urlencode 'content={"header":{"link":"https://seudominio.com.br/arquivos/boleto.pdf"},"body":["Willian","R$ 50,00","18/04/2026"]}' \
+  --data-urlencode 'campaign_id=whatsapp-template-003'
+Template com botão dinâmico
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=3' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'template_name=acompanhar_pedido' \
+  --data-urlencode 'content={"body":["Willian","12345"],"buttons":{"0":["12345"]}}' \
+  --data-urlencode 'campaign_id=whatsapp-template-004'
+Atenção:
+ a ordem e a quantidade de valores precisam ser iguais ao template aprovado. Se o corpo tem 
+{{1}}
+, 
+{{2}}
+ e 
+{{3}}
+, envie três valores.
+Envio em massa por lote
+Use 
+send-multiple
+ para enviar mensagens em lote por JSON.
+send-multiple
+POST
+https://api.smsmarket.com.br/webservice-rest/send-multiple
+Limite:
+ envie no máximo 5000 mensagens por requisição. Use 
+defaultValues
+ para campos comuns e 
+messages
+ para os destinatários.
+Estrutura do JSON
+Modelo
+Copiar
+{
+  "defaultValues": {
+    "type": 5,
+    "country_code": 55,
+    "sender": "103888109342779"
+  },
+  "messages": [
+    {
+      "number": "14999999999",
+      "contact_name": "Maria Silva",
+      "content": "Mensagem 1",
+      "campaign_id": "wa-001"
+    }
+  ]
+}
+SMS em lote
+cURL
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-multiple' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/json' \
+  --header 'Accept: application/json' \
+  --data '{
+    "defaultValues": {
+      "type": 2,
+      "country_code": 55
+    },
+    "messages": [
+      {
+        "number": "14999999999",
+        "content": "Mensagem SMS 1",
+        "campaign_id": "sms-001"
+      },
+      {
+        "number": "14988888888",
+        "content": "Mensagem SMS 2",
+        "campaign_id": "sms-002"
+      }
+    ]
+  }'
+WhatsApp texto em lote
+cURL
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-multiple' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/json' \
+  --header 'Accept: application/json' \
+  --data '{
+    "defaultValues": {
+      "type": 5,
+      "country_code": 55,
+      "sender": "103888109342779"
+    },
+    "messages": [
+      {
+        "number": "14999999999",
+        "contact_name": "Maria Silva",
+        "content": "Olá! Esta é uma mensagem de WhatsApp.",
+        "campaign_id": "wa-001"
+      },
+      {
+        "number": "14988888888",
+        "content": "Olá! Seu atendimento foi registrado.",
+        "campaign_id": "wa-002"
+      }
+    ]
+  }'
+WhatsApp mídia em lote
+Para mídia em lote, mantenha o mesmo padrão do envio individual: 
+type
+ conforme a mídia e URL no campo 
+media
+.
+cURL
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/send-multiple' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/json' \
+  --header 'Accept: application/json' \
+  --data '{
+    "defaultValues": {
+      "type": 6,
+      "country_code": 55,
+      "sender": "103888109342779"
+    },
+    "messages": [
+      {
+        "number": "14999999999",
+        "media": "https://seudominio.com.br/imagens/produto-1.jpg",
+        "caption": "Imagem do produto 1",
+        "campaign_id": "wa-img-001"
+      },
+      {
+        "number": "14988888888",
+        "media": "https://seudominio.com.br/imagens/produto-2.jpg",
+        "caption": "Imagem do produto 2",
+        "campaign_id": "wa-img-002"
+      }
+    ]
+  }'
+Resposta do lote
+JSON
+Copiar
+{
+  "success": true,
+  "responseCode": "001",
+  "responseDescription": "Batch processed",
+  "credit": "2",
+  "balance": "87018",
+  "totalProcessed": "2",
+  "totalSuccess": "2",
+  "messages": [
+    {
+      "success": true,
+      "responseCode": "000",
+      "responseDescription": "Success queued",
+      "credit": "1"
+    }
+  ]
+}
+Consultas
+Consulte status, saldo e mensagens recebidas.
+GET ou POST
+Status por identificador
+GET
+https://api.smsmarket.com.br/webservice-rest/mt_id
+Por campaign_id
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/mt_id?campaign_id=wa-001,wa-002&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='
+Por id
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/mt_id?id=813831,813832&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='
+Status por período
+GET
+https://api.smsmarket.com.br/webservice-rest/mt_date
+Por período
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/mt_date?start_date=2026-04-01%2000:00:00&end_date=2026-04-16%2023:59:59&type=5&status=0,1,2&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='
+Novas mensagens recebidas
+GET
+https://api.smsmarket.com.br/webservice-rest/mo_new
+Depois que uma mensagem é retornada em 
+mo_new
+, ela não aparece novamente como nova em uma próxima consulta.
+Recebidas novas
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/mo_new?type=5&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='
+Mensagens recebidas por período
+GET
+https://api.smsmarket.com.br/webservice-rest/mo
+Recebidas por período
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/mo?start_date=2026-04-01%2000:00:00&end_date=2026-04-16%2023:59:59&type=5&campaign_id=wa-001&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='
+Saldo
+GET
+https://api.smsmarket.com.br/webservice-rest/balance
+Consultar saldo
+Copiar
+curl --location 'https://api.smsmarket.com.br/webservice-rest/balance' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='
+Resposta
+Copiar
+{
+  "success": true,
+  "responseCode": "200",
+  "responseDescription": "Successful search",
+  "sms": "7289",
+  "whatsapp": "606",
+  "activation": "2026-03-30 12:10:59",
+  "expiration": "2027-03-30 23:59:59"
+}
+Callbacks
+Configure uma URL para receber status de entrega e mensagens recebidas.
+HTTP GET
+Onde ativar:
+ cadastre sua URL no dashboard em 
+Perfil > Webhook / API
+.
+Cadastro da URL:
+ mantenha o 
+event_type
+ como 
+all
+, 
+status
+ ou 
+inbound
+ e escolha também o canal permitido no cadastro: 
+SMS
+ ou 
+WhatsApp
+. Se a mesma URL precisar receber os dois canais, cadastre duas linhas. O uso de 
+Bearer token
+ no callback é opcional.
+Status de entrega
+Exemplo recebido pelo seu sistema
+Copiar
+https://suaurl.com/callback.php?campaign_id=abc123&id=150&status=0&date=2026-04-16+10:00:00&carrier=Whatsapp
+Mensagem recebida
+Exemplo recebido pelo seu sistema
+Copiar
+https://suaurl.com/callback.php?number=5514999999999&content=Recebido&campaign_id=abc123&id=150&status=4&date=2026-04-16+10:05:00&carrier=Whatsapp
+Campo
+Descrição
+campaign_id
+Identificador enviado por você na requisição.
+id
+ID interno da mensagem na SMSMarket.
+status
+Status da mensagem, ou 
+4
+ para mensagem recebida.
+date
+Data do evento.
+carrier
+Operadora ou canal, como 
+Whatsapp
+.
+number
+Número do cliente que respondeu.
+content
+Conteúdo recebido do cliente.
+Responda HTTP 200 rapidamente. Grave o evento e processe em fila se precisar executar tarefas pesadas.
+Status
+As chamadas retornam 
+responseCode
+. As mensagens possuem status próprio de envio.
+Referência
+Status de chamada
+responseCode
+Descrição
+HTTP
+success
+000
+Success queued
+200 OK
+true
+001
+Batch processed
+200 OK
+true
+002
+Scheduled
+200 OK
+true
+010
+User or password is invalid
+401 Unauthorized
+false
+020
+Empty or invalid type
+200 OK
+false
+030
+Empty message content
+200 OK
+false
+040
+Scheduling date invalid or incorrect
+200 OK
+false
+050
+Empty or invalid number
+200 OK
+false
+060
+International sending not allowed
+200 OK
+false
+070
+Message rejected by server
+200 OK
+false
+080
+Insufficient or expired balance
+402 Payment Required
+false
+090
+Blocked account - Please contact support
+403 Forbidden
+false
+091
+API access denied for this IP
+403 Forbidden
+false
+100
+This service is currently under maintenance
+200 OK
+false
+110
+There was an error processing, please try again, or contact us
+200 OK
+false
+120
+Message array cannot exceed 5000
+200 OK
+false
+130
+Message array is empty
+200 OK
+false
+140
+Incorrect time zone
+200 OK
+false
+150
+File extension not allowed
+200 OK
+false
+160
+Unknown method or unknown parameter
+200 OK
+false
+170
+Invalid search attributes
+200 OK
+false
+200
+Successful search
+200 OK
+true
+Status de envio
+Status
+Descrição
+Callback
+-1
+Mensagem enfileirada.
+Não
+3
+Preparando para envio.
+Não
+6
+Mensagem pausada.
+Não
+-11
+Erro: Limite Atingido
+Sim
+-10
+Erro: Pagamento Restrito
+Sim
+-9
+Bloqueado, sem cobertura.
+Sim
+-8
+Bloqueado, conteúdo não permitido.
+Sim
+-7
+Número sem WhatsApp ou indisponível.
+Sim
+-6
+Mensagem cancelada.
+Sim
+-5
+Bloqueado, lista negra.
+Sim
+-4
+Bloqueado, número fixo.
+Sim
+-3
+Bloqueado, número inválido.
+Sim
+-2
+Erro na rede ou falha de entrega.
+Sim
+0
+Enviado.
+Sim
+1
+Entregue.
+Sim
+2
+Lido no WhatsApp.
+Sim
+4
+Mensagem recebida do cliente.
+Sim
+7
+Expirada.
+Sim
+8
+Rejeitada.
+Sim
+9
+Não recebida no aparelho.
+Sim
+Problemas comuns
+Verificações rápidas para falhas frequentes de integração.
+Checklist
+WhatsApp não envia mídia
+A URL precisa abrir sem login.
+O servidor não pode retornar 
+403 Forbidden
+.
+Use as extensões aceitas pela API.
+O certificado HTTPS precisa ser válido.
+Áudio WebM não é aceito para envio no WhatsApp.
+Erro de saldo
+Quando a API retornar 
+responseCode=080
+, o saldo está insuficiente ou os créditos estão vencidos para o serviço solicitado. Nos endpoints de envio, este erro retorna HTTP 
+402 Payment Required
+.
+Erro de autenticação ou acesso
+responseCode=010
+ retorna HTTP 
+401 Unauthorized
+ quando o usuário ou senha está inválido.
+responseCode=090
+ retorna HTTP 
+403 Forbidden
+ quando a conta está bloqueada.
+responseCode=091
+ retorna HTTP 
+403 Forbidden
+ quando o IP não está autorizado no controle de acesso da API.
+Erros do WhatsApp
+Quando a Meta retornar o erro 
+131042
+, 
+Business eligibility payment issue
+, a mensagem será registrada com 
+status=-10
+: Erro: Pagamento Restrito.
+Quando a Meta retornar o erro 
+131037
+, 
+display name approval
+, a mensagem será registrada com 
+status=-11
+: Erro: Limite Atingido.
+Template não envia
+Use o nome exato do template aprovado.
+Confira se o template pertence ao canal informado no 
+sender
+.
+Envie a mesma quantidade de variáveis exigida pelo template.
+Para header, body e botões dinâmicos, use JSON no 
+content
+.
+Integração SMPP
+Use SMPP v3.4 para enviar SMS por 
+submit_sm
+ e receber DLR/MO por 
+deliver_sm
+.
+SMPP 3.4
+TCP
+54.233.99.254:2775
+Liberação de acesso:
+ o SMPP usa o mesmo controle de IP da API. Libere o IP em 
+Perfil > Webhook / API > Controle de acesso
+. Para usar SMPP, também é necessário solicitar ao suporte a habilitação do serviço na conta.
+Conexão e autenticação
+Campo
+Valor
+Host
+54.233.99.254
+Porta
+2775
+Versão
+SMPP v3.4
+TLS
+Não usar TLS nesta porta.
+system_id
+Usuário da conta.
+password
+Senha cadastrada na conta SMSMarket. Por limitação do campo SMPP, use até 8 caracteres.
+system_type
+Pode ser enviado vazio.
+Bind permitido
+bind_tx
+, 
+bind_rx
+ ou 
+bind_trx
+. Recomendado: 
+bind_trx
+.
+Binds simultâneas
+Até 
+10
+ binds por usuário.
+Keepalive
+O cliente deve manter a sessao ativa enviando 
+enquire_link
+ periodicamente, recomendado a cada 
+10
+ a 
+30
+ segundos. Sempre responda qualquer 
+enquire_link
+ recebido com 
+enquire_link_resp
+.
+Keepalive e respostas SMPP:
+ para manter a conexão ativa, o cliente deve enviar 
+enquire_link
+ e responder todos os 
+enquire_link
+ recebidos com 
+enquire_link_resp
+. Para DLR/MO, cada 
+deliver_sm
+ recebido deve ser respondido imediatamente com 
+deliver_sm_resp
+ usando o mesmo 
+sequence_number
+. Conexões que não respondem dentro do timeout podem ser encerradas e os eventos voltam para a fila temporária.
+Envio de SMS
+Envie mensagens usando 
+submit_sm
+. O 
+message_id
+ retornado é o identificador interno da mensagem e será usado também nos DLRs enviados por 
+deliver_sm
+.
+Campo SMPP
+Comportamento
+source_addr
+Sender opcional. Se não for enviado, será gravado como 
+0
+.
+destination_addr
+Número em formato Brasil, por exemplo 
+5514999999999
+.
+schedule_delivery_time
+Quando enviado, agenda o disparo conforme o horário informado.
+esm_class
+Mensagens multipart com UDH são remontadas antes de entrar na fila. Flash/Class 0 é tratado como SMS Flash.
+data_coding=0
+GSM 03.38. Quando possível, textos ambíguos são normalizados para evitar caracteres corrompidos.
+data_coding=3
+ISO-8859-1.
+data_coding=8
+UCS2/UTF-16BE. Use para acentos fora da tabela básica, símbolos especiais e emojis.
+Multipart:
+ mesmo que o aparelho exiba uma mensagem única, cada parte trafega individualmente na rede. A cobrança é feita por parte, e a mensagem é gravada consolidada depois que todas as partes chegam.
+DLR e mensagens recebidas
+Contas conectadas por 
+bind_rx
+ ou 
+bind_trx
+ recebem atualizações por 
+deliver_sm
+. Se a conta estiver desconectada, os eventos ficam em fila temporária por até 24 horas. Para maior volume de DLR/MO, mantenha mais de uma bind 
+bind_rx
+ ou 
+bind_trx
+ ativa.
+Exemplo de DLR
+Copiar
+id:123456 sub:001 dlvrd:001 submit date:2604280315 done date:2604280316 stat:DELIVRD err:000 text:
+Status interno
+Status SMPP
+0
+ACCEPTD
+1
+ ou 
+2
+DELIVRD
+7
+EXPIRED
+-6
+DELETED
+8
+, 
+-4
+, 
+-5
+ ou 
+-8
+REJECTD
+9
+, 
+-2
+, 
+-3
+, 
+-7
+, 
+-9
+, 
+-10
+ ou 
+-11
+UNDELIV
+Cobrança por caracteres
+Caracteres da tabela básica são cobrados a cada 160 caracteres na primeira parte ou 153 caracteres em mensagens concatenadas. Qualquer caractere fora da tabela básica usa a regra de 70 caracteres na primeira parte ou 63 caracteres em mensagens concatenadas.
+Tipo de conteúdo
+1 parte
+Multipart
+Somente caracteres básicos, incluindo quebra de linha
+Até 160 caracteres
+153 caracteres por parte
+Acentos fora da tabela, símbolos especiais, emojis ou caracteres estendidos
+Até 70 caracteres
+63 caracteres por parte
+Caracteres básicos
+Copiar
+Espaço, quebra de linha, letras A-Z, letras a-z, números 0-9
+! " # $ % & ' ( ) * + , - . / : ; < = > ? @ _ `
+Aspas curvas: “ ” ‘ ’
+Caracteres especiais/estendidos:
+ 
+[
+, 
+]
+, 
+{
+, 
+}
+, 
+\
+, 
+^
+, 
+|
+, 
+~
+ e 
+€
+ não fazem parte da tabela básica. Para usar esses caracteres, envie 
+utf8=1
+; nesse modo cada um deles conta como 2 caracteres no cálculo do SMS.
+        SMSMarket API - SMS, WhatsApp, consultas, callbacks e SMPP.
+      

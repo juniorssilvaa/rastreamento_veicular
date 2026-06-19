@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API SMSMarket | Guia de Integração</title>
+  <meta name="description" content="Guia de integração da API SMSMarket para envio de SMS, WhatsApp, consultas de status, saldo e callbacks.">
+  <style>
+    :root{--green:#11a85b;--green2:#087943;--ink:#17211f;--muted:#62706c;--line:#dce6e2;--soft:#f4f8f6;--white:#fff;--yellow:#f2c94c;--blue:#2479cc;--red:#c43d3d;--code:#101816;--code2:#20302b;--shadow:0 14px 36px rgba(18,32,28,.08);--radius:8px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf3f1;color:var(--ink);font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.55}a{color:var(--green2);text-decoration:none}a:hover{text-decoration:underline}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 24px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(10px)}
+    .brand{display:flex;align-items:center;gap:12px;min-width:250px;color:var(--ink)}.brand img{height:42px;max-width:250px;object-fit:contain}.brand-fallback{display:none;font-weight:900;font-size:18px}.brand-fallback span{color:var(--green)}
+    .search{position:relative;width:min(620px,100%)}.search input{width:100%;height:42px;border:1px solid var(--line);border-radius:var(--radius);padding:0 14px 0 40px;background:var(--soft);font:inherit;color:var(--ink);outline:0}.search input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(17,168,91,.14);background:#fff}.search b{position:absolute;left:14px;top:9px;color:var(--muted)}
+    .wrap{display:grid;grid-template-columns:282px minmax(0,1fr);gap:22px;max-width:1480px;margin:0 auto;padding:22px}.side{position:sticky;top:76px;height:calc(100vh - 98px);overflow:auto;padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}.side h2{margin:0 0 10px;color:var(--muted);font-size:12px;text-transform:uppercase}.side a{display:block;padding:9px 10px;border-radius:var(--radius);color:var(--ink);font-size:14px;font-weight:700}.side a:hover,.side a.active{background:#e7f7ee;color:var(--green2);text-decoration:none}
+    .nav-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 16px}.nav-tabs a{display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--soft);font-size:13px}.nav-tabs a.active,.nav-tabs a:hover{background:#10231d;color:#36d27f}.nav-group{margin:14px 0 8px;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.doc-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px}.doc-tab{padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);color:var(--ink);text-decoration:none}.doc-tab:hover,.doc-tab.active{border-color:#b7dccc;background:#f5fbf8;text-decoration:none}.doc-tab strong{display:block}.doc-tab span{display:block;color:var(--muted);font-size:13px}
+    main{min-width:0}.mobile-nav{display:none;margin-bottom:14px}.mobile-nav select{width:100%;height:44px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;padding:0 12px;font:inherit}
+    .hero,.section{border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}.hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.7fr);gap:18px;padding:26px;margin-bottom:18px;scroll-margin-top:92px}.hero h1{margin:0 0 10px;font-size:clamp(30px,5vw,46px);line-height:1.08}.hero p,.section p{color:var(--muted);margin:0 0 12px}.eyebrow{display:inline-flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--green2);font-size:12px;font-weight:900;text-transform:uppercase}.eyebrow:before{content:"";width:10px;height:10px;border-radius:2px;background:var(--green)}
+    .base{padding:13px;border:1px solid var(--line);border-radius:var(--radius);background:var(--soft);font-family:Consolas,"Courier New",monospace;word-break:break-word}
+    .quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.quick div{padding:13px;border:1px solid var(--line);border-radius:var(--radius);background:var(--soft)}.quick strong{display:block}.quick span{color:var(--muted);font-size:13px}
+    .section{padding:26px;margin-bottom:18px;scroll-margin-top:92px}.head{display:flex;justify-content:space-between;gap:14px;padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--line)}h2{margin:0 0 8px;font-size:clamp(24px,3vw,32px);line-height:1.16}h3{margin:24px 0 10px;font-size:21px}.tag{display:inline-flex;align-items:center;height:30px;padding:0 9px;border:1px solid var(--line);border-radius:var(--radius);background:var(--soft);font-size:13px;font-weight:800;white-space:nowrap}
+    .endpoint{display:flex;align-items:center;gap:12px;padding:13px;margin:14px 0;border:1px solid var(--line);border-radius:var(--radius);background:#f9fbfa}.method{min-width:62px;text-align:center;padding:4px 8px;border-radius:var(--radius);background:var(--green2);color:#fff;font-weight:900;font-size:12px}.endpoint code,.inline-code{font-family:Consolas,"Courier New",monospace;word-break:break-word}
+    .notice{padding:14px 15px;margin:14px 0;border:1px solid #efd68a;border-radius:var(--radius);background:#fffaf0;color:#6e5400}.notice.info{border-color:#bfddf5;background:#eef7ff;color:#145c9e}.notice.danger{border-color:#f2c1c1;background:#fff1f1;color:var(--red)}
+    .table-wrap{overflow:auto;margin:12px 0 18px;border:1px solid var(--line);border-radius:var(--radius)}table{width:100%;min-width:760px;border-collapse:collapse}th,td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--soft);font-size:12px;text-transform:uppercase}td{color:var(--muted);font-size:14px}tr:last-child td{border-bottom:0}code{font-family:Consolas,"Courier New",monospace}td code,p code,li code{padding:2px 5px;border-radius:6px;background:#e7f7ee;color:var(--green2)}
+    .code{margin:12px 0 20px;border:1px solid #253b35;border-radius:var(--radius);overflow:hidden;background:var(--code)}.code-title{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;background:var(--code2);color:#d9ebe5;font-size:13px;font-weight:800}.copy{border:1px solid rgba(255,255,255,.25);border-radius:var(--radius);background:transparent;color:#fff;padding:5px 9px;cursor:pointer;font:inherit;font-size:12px;font-weight:800}pre{margin:0;padding:15px;overflow:auto;color:#e8f3ef;font-family:Consolas,"Courier New",monospace;font-size:13px;line-height:1.55}ul,ol{color:var(--muted);padding-left:20px}.hidden{display:none}
+    .footer{padding:18px 0;text-align:center;color:var(--muted);font-size:13px}
+    @media(max-width:1050px){.wrap{grid-template-columns:1fr}.side{display:none}.mobile-nav{display:block}.hero{grid-template-columns:1fr}}@media(max-width:720px){.topbar{display:block;padding:12px 14px}.brand{margin-bottom:10px}.wrap{padding:14px}.section,.hero{padding:18px}.quick{grid-template-columns:1fr 1fr}.head{display:block}.endpoint{display:grid;justify-items:start}.search{width:100%}}@media(max-width:460px){.quick{grid-template-columns:1fr}.brand img{max-width:210px}}
+    body{background:#f2f6f4;background-image:linear-gradient(180deg,#f7faf8 0,#edf4f1 360px,#f2f6f4 100%)}.topbar{min-height:70px;padding:13px 28px;border-bottom:1px solid rgba(13,93,57,.16);background:rgba(255,255,255,.88);box-shadow:0 10px 28px rgba(20,38,33,.06)}.brand{min-width:270px;text-decoration:none}.brand:hover{text-decoration:none}.brand-sigil{display:grid;place-items:center;width:42px;height:42px;border-radius:8px;background:#10231d;color:#36d27f;font-weight:900;letter-spacing:0;font-size:13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.brand-copy{display:grid;gap:1px}.brand-copy strong{font-size:16px;letter-spacing:0}.brand-copy small{color:var(--muted);font-size:12px}.search input{height:44px;border-color:#d5e4df;background:#fff;box-shadow:0 8px 22px rgba(20,38,33,.05)}.wrap{gap:26px;padding:26px}.side{top:96px;height:calc(100vh - 122px);padding:18px;border-color:#d5e4df;background:rgba(255,255,255,.84);backdrop-filter:blur(10px)}.side a{position:relative;padding:10px 11px 10px 14px}.side a.active{box-shadow:inset 3px 0 0 var(--green)}.hero{grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);padding:0;overflow:hidden;border-color:#d5e4df;background:#fff;box-shadow:0 18px 52px rgba(20,38,33,.09)}.hero-main{padding:34px}.hero-aside{padding:28px;border-left:1px solid var(--line);background:#f7fbf9}.hero h1{max-width:760px;font-size:clamp(34px,5vw,58px);letter-spacing:-.02em}.hero p{max-width:780px;font-size:18px}.eyebrow{color:var(--green2)}.eyebrow:before{border-radius:50%;box-shadow:0 0 0 5px rgba(17,168,91,.12)}.quick{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.quick div{background:#fff;border-color:#d7e6e1;box-shadow:0 8px 22px rgba(20,38,33,.05)}.quick strong{font-size:15px}.base{border-color:#cfe2dc;background:#fff;color:#0f201b}.metric-grid{display:grid;gap:10px}.metric{padding:13px;border:1px solid #d7e6e1;border-radius:8px;background:#fff}.metric strong{display:block;font-size:22px;color:#10231d;line-height:1}.metric span{display:block;margin-top:5px;color:var(--muted);font-size:13px}.section{border-color:#d7e6e1;box-shadow:0 12px 34px rgba(20,38,33,.06)}.head{align-items:flex-start}.head h2{letter-spacing:-.015em}.tag{border-color:#cde1dc;background:#eaf8f0;color:#087943}.endpoint{background:#fbfdfc}.method{background:#10231d;color:#36d27f}.code{box-shadow:0 12px 30px rgba(16,24,22,.12)}.copy:hover{background:rgba(255,255,255,.12)}@media(max-width:1050px){.hero{grid-template-columns:1fr}.hero-aside{border-left:0;border-top:1px solid var(--line)}}@media(max-width:720px){.topbar{padding:12px 14px}.brand{min-width:0}.wrap{padding:14px}.hero-main,.hero-aside{padding:18px}.quick{grid-template-columns:1fr 1fr}.hero h1{font-size:34px}.hero p{font-size:16px}}@media(max-width:460px){.quick{grid-template-columns:1fr}.brand-sigil{width:38px;height:38px}.brand-copy strong{font-size:15px}}
+    .search b{width:15px;height:15px;top:14px;left:15px;border:2px solid #66756f;border-radius:50%;font-size:0}.search b:after{content:"";position:absolute;width:7px;height:2px;right:-6px;bottom:-4px;background:#66756f;transform:rotate(45deg);border-radius:2px}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="SMSMarket API">
+      <span class="brand-sigil">API</span>
+      <span class="brand-copy">
+        <strong>SMSMarket Developers</strong>
+        <small>Guia de integração</small>
+      </span>
+    </a>
+    <label class="search" for="docSearch"><b></b><input id="docSearch" type="search" placeholder="Buscar por envio, WhatsApp, template, callback..."></label>
+  </header>
+
+  <div class="wrap">
+    <aside class="side" id="sideNav">
+      <h2>Documentação</h2>
+      <div class="nav-tabs">
+        <a href="#inicio">API REST</a>
+        <a href="#smpp">SMPP</a>
+      </div>
+      <div class="nav-group">API REST</div>
+      <a href="#inicio">Comece aqui</a>
+      <a href="#auth">Autenticação</a>
+      <a href="#tipos">Tipos</a>
+      <a href="#sms-cobranca">Cobrança SMS</a>
+      <a href="#single">Envio individual</a>
+      <a href="#template">Template WhatsApp</a>
+      <a href="#lote">Envio em massa</a>
+      <a href="#consultas">Consultas</a>
+      <a href="#callbacks">Callbacks</a>
+      <a href="#status">Status</a>
+      <a href="#problemas">Problemas comuns</a>
+      <div class="nav-group">SMPP</div>
+      <a href="#smpp">Integração SMPP</a>
+    </aside>
+
+    <main>
+      <nav class="doc-tabs" aria-label="Tipos de integração">
+        <a class="doc-tab active" href="#inicio"><strong>API REST</strong><span>HTTP/JSON para SMS, WhatsApp, consultas e callbacks.</span></a>
+        <a class="doc-tab" href="#smpp"><strong>SMPP</strong><span>TCP 54.233.99.254:2775 para submit_sm e deliver_sm.</span></a>
+      </nav>
+      <nav class="mobile-nav">
+        <select id="mobileNav">
+          <optgroup label="API REST">
+            <option value="#inicio">Comece aqui</option>
+            <option value="#auth">Autenticação</option>
+            <option value="#tipos">Tipos</option>
+            <option value="#sms-cobranca">Cobrança SMS</option>
+            <option value="#single">Envio individual</option>
+            <option value="#template">Template WhatsApp</option>
+            <option value="#lote">Envio em massa</option>
+            <option value="#consultas">Consultas</option>
+            <option value="#callbacks">Callbacks</option>
+            <option value="#status">Status</option>
+            <option value="#problemas">Problemas comuns</option>
+          </optgroup>
+          <optgroup label="SMPP">
+            <option value="#smpp">Integração SMPP</option>
+          </optgroup>
+        </select>
+      </nav>
+
+      <section id="inicio" class="hero doc-block" data-search="inicio api sms whatsapp url base">
+        <div class="hero-main">
+          <span class="eyebrow">Referência da API</span>
+          <h1>API para SMS e WhatsApp</h1>
+          <p>Envie mensagens transacionais, campanhas, templates aprovados, mídias e acompanhe retornos de entrega com uma integração REST simples.</p>
+          <div class="quick">
+            <div><strong>SMS</strong><span>Envio simples, interativo e Flash.</span></div>
+            <div><strong>WhatsApp</strong><span>Texto, mídia e templates aprovados.</span></div>
+            <div><strong>Consultas</strong><span>Status, saldo e mensagens recebidas.</span></div>
+            <div><strong>Callbacks</strong><span>Atualizações enviadas para sua URL.</span></div>
+          </div>
+        </div>
+        <div class="hero-aside">
+          <span class="eyebrow">Endpoint base</span>
+          <div class="base">https://api.smsmarket.com.br/webservice-rest/</div>
+          <p>Todas as respostas da API são retornadas em JSON e podem ser acompanhadas por consulta ou callback.</p>
+          <div class="metric-grid">
+            <div class="metric"><strong>20</strong><span>conexões simultâneas por usuário</span></div>
+            <div class="metric"><strong>5000</strong><span>mensagens por requisição em lote</span></div>
+            <div class="metric"><strong>32 dias</strong><span>janela de consulta de histórico</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="auth" class="section doc-block" data-search="autenticacao authorization basic header user password">
+        <div class="head"><div><h2>Autenticação</h2><p>Use usuário e senha da conta SMSMarket pelo header <code>Authorization: Basic</code>.</p></div><span class="tag">Obrigatório</span></div>
+        <p>O valor do Basic é formado por <code>base64(usuario:senha)</code>. Também é possível enviar <code>user</code> e <code>password</code> por parâmetro, mas o header é a forma recomendada.</p>
+        <div class="notice info"><strong>Padrão de credenciais:</strong> use o usuário da conta SMSMarket no campo <code>user</code> e a senha cadastrada na conta no campo <code>password</code>.</div>
+        <div class="notice info"><strong>Liberação de acesso:</strong> novas contas saem com a API bloqueada para todos por padrão. Antes de consumir a API, acesse <code>Perfil &gt; Webhook / API &gt; Controle de acesso</code> no dashboard e libere o IP desejado ou marque <code>Permitir livre acesso</code>.</div>
+        <div class="code"><div class="code-title"><span>Header</span><button class="copy">Copiar</button></div><pre><code>Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==</code></pre></div>
+        <div class="table-wrap"><table><thead><tr><th>Uso</th><th>Headers</th></tr></thead><tbody><tr><td>Envio individual e consultas</td><td><code>Content-Type: application/x-www-form-urlencoded</code></td></tr><tr><td>Envio em massa por lote</td><td><code>Content-Type: application/json</code><br><code>Accept: application/json</code></td></tr></tbody></table></div>
+      </section>
+
+      <section id="tipos" class="section doc-block" data-search="type tipos sms whatsapp audio imagem documento video template">
+        <div class="head"><div><h2>Tipos de mensagem</h2><p>O parâmetro <code>type</code> define o serviço usado no envio.</p></div><span class="tag">type</span></div>
+        <div class="table-wrap"><table><thead><tr><th>type</th><th>Serviço</th><th>Campos principais</th><th>Quando usar</th></tr></thead><tbody>
+          <tr><td><code>0</code></td><td>SMS não interativo</td><td><code>content</code></td><td>SMS simples, sem resposta.</td></tr>
+          <tr><td><code>1</code></td><td>SMS interativo Flash</td><td><code>content</code></td><td>SMS interativo em modo Flash.</td></tr>
+          <tr><td><code>2</code></td><td>SMS interativo</td><td><code>content</code></td><td>SMS com possibilidade de resposta.</td></tr>
+          <tr><td><code>3</code></td><td>WhatsApp Template</td><td><code>template_name</code>, <code>content</code></td><td>Template aprovado do WhatsApp.</td></tr>
+          <tr><td><code>4</code></td><td>WhatsApp áudio</td><td><code>media</code></td><td>Enviar áudio por URL.</td></tr>
+          <tr><td><code>5</code></td><td>WhatsApp texto</td><td><code>content</code></td><td>Enviar somente texto.</td></tr>
+          <tr><td><code>6</code></td><td>WhatsApp imagem</td><td><code>media</code>, <code>caption</code></td><td>Imagem JPG/JPEG com legenda opcional.</td></tr>
+          <tr><td><code>7</code></td><td>WhatsApp documento</td><td><code>media</code>, <code>caption</code></td><td>Documento PDF com legenda opcional.</td></tr>
+          <tr><td><code>8</code></td><td>WhatsApp vídeo</td><td><code>media</code>, <code>caption</code></td><td>Vídeo MP4 com legenda opcional.</td></tr>
+        </tbody></table></div>
+        <div class="notice info"><strong>WhatsApp mídia:</strong> para <code>type=4</code>, <code>type=6</code>, <code>type=7</code> e <code>type=8</code>, envie a URL no parâmetro <code>media</code>. O <code>type=5</code> é apenas texto.</div>
+      </section>
+
+      <section id="sms-cobranca" class="section doc-block" data-search="sms cobranca caracteres utf8 concatenation acentos especiais emoji partes credito">
+        <div class="head"><div><h2>Cobrança por caracteres SMS</h2><p>Esta regra vale para SMS enviados pela API REST e também por SMPP.</p></div><span class="tag">SMS</span></div>
+        <p>Caracteres da tabela básica são cobrados a cada 160 caracteres na primeira parte ou 153 caracteres em mensagens concatenadas. Qualquer caractere fora da tabela básica usa a regra de 70 caracteres na primeira parte ou 63 caracteres em mensagens concatenadas.</p>
+        <div class="table-wrap"><table><thead><tr><th>Tipo de conteúdo</th><th>1 parte</th><th>Multipart</th></tr></thead><tbody>
+          <tr><td>Somente caracteres básicos, incluindo quebra de linha</td><td>Até 160 caracteres</td><td>153 caracteres por parte</td></tr>
+          <tr><td>Acentos fora da tabela, símbolos especiais, emojis ou caracteres estendidos</td><td>Até 70 caracteres</td><td>63 caracteres por parte</td></tr>
+        </tbody></table></div>
+        <div class="notice info"><strong>SMS longo:</strong> para permitir mensagens longas pela API REST, envie <code>concatenation=1</code>. Para SMS com acentos e caracteres especiais pela API REST, envie <code>utf8=1</code>.</div>
+        <div class="code"><div class="code-title"><span>Caracteres básicos</span><button class="copy">Copiar</button></div><pre><code>Espaço, quebra de linha, letras A-Z, letras a-z, números 0-9
+! &quot; # $ % &amp; ' ( ) * + , - . / : ; &lt; = &gt; ? @ _ `
+Aspas curvas: &ldquo; &rdquo; &lsquo; &rsquo;</code></pre></div>
+        <p class="muted"><strong>Caracteres especiais/estendidos:</strong> <code>&#91;</code>, <code>&#93;</code>, <code>&#123;</code>, <code>&#125;</code>, <code>\</code>, <code>^</code>, <code>|</code>, <code>~</code> e <code>&euro;</code> não fazem parte da tabela básica. Em SMS com <code>utf8=1</code>, alguns caracteres estendidos podem contar como mais de um caractere no cálculo.</p>
+      </section>
+
+      <section id="single" class="section doc-block" data-search="send-single envio individual sms whatsapp media content sender">
+        <div class="head"><div><h2>Envio individual</h2><p>Use este endpoint para enviar uma mensagem para um único destinatário.</p></div><span class="tag">send-single</span></div>
+        <div class="endpoint"><span class="method">POST</span><code>https://api.smsmarket.com.br/webservice-rest/send-single</code></div>
+
+        <h3>Campos aceitos</h3>
+        <div class="table-wrap"><table><thead><tr><th>Campo</th><th>Obrigatório</th><th>Descrição</th></tr></thead><tbody>
+          <tr><td><code>user</code></td><td>Não, se usar Basic Auth</td><td>Usuário da conta.</td></tr>
+          <tr><td><code>password</code></td><td>Não, se usar Basic Auth</td><td>Senha cadastrada na conta SMSMarket.</td></tr>
+          <tr><td><code>type</code></td><td>Sim</td><td>Tipo da mensagem.</td></tr>
+          <tr><td><code>country_code</code></td><td>Não</td><td>DDI do país. Padrão Brasil: <code>55</code>.</td></tr>
+          <tr><td><code>number</code></td><td>Sim</td><td>Número do destinatário sem DDI, sem espaços e sem símbolos.</td></tr>
+          <tr><td><code>sender</code></td><td>Sim para WhatsApp</td><td>Canal remetente do WhatsApp, normalmente o <code>phone_number_id</code>.</td></tr>
+          <tr><td><code>content</code></td><td>Sim para SMS, texto e template com variáveis</td><td>Texto da mensagem ou variáveis do template.</td></tr>
+          <tr><td><code>media</code></td><td>Sim para WhatsApp mídia</td><td>URL pública HTTPS para áudio, imagem, documento ou vídeo.</td></tr>
+          <tr><td><code>caption</code></td><td>Não</td><td>Legenda para imagem, documento ou vídeo. Áudio não aceita legenda.</td></tr>
+          <tr><td><code>contact_name</code> / <code>recipient_name</code></td><td>Não</td><td>Nome do destinatário usado apenas quando WhatsApp normal (<code>type=4</code> a <code>type=8</code>) cair no OPT-IN automático fora da janela de 24h. Não altera <code>type=3</code>.</td></tr>
+          <tr><td><code>template_name</code></td><td>Sim para <code>type=3</code></td><td>Nome exato do template aprovado no WhatsApp.</td></tr>
+          <tr><td><code>campaign_id</code></td><td>Não</td><td>Identificador da mensagem no seu sistema.</td></tr>
+          <tr><td><code>schedule</code></td><td>Não</td><td>Data de agendamento em <code>YYYY-MM-DD HH:MM:SS</code>.</td></tr>
+          <tr><td><code>timezone</code></td><td>Não</td><td>Fuso horário, por exemplo <code>-03:00</code>.</td></tr>
+          <tr><td><code>utf8</code></td><td>Não</td><td>Use <code>1</code> para SMS com acentos e caracteres especiais.</td></tr>
+          <tr><td><code>concatenation</code></td><td>Não</td><td>Use <code>1</code> para permitir SMS longo.</td></tr>
+        </tbody></table></div>
+
+        <h3>Enviar SMS</h3>
+        <div class="code"><div class="code-title"><span>cURL</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=2' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'content=Mensagem de teste SMSMarket' \
+  --data-urlencode 'campaign_id=pedido-123'</code></pre></div>
+
+        <h3>Enviar WhatsApp texto</h3>
+        <div class="code"><div class="code-title"><span>cURL</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=5' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'contact_name=Maria Silva' \
+  --data-urlencode 'content=Olá! Sua solicitação foi recebida.' \
+  --data-urlencode 'campaign_id=whatsapp-texto-001'</code></pre></div>
+
+        <h3>Enviar WhatsApp imagem, documento, vídeo ou áudio</h3>
+        <div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Extensão aceita</th><th>Campo da URL</th><th>Legenda</th></tr></thead><tbody>
+          <tr><td><code>type=4</code> áudio</td><td><code>.mp3</code>, <code>.ogg</code></td><td><code>media</code></td><td>Não</td></tr>
+          <tr><td><code>type=6</code> imagem</td><td><code>.jpg</code>, <code>.jpeg</code></td><td><code>media</code></td><td><code>caption</code> opcional</td></tr>
+          <tr><td><code>type=7</code> documento</td><td><code>.pdf</code></td><td><code>media</code></td><td><code>caption</code> opcional</td></tr>
+          <tr><td><code>type=8</code> vídeo</td><td><code>.mp4</code></td><td><code>media</code></td><td><code>caption</code> opcional</td></tr>
+        </tbody></table></div>
+
+        <div class="code"><div class="code-title"><span>Imagem</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=6' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'media=https://seudominio.com.br/imagens/produto.jpg' \
+  --data-urlencode 'caption=Veja a imagem do produto solicitado.' \
+  --data-urlencode 'campaign_id=whatsapp-imagem-001'</code></pre></div>
+
+        <div class="code"><div class="code-title"><span>Documento PDF</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=7' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'media=https://seudominio.com.br/arquivos/boleto.pdf' \
+  --data-urlencode 'caption=Segue o documento solicitado.' \
+  --data-urlencode 'campaign_id=whatsapp-documento-001'</code></pre></div>
+
+        <div class="code"><div class="code-title"><span>Vídeo MP4</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=8' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'media=https://seudominio.com.br/videos/apresentacao.mp4' \
+  --data-urlencode 'caption=Assista ao vídeo de apresentação.' \
+  --data-urlencode 'campaign_id=whatsapp-video-001'</code></pre></div>
+
+        <div class="code"><div class="code-title"><span>Áudio</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=4' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'media=https://seudominio.com.br/audios/audio.mp3' \
+  --data-urlencode 'campaign_id=whatsapp-audio-001'</code></pre></div>
+
+        <h3>Resposta de sucesso</h3>
+        <div class="code"><div class="code-title"><span>JSON</span><button class="copy">Copiar</button></div><pre><code>{
+  "success": true,
+  "responseCode": "000",
+  "responseDescription": "Success queued",
+  "credit": "1",
+  "balance": "99984",
+  "id": "813831"
+}</code></pre></div>
+      </section>
+
+      <section id="template" class="section doc-block" data-search="template whatsapp type 3 tags template_name variable header body buttons">
+        <div class="head"><div><h2>Template WhatsApp</h2><p>O <code>type=3</code> envia templates aprovados. A API grava as tags que o worker de disparo lê para montar o payload oficial do WhatsApp.</p></div><span class="tag">type=3</span></div>
+        <div class="notice info"><strong>Obrigatório:</strong> informe <code>sender</code>, <code>template_name</code>, <code>number</code> e <code>type=3</code>. Se o template tiver variáveis, informe-as em <code>content</code>.</div>
+
+        <h3>Como a API monta as tags internas</h3>
+        <p>Quando você chama o endpoint, a API transforma os parâmetros em tags antes de gravar na fila. O worker de disparo lê essas tags.</p>
+        <div class="table-wrap"><table><thead><tr><th>Parâmetro enviado</th><th>Tag gravada</th><th>Uso no worker</th></tr></thead><tbody>
+          <tr><td><code>template_name=pedido_status</code></td><td><code>&lt;template_name&gt;pedido_status&lt;/template_name&gt;</code></td><td>Localiza o template aprovado do canal.</td></tr>
+          <tr><td><code>content=Willian;12345;enviado</code></td><td><code>&lt;variable&gt;Willian;12345;enviado&lt;/variable&gt;</code></td><td>Preenche variáveis do corpo na ordem <code>{{1}}</code>, <code>{{2}}</code>, <code>{{3}}</code>.</td></tr>
+          <tr><td><code>content={...JSON...}</code></td><td><code>&lt;variable&gt;{...JSON...}&lt;/variable&gt;</code></td><td>Preenche header, body e botões dinâmicos.</td></tr>
+        </tbody></table></div>
+
+        <h3>Template com variáveis simples no corpo</h3>
+        <p>Se o template aprovado for <code>Olá {{1}}, seu pedido {{2}} foi atualizado para {{3}}.</code>, envie os valores no <code>content</code>, separados por ponto e vírgula.</p>
+        <div class="code"><div class="code-title"><span>cURL</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=3' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'template_name=pedido_status' \
+  --data-urlencode 'content=Willian;12345;enviado' \
+  --data-urlencode 'campaign_id=whatsapp-template-001'</code></pre></div>
+        <div class="code"><div class="code-title"><span>Tags gravadas na fila</span><button class="copy">Copiar</button></div><pre><code>&lt;template_name&gt;pedido_status&lt;/template_name&gt;
+&lt;variable&gt;Willian;12345;enviado&lt;/variable&gt;</code></pre></div>
+
+        <h3>Template sem variáveis</h3>
+        <p>Se o template não tiver campos dinâmicos, envie apenas <code>template_name</code>.</p>
+        <div class="code"><div class="code-title"><span>cURL</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=3' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'template_name=aviso_simples' \
+  --data-urlencode 'campaign_id=whatsapp-template-002'</code></pre></div>
+
+        <h3>Template com header, body ou botão dinâmico</h3>
+        <p>Quando o template tiver cabeçalho com mídia, cabeçalho com texto variável ou botão com parâmetro, envie o <code>content</code> em JSON.</p>
+        <div class="code"><div class="code-title"><span>Formato do content em JSON</span><button class="copy">Copiar</button></div><pre><code>{
+  "header": {
+    "text": ["valor do cabeçalho de texto"],
+    "link": "https://seudominio.com.br/arquivo.pdf"
+  },
+  "body": ["valor de {{1}}", "valor de {{2}}"],
+  "buttons": {
+    "0": ["valor do botão 0"],
+    "1": ["valor do botão 1"]
+  }
+}</code></pre></div>
+
+        <div class="notice"><strong>Header com mídia:</strong> para template com cabeçalho de imagem, vídeo ou documento, envie a URL em <code>content.header.link</code>. O worker monta o componente do template a partir da tag <code>&lt;variable&gt;</code>.</div>
+
+        <div class="code"><div class="code-title"><span>Template com documento no header</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=3' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'template_name=boleto_cliente' \
+  --data-urlencode 'content={"header":{"link":"https://seudominio.com.br/arquivos/boleto.pdf"},"body":["Willian","R$ 50,00","18/04/2026"]}' \
+  --data-urlencode 'campaign_id=whatsapp-template-003'</code></pre></div>
+
+        <div class="code"><div class="code-title"><span>Template com botão dinâmico</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-single' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'type=3' \
+  --data-urlencode 'sender=103888109342779' \
+  --data-urlencode 'country_code=55' \
+  --data-urlencode 'number=14999999999' \
+  --data-urlencode 'template_name=acompanhar_pedido' \
+  --data-urlencode 'content={"body":["Willian","12345"],"buttons":{"0":["12345"]}}' \
+  --data-urlencode 'campaign_id=whatsapp-template-004'</code></pre></div>
+
+        <div class="notice danger"><strong>Atenção:</strong> a ordem e a quantidade de valores precisam ser iguais ao template aprovado. Se o corpo tem <code>{{1}}</code>, <code>{{2}}</code> e <code>{{3}}</code>, envie três valores.</div>
+      </section>
+
+      <section id="lote" class="section doc-block" data-search="send-multiple envio em massa lote json defaultValues messages">
+        <div class="head"><div><h2>Envio em massa por lote</h2><p>Use <code>send-multiple</code> para enviar mensagens em lote por JSON.</p></div><span class="tag">send-multiple</span></div>
+        <div class="endpoint"><span class="method">POST</span><code>https://api.smsmarket.com.br/webservice-rest/send-multiple</code></div>
+        <div class="notice info"><strong>Limite:</strong> envie no máximo 5000 mensagens por requisição. Use <code>defaultValues</code> para campos comuns e <code>messages</code> para os destinatários.</div>
+
+        <h3>Estrutura do JSON</h3>
+        <div class="code"><div class="code-title"><span>Modelo</span><button class="copy">Copiar</button></div><pre><code>{
+  "defaultValues": {
+    "type": 5,
+    "country_code": 55,
+    "sender": "103888109342779"
+  },
+  "messages": [
+    {
+      "number": "14999999999",
+      "contact_name": "Maria Silva",
+      "content": "Mensagem 1",
+      "campaign_id": "wa-001"
+    }
+  ]
+}</code></pre></div>
+
+        <h3>SMS em lote</h3>
+        <div class="code"><div class="code-title"><span>cURL</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-multiple' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/json' \
+  --header 'Accept: application/json' \
+  --data '{
+    "defaultValues": {
+      "type": 2,
+      "country_code": 55
+    },
+    "messages": [
+      {
+        "number": "14999999999",
+        "content": "Mensagem SMS 1",
+        "campaign_id": "sms-001"
+      },
+      {
+        "number": "14988888888",
+        "content": "Mensagem SMS 2",
+        "campaign_id": "sms-002"
+      }
+    ]
+  }'</code></pre></div>
+
+        <h3>WhatsApp texto em lote</h3>
+        <div class="code"><div class="code-title"><span>cURL</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-multiple' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/json' \
+  --header 'Accept: application/json' \
+  --data '{
+    "defaultValues": {
+      "type": 5,
+      "country_code": 55,
+      "sender": "103888109342779"
+    },
+    "messages": [
+      {
+        "number": "14999999999",
+        "contact_name": "Maria Silva",
+        "content": "Olá! Esta é uma mensagem de WhatsApp.",
+        "campaign_id": "wa-001"
+      },
+      {
+        "number": "14988888888",
+        "content": "Olá! Seu atendimento foi registrado.",
+        "campaign_id": "wa-002"
+      }
+    ]
+  }'</code></pre></div>
+
+        <h3>WhatsApp mídia em lote</h3>
+        <p>Para mídia em lote, mantenha o mesmo padrão do envio individual: <code>type</code> conforme a mídia e URL no campo <code>media</code>.</p>
+        <div class="code"><div class="code-title"><span>cURL</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/send-multiple' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ==' \
+  --header 'Content-Type: application/json' \
+  --header 'Accept: application/json' \
+  --data '{
+    "defaultValues": {
+      "type": 6,
+      "country_code": 55,
+      "sender": "103888109342779"
+    },
+    "messages": [
+      {
+        "number": "14999999999",
+        "media": "https://seudominio.com.br/imagens/produto-1.jpg",
+        "caption": "Imagem do produto 1",
+        "campaign_id": "wa-img-001"
+      },
+      {
+        "number": "14988888888",
+        "media": "https://seudominio.com.br/imagens/produto-2.jpg",
+        "caption": "Imagem do produto 2",
+        "campaign_id": "wa-img-002"
+      }
+    ]
+  }'</code></pre></div>
+
+        <h3>Resposta do lote</h3>
+        <div class="code"><div class="code-title"><span>JSON</span><button class="copy">Copiar</button></div><pre><code>{
+  "success": true,
+  "responseCode": "001",
+  "responseDescription": "Batch processed",
+  "credit": "2",
+  "balance": "87018",
+  "totalProcessed": "2",
+  "totalSuccess": "2",
+  "messages": [
+    {
+      "success": true,
+      "responseCode": "000",
+      "responseDescription": "Success queued",
+      "credit": "1"
+    }
+  ]
+}</code></pre></div>
+      </section>
+
+      <section id="consultas" class="section doc-block" data-search="consultas mt_id mt_date mo_new mo balance saldo status recebidas">
+        <div class="head"><div><h2>Consultas</h2><p>Consulte status, saldo e mensagens recebidas.</p></div><span class="tag">GET ou POST</span></div>
+
+        <h3>Status por identificador</h3>
+        <div class="endpoint"><span class="method">GET</span><code>https://api.smsmarket.com.br/webservice-rest/mt_id</code></div>
+        <div class="code"><div class="code-title"><span>Por campaign_id</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/mt_id?campaign_id=wa-001,wa-002&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='</code></pre></div>
+        <div class="code"><div class="code-title"><span>Por id</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/mt_id?id=813831,813832&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='</code></pre></div>
+
+        <h3>Status por período</h3>
+        <div class="endpoint"><span class="method">GET</span><code>https://api.smsmarket.com.br/webservice-rest/mt_date</code></div>
+        <div class="code"><div class="code-title"><span>Por período</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/mt_date?start_date=2026-04-01%2000:00:00&end_date=2026-04-16%2023:59:59&type=5&status=0,1,2&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='</code></pre></div>
+
+        <h3>Novas mensagens recebidas</h3>
+        <div class="endpoint"><span class="method">GET</span><code>https://api.smsmarket.com.br/webservice-rest/mo_new</code></div>
+        <div class="notice">Depois que uma mensagem é retornada em <code>mo_new</code>, ela não aparece novamente como nova em uma próxima consulta.</div>
+        <div class="code"><div class="code-title"><span>Recebidas novas</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/mo_new?type=5&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='</code></pre></div>
+
+        <h3>Mensagens recebidas por período</h3>
+        <div class="endpoint"><span class="method">GET</span><code>https://api.smsmarket.com.br/webservice-rest/mo</code></div>
+        <div class="code"><div class="code-title"><span>Recebidas por período</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/mo?start_date=2026-04-01%2000:00:00&end_date=2026-04-16%2023:59:59&type=5&campaign_id=wa-001&timezone=-03:00' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='</code></pre></div>
+
+        <h3>Saldo</h3>
+        <div class="endpoint"><span class="method">GET</span><code>https://api.smsmarket.com.br/webservice-rest/balance</code></div>
+        <div class="code"><div class="code-title"><span>Consultar saldo</span><button class="copy">Copiar</button></div><pre><code>curl --location 'https://api.smsmarket.com.br/webservice-rest/balance' \
+  --header 'Authorization: Basic U2V1VXN1YXJpbzpTdWFTZW5oYQ=='</code></pre></div>
+        <div class="code"><div class="code-title"><span>Resposta</span><button class="copy">Copiar</button></div><pre><code>{
+  "success": true,
+  "responseCode": "200",
+  "responseDescription": "Successful search",
+  "sms": "7289",
+  "whatsapp": "606",
+  "activation": "2026-03-30 12:10:59",
+  "expiration": "2027-03-30 23:59:59"
+}</code></pre></div>
+      </section>
+
+      <section id="callbacks" class="section doc-block" data-search="callbacks status entrega inbound mensagem recebida url">
+<div class="head"><div><h2>Callbacks</h2><p>Configure uma URL para receber status de entrega e mensagens recebidas.</p></div><span class="tag">HTTP GET</span></div>
+<div class="notice info"><strong>Onde ativar:</strong> cadastre sua URL no dashboard em <code>Perfil &gt; Webhook / API</code>.</div>
+<div class="notice info"><strong>Cadastro da URL:</strong> mantenha o <code>event_type</code> como <code>all</code>, <code>status</code> ou <code>inbound</code> e escolha também o canal permitido no cadastro: <code>SMS</code> ou <code>WhatsApp</code>. Se a mesma URL precisar receber os dois canais, cadastre duas linhas. O uso de <code>Bearer token</code> no callback é opcional.</div>
+        <h3>Status de entrega</h3>
+        <div class="code"><div class="code-title"><span>Exemplo recebido pelo seu sistema</span><button class="copy">Copiar</button></div><pre><code>https://suaurl.com/callback.php?campaign_id=abc123&id=150&status=0&date=2026-04-16+10:00:00&carrier=Whatsapp</code></pre></div>
+        <h3>Mensagem recebida</h3>
+        <div class="code"><div class="code-title"><span>Exemplo recebido pelo seu sistema</span><button class="copy">Copiar</button></div><pre><code>https://suaurl.com/callback.php?number=5514999999999&content=Recebido&campaign_id=abc123&id=150&status=4&date=2026-04-16+10:05:00&carrier=Whatsapp</code></pre></div>
+        <div class="table-wrap"><table><thead><tr><th>Campo</th><th>Descrição</th></tr></thead><tbody>
+          <tr><td><code>campaign_id</code></td><td>Identificador enviado por você na requisição.</td></tr>
+          <tr><td><code>id</code></td><td>ID interno da mensagem na SMSMarket.</td></tr>
+          <tr><td><code>status</code></td><td>Status da mensagem, ou <code>4</code> para mensagem recebida.</td></tr>
+          <tr><td><code>date</code></td><td>Data do evento.</td></tr>
+          <tr><td><code>carrier</code></td><td>Operadora ou canal, como <code>Whatsapp</code>.</td></tr>
+          <tr><td><code>number</code></td><td>Número do cliente que respondeu.</td></tr>
+          <tr><td><code>content</code></td><td>Conteúdo recebido do cliente.</td></tr>
+        </tbody></table></div>
+        <div class="notice info">Responda HTTP 200 rapidamente. Grave o evento e processe em fila se precisar executar tarefas pesadas.</div>
+      </section>
+
+      <section id="status" class="section doc-block" data-search="status responseCode enviado entregue lido erro saldo">
+        <div class="head"><div><h2>Status</h2><p>As chamadas retornam <code>responseCode</code>. As mensagens possuem status próprio de envio.</p></div><span class="tag">Referência</span></div>
+        <h3>Status de chamada</h3>
+        <div class="table-wrap"><table><thead><tr><th>responseCode</th><th>Descrição</th><th>HTTP</th><th>success</th></tr></thead><tbody>
+          <tr><td><code>000</code></td><td>Success queued</td><td><code>200 OK</code></td><td>true</td></tr>
+          <tr><td><code>001</code></td><td>Batch processed</td><td><code>200 OK</code></td><td>true</td></tr>
+          <tr><td><code>002</code></td><td>Scheduled</td><td><code>200 OK</code></td><td>true</td></tr>
+          <tr><td><code>010</code></td><td>User or password is invalid</td><td><code>401 Unauthorized</code></td><td>false</td></tr>
+          <tr><td><code>020</code></td><td>Empty or invalid type</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>030</code></td><td>Empty message content</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>040</code></td><td>Scheduling date invalid or incorrect</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>050</code></td><td>Empty or invalid number</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>060</code></td><td>International sending not allowed</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>070</code></td><td>Message rejected by server</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>080</code></td><td>Insufficient or expired balance</td><td><code>402 Payment Required</code></td><td>false</td></tr>
+          <tr><td><code>090</code></td><td>Blocked account - Please contact support</td><td><code>403 Forbidden</code></td><td>false</td></tr>
+          <tr><td><code>091</code></td><td>API access denied for this IP</td><td><code>403 Forbidden</code></td><td>false</td></tr>
+          <tr><td><code>100</code></td><td>This service is currently under maintenance</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>110</code></td><td>There was an error processing, please try again, or contact us</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>120</code></td><td>Message array cannot exceed 5000</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>130</code></td><td>Message array is empty</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>140</code></td><td>Incorrect time zone</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>150</code></td><td>File extension not allowed</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>160</code></td><td>Unknown method or unknown parameter</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>170</code></td><td>Invalid search attributes</td><td><code>200 OK</code></td><td>false</td></tr>
+          <tr><td><code>200</code></td><td>Successful search</td><td><code>200 OK</code></td><td>true</td></tr>
+        </tbody></table></div>
+
+        <h3>Status de envio</h3>
+        <div class="table-wrap"><table><thead><tr><th>Status</th><th>Descrição</th><th>Callback</th></tr></thead><tbody>
+          <tr><td><code>-1</code></td><td>Mensagem enfileirada.</td><td>Não</td></tr>
+          <tr><td><code>3</code></td><td>Preparando para envio.</td><td>Não</td></tr>
+          <tr><td><code>6</code></td><td>Mensagem pausada.</td><td>Não</td></tr>
+          <tr><td><code>-11</code></td><td>Erro: Limite Atingido</td><td>Sim</td></tr>
+          <tr><td><code>-10</code></td><td>Erro: Pagamento Restrito</td><td>Sim</td></tr>
+          <tr><td><code>-9</code></td><td>Bloqueado, sem cobertura.</td><td>Sim</td></tr>
+          <tr><td><code>-8</code></td><td>Bloqueado, conteúdo não permitido.</td><td>Sim</td></tr>
+          <tr><td><code>-7</code></td><td>Número sem WhatsApp ou indisponível.</td><td>Sim</td></tr>
+          <tr><td><code>-6</code></td><td>Mensagem cancelada.</td><td>Sim</td></tr>
+          <tr><td><code>-5</code></td><td>Bloqueado, lista negra.</td><td>Sim</td></tr>
+          <tr><td><code>-4</code></td><td>Bloqueado, número fixo.</td><td>Sim</td></tr>
+          <tr><td><code>-3</code></td><td>Bloqueado, número inválido.</td><td>Sim</td></tr>
+          <tr><td><code>-2</code></td><td>Erro na rede ou falha de entrega.</td><td>Sim</td></tr>
+          <tr><td><code>0</code></td><td>Enviado.</td><td>Sim</td></tr>
+          <tr><td><code>1</code></td><td>Entregue.</td><td>Sim</td></tr>
+          <tr><td><code>2</code></td><td>Lido no WhatsApp.</td><td>Sim</td></tr>
+          <tr><td><code>4</code></td><td>Mensagem recebida do cliente.</td><td>Sim</td></tr>
+          <tr><td><code>7</code></td><td>Expirada.</td><td>Sim</td></tr>
+          <tr><td><code>8</code></td><td>Rejeitada.</td><td>Sim</td></tr>
+          <tr><td><code>9</code></td><td>Não recebida no aparelho.</td><td>Sim</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section id="problemas" class="section doc-block" data-search="problemas erros midia saldo callback template webm 403">
+        <div class="head"><div><h2>Problemas comuns</h2><p>Verificações rápidas para falhas frequentes de integração.</p></div><span class="tag">Checklist</span></div>
+        <h3>WhatsApp não envia mídia</h3>
+        <ul><li>A URL precisa abrir sem login.</li><li>O servidor não pode retornar <code>403 Forbidden</code>.</li><li>Use as extensões aceitas pela API.</li><li>O certificado HTTPS precisa ser válido.</li><li>Áudio WebM não é aceito para envio no WhatsApp.</li></ul>
+        <h3>Erro de saldo</h3>
+        <p>Quando a API retornar <code>responseCode=080</code>, o saldo está insuficiente ou os créditos estão vencidos para o serviço solicitado. Nos endpoints de envio, este erro retorna HTTP <code>402 Payment Required</code>.</p>
+        <h3>Erro de autenticação ou acesso</h3>
+        <ul><li><code>responseCode=010</code> retorna HTTP <code>401 Unauthorized</code> quando o usuário ou senha está inválido.</li><li><code>responseCode=090</code> retorna HTTP <code>403 Forbidden</code> quando a conta está bloqueada.</li><li><code>responseCode=091</code> retorna HTTP <code>403 Forbidden</code> quando o IP não está autorizado no controle de acesso da API.</li></ul>
+        <h3>Erros do WhatsApp</h3>
+        <p>Quando a Meta retornar o erro <code>131042</code>, <code>Business eligibility payment issue</code>, a mensagem será registrada com <code>status=-10</code>: Erro: Pagamento Restrito.</p>
+        <p>Quando a Meta retornar o erro <code>131037</code>, <code>display name approval</code>, a mensagem será registrada com <code>status=-11</code>: Erro: Limite Atingido.</p>
+        <h3>Template não envia</h3>
+        <ul><li>Use o nome exato do template aprovado.</li><li>Confira se o template pertence ao canal informado no <code>sender</code>.</li><li>Envie a mesma quantidade de variáveis exigida pelo template.</li><li>Para header, body e botões dinâmicos, use JSON no <code>content</code>.</li></ul>
+      </section>
+
+      <section id="smpp" class="section doc-block" data-search="smpp bind submit_sm deliver_sm dlr mo trx tx rx sms protocolo">
+        <div class="head"><div><h2>Integração SMPP</h2><p>Use SMPP v3.4 para enviar SMS por <code>submit_sm</code> e receber DLR/MO por <code>deliver_sm</code>.</p></div><span class="tag">SMPP 3.4</span></div>
+        <div class="endpoint"><span class="method">TCP</span><code>54.233.99.254:2775</code></div>
+        <div class="notice info"><strong>Liberação de acesso:</strong> o SMPP usa o mesmo controle de IP da API. Libere o IP em <code>Perfil &gt; Webhook / API &gt; Controle de acesso</code>. Para usar SMPP, também é necessário solicitar ao suporte a habilitação do serviço na conta.</div>
+
+        <h3>Conexão e autenticação</h3>
+        <div class="table-wrap"><table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>
+          <tr><td>Host</td><td><code>54.233.99.254</code></td></tr>
+          <tr><td>Porta</td><td><code>2775</code></td></tr>
+          <tr><td>Versão</td><td><code>SMPP v3.4</code></td></tr>
+          <tr><td>TLS</td><td>Não usar TLS nesta porta.</td></tr>
+          <tr><td><code>system_id</code></td><td>Usuário da conta.</td></tr>
+          <tr><td><code>password</code></td><td>Senha cadastrada na conta SMSMarket. Por limitação do campo SMPP, use até 8 caracteres.</td></tr>
+          <tr><td><code>system_type</code></td><td>Pode ser enviado vazio.</td></tr>
+          <tr><td>Bind permitido</td><td><code>bind_tx</code>, <code>bind_rx</code> ou <code>bind_trx</code>. Recomendado: <code>bind_trx</code>.</td></tr>
+          <tr><td>Binds simultâneas</td><td>Até <code>10</code> binds por usuário.</td></tr>
+          <tr><td>Keepalive</td><td>O cliente deve manter a sessao ativa enviando <code>enquire_link</code> periodicamente, recomendado a cada <code>10</code> a <code>30</code> segundos. Sempre responda qualquer <code>enquire_link</code> recebido com <code>enquire_link_resp</code>.</td></tr>
+        </tbody></table></div>
+        <div class="notice info"><strong>Keepalive e respostas SMPP:</strong> para manter a conexão ativa, o cliente deve enviar <code>enquire_link</code> e responder todos os <code>enquire_link</code> recebidos com <code>enquire_link_resp</code>. Para DLR/MO, cada <code>deliver_sm</code> recebido deve ser respondido imediatamente com <code>deliver_sm_resp</code> usando o mesmo <code>sequence_number</code>. Conexões que não respondem dentro do timeout podem ser encerradas e os eventos voltam para a fila temporária.</div>
+
+        <h3>Envio de SMS</h3>
+        <p>Envie mensagens usando <code>submit_sm</code>. O <code>message_id</code> retornado é o identificador interno da mensagem e será usado também nos DLRs enviados por <code>deliver_sm</code>.</p>
+        <div class="table-wrap"><table><thead><tr><th>Campo SMPP</th><th>Comportamento</th></tr></thead><tbody>
+          <tr><td><code>source_addr</code></td><td>Sender opcional. Se não for enviado, será gravado como <code>0</code>.</td></tr>
+          <tr><td><code>destination_addr</code></td><td>Número em formato Brasil, por exemplo <code>5514999999999</code>.</td></tr>
+          <tr><td><code>schedule_delivery_time</code></td><td>Quando enviado, agenda o disparo conforme o horário informado.</td></tr>
+          <tr><td><code>esm_class</code></td><td>Mensagens multipart com UDH são remontadas antes de entrar na fila. Flash/Class 0 é tratado como SMS Flash.</td></tr>
+          <tr><td><code>data_coding=0</code></td><td>GSM 03.38. Quando possível, textos ambíguos são normalizados para evitar caracteres corrompidos.</td></tr>
+          <tr><td><code>data_coding=3</code></td><td>ISO-8859-1.</td></tr>
+          <tr><td><code>data_coding=8</code></td><td>UCS2/UTF-16BE. Use para acentos fora da tabela básica, símbolos especiais e emojis.</td></tr>
+        </tbody></table></div>
+        <div class="notice info"><strong>Multipart:</strong> mesmo que o aparelho exiba uma mensagem única, cada parte trafega individualmente na rede. A cobrança é feita por parte, e a mensagem é gravada consolidada depois que todas as partes chegam.</div>
+
+        <h3>DLR e mensagens recebidas</h3>
+        <p>Contas conectadas por <code>bind_rx</code> ou <code>bind_trx</code> recebem atualizações por <code>deliver_sm</code>. Se a conta estiver desconectada, os eventos ficam em fila temporária por até 24 horas. Para maior volume de DLR/MO, mantenha mais de uma bind <code>bind_rx</code> ou <code>bind_trx</code> ativa.</p>
+        <div class="code"><div class="code-title"><span>Exemplo de DLR</span><button class="copy">Copiar</button></div><pre><code>id:123456 sub:001 dlvrd:001 submit date:2604280315 done date:2604280316 stat:DELIVRD err:000 text:</code></pre></div>
+        <div class="table-wrap"><table><thead><tr><th>Status interno</th><th>Status SMPP</th></tr></thead><tbody>
+          <tr><td><code>0</code></td><td><code>ACCEPTD</code></td></tr>
+          <tr><td><code>1</code> ou <code>2</code></td><td><code>DELIVRD</code></td></tr>
+          <tr><td><code>7</code></td><td><code>EXPIRED</code></td></tr>
+          <tr><td><code>-6</code></td><td><code>DELETED</code></td></tr>
+          <tr><td><code>8</code>, <code>-4</code>, <code>-5</code> ou <code>-8</code></td><td><code>REJECTD</code></td></tr>
+          <tr><td><code>9</code>, <code>-2</code>, <code>-3</code>, <code>-7</code>, <code>-9</code>, <code>-10</code> ou <code>-11</code></td><td><code>UNDELIV</code></td></tr>
+        </tbody></table></div>
+
+        <h3>Cobran&ccedil;a por caracteres</h3>
+        <p>Caracteres da tabela b&aacute;sica s&atilde;o cobrados a cada 160 caracteres na primeira parte ou 153 caracteres em mensagens concatenadas. Qualquer caractere fora da tabela b&aacute;sica usa a regra de 70 caracteres na primeira parte ou 63 caracteres em mensagens concatenadas.</p>
+        <div class="table-wrap"><table><thead><tr><th>Tipo de conte&uacute;do</th><th>1 parte</th><th>Multipart</th></tr></thead><tbody>
+          <tr><td>Somente caracteres b&aacute;sicos, incluindo quebra de linha</td><td>At&eacute; 160 caracteres</td><td>153 caracteres por parte</td></tr>
+          <tr><td>Acentos fora da tabela, s&iacute;mbolos especiais, emojis ou caracteres estendidos</td><td>At&eacute; 70 caracteres</td><td>63 caracteres por parte</td></tr>
+        </tbody></table></div>
+        <div class="code"><div class="code-title"><span>Caracteres b&aacute;sicos</span><button class="copy">Copiar</button></div><pre><code>Espa&ccedil;o, quebra de linha, letras A-Z, letras a-z, n&uacute;meros 0-9
+! &quot; # $ % &amp; ' ( ) * + , - . / : ; &lt; = &gt; ? @ _ `
+Aspas curvas: &ldquo; &rdquo; &lsquo; &rsquo;</code></pre></div>
+        <p class="muted"><strong>Caracteres especiais/estendidos:</strong> <code>&#91;</code>, <code>&#93;</code>, <code>&#123;</code>, <code>&#125;</code>, <code>\</code>, <code>^</code>, <code>|</code>, <code>~</code> e <code>&euro;</code> n&atilde;o fazem parte da tabela b&aacute;sica. Para usar esses caracteres, envie <code>utf8=1</code>; nesse modo cada um deles conta como 2 caracteres no c&aacute;lculo do SMS.</p>
+      </section>
+
+      <footer class="footer">
+        SMSMarket API - SMS, WhatsApp, consultas, callbacks e SMPP.
+      </footer>
+    </main>
+  </div>
+  <script>
+    (function(){
+      var buttons = document.querySelectorAll('.copy');
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener('click', function(){
+          var block = this.closest('.code');
+          var code = block ? block.querySelector('code') : null;
+          var text = code ? code.innerText : '';
+          var btn = this;
+          function ok(){
+            var old = btn.innerText;
+            btn.innerText = 'Copiado';
+            setTimeout(function(){ btn.innerText = old; }, 1300);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(ok);
+          } else {
+            var area = document.createElement('textarea');
+            area.value = text;
+            area.style.position = 'fixed';
+            area.style.left = '-9999px';
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand('copy');
+            document.body.removeChild(area);
+            ok();
+          }
+        });
+      }
+
+      var mobileNav = document.getElementById('mobileNav');
+      if (mobileNav) {
+        mobileNav.addEventListener('change', function(){
+          var el = document.querySelector(this.value);
+          if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+        });
+      }
+
+      var search = document.getElementById('docSearch');
+      var blocks = document.querySelectorAll('.doc-block');
+      if (search) {
+        search.addEventListener('input', function(){
+          var q = this.value.toLowerCase().trim();
+          for (var i = 0; i < blocks.length; i++) {
+            var hay = (blocks[i].getAttribute('data-search') || '') + ' ' + blocks[i].innerText;
+            blocks[i].classList.toggle('hidden', q && hay.toLowerCase().indexOf(q) === -1);
+          }
+        });
+      }
+
+      var links = document.querySelectorAll('#sideNav a');
+      var docTabs = document.querySelectorAll('.doc-tab');
+      if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries){
+          entries.forEach(function(entry){
+            if (!entry.isIntersecting) return;
+            var id = '#' + entry.target.id;
+            for (var i = 0; i < links.length; i++) {
+              links[i].classList.toggle('active', links[i].getAttribute('href') === id);
+            }
+            for (var j = 0; j < docTabs.length; j++) {
+              var tabTarget = docTabs[j].getAttribute('href');
+              docTabs[j].classList.toggle('active', (id === '#smpp' && tabTarget === '#smpp') || (id !== '#smpp' && tabTarget === '#inicio'));
+            }
+            if (mobileNav) mobileNav.value = id;
+          });
+        }, {rootMargin:'-35% 0px -55% 0px', threshold:0.01});
+        for (var i = 0; i < blocks.length; i++) {
+          if (blocks[i].id) observer.observe(blocks[i]);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
+

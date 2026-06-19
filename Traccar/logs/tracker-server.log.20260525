@@ -1,0 +1,82 @@
+2026-05-24 08:03:00  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=12h6m6s19ms247µs900ns).
+2026-05-24 12:54:18  INFO: Operating system name: Windows 10 version: 10.0 architecture: amd64
+2026-05-24 12:54:18  INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Eclipse Adoptium version: 21.0.7+6-LTS
+2026-05-24 12:54:18  INFO: Memory limit heap: 2032mb non-heap: 0mb
+2026-05-24 12:54:18  INFO: Character encoding: UTF-8
+2026-05-24 12:54:18  INFO: Version: 6.12.2
+2026-05-24 12:54:18  INFO: Starting server...
+2026-05-24 12:54:19  INFO: HikariPool-1 - Starting...
+2026-05-24 12:54:20  INFO: HikariPool-1 - Added connection conn0: url=jdbc:h2:./data/database user=SA
+2026-05-24 12:54:20  INFO: HikariPool-1 - Start completed.
+2026-05-24 12:54:21  INFO: Set default schema name to PUBLIC
+2026-05-24 12:54:22  INFO: Successfully acquired change log lock
+2026-05-24 12:54:22  INFO: Clearing database change log checksums for database h2
+2026-05-24 12:54:22  INFO: Successfully released change log lock
+2026-05-24 12:54:22  INFO: Command execution complete
+2026-05-24 12:54:25  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-24 12:54:27  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-24 12:54:27  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-24 12:54:27  INFO: UPDATE SUMMARY
+2026-05-24 12:54:27  INFO: Run:                          0
+2026-05-24 12:54:27  INFO: Previously run:              31
+2026-05-24 12:54:27  INFO: Filtered out:                 0
+2026-05-24 12:54:27  INFO: -------------------------------
+2026-05-24 12:54:27  INFO: Total change sets:           31
+2026-05-24 12:54:27  INFO: Update summary generated
+2026-05-24 12:54:27  INFO: Command execution complete
+2026-05-24 12:54:31  WARN: Port disabled due to conflict - Address already in use: bind - BindException (...)
+2026-05-24 12:54:32  INFO: jetty-12.1.6; built: 2026-01-27T18:53:19.182Z; git: 88ca559572b1c8858b3c5684bb0293fa64e5e90f; jvm 21.0.7+6-LTS
+2026-05-24 12:54:32  INFO: Session workerName=node0
+2026-05-24 12:54:32  INFO: Started oeje10s.ServletContextHandler@54c4dd0c{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@3dbce53{STARTED}}
+2026-05-24 12:54:35  INFO: Started oeje10s.ServletContextHandler@54c4dd0c{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@3dbce53{STARTED}}
+2026-05-24 12:54:35  INFO: Started oejs.ServerConnector@4123832a{HTTP/1.1, (http/1.1)}{0.0.0.0:8082}
+2026-05-24 12:54:35  INFO: Started oejs.Server@1c223a7{STARTING}[12.1.6,sto=0] @2631ms
+2026-05-24 13:35:47  INFO: [T183d0088] connected
+2026-05-24 13:35:47  INFO: [T183d0088: tek < 0:0:0:0:0:0:0:1] GET /?token=wBRe0lJxj8Tm HTTP/1.1\r\nHost: localhost:5173\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\r\nAccept-Language: pt-BR,pt;q=0.6\r\nUpgrade: websocket\r\nOrigin: http://localhost:5175\r\nSec-WebSocket-Version: 13\r\nAccept-Encoding: gzip, deflate, br, zstd\r\nSec-WebSocket-Key: 30rypZeq1Fesmgpa+FWjTg==\r\nSec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\r\nSec-WebSocket-Protocol: vite-hmr\r\n\r\n
+2026-05-24 13:35:47  WARN: Unknown device - f6b656e3d774252 (0:0:0:0:0:0:0:1)
+2026-05-24 13:35:47  WARN: Unknown device - 96c6c612f352e30 (0:0:0:0:0:0:0:1)
+2026-05-24 13:35:47  WARN: Unknown device - d42522c70743b71 (0:0:0:0:0:0:0:1)
+2026-05-24 13:35:47  WARN: Unknown device - 374640d0a536563 (0:0:0:0:0:0:0:1)
+2026-05-24 13:39:47  INFO: [T183d0088] disconnected
+2026-05-24 14:10:15  INFO: Stopping server...
+2026-05-25 06:46:37  INFO: Operating system name: Windows 10 version: 10.0 architecture: amd64
+2026-05-25 06:46:37  INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Eclipse Adoptium version: 21.0.7+6-LTS
+2026-05-25 06:46:37  INFO: Memory limit heap: 2032mb non-heap: 0mb
+2026-05-25 06:46:37  INFO: Character encoding: UTF-8
+2026-05-25 06:46:37  INFO: Version: 6.12.2
+2026-05-25 06:46:37  INFO: Starting server...
+2026-05-25 06:46:38  INFO: HikariPool-1 - Starting...
+2026-05-25 06:46:39  INFO: HikariPool-1 - Added connection conn0: url=jdbc:h2:./data/database user=SA
+2026-05-25 06:46:39  INFO: HikariPool-1 - Start completed.
+2026-05-25 06:46:40  INFO: Set default schema name to PUBLIC
+2026-05-25 06:46:41  INFO: Successfully acquired change log lock
+2026-05-25 06:46:41  INFO: Clearing database change log checksums for database h2
+2026-05-25 06:46:41  INFO: Successfully released change log lock
+2026-05-25 06:46:41  INFO: Command execution complete
+2026-05-25 06:46:43  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-25 06:46:46  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-25 06:46:46  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-25 06:46:46  INFO: UPDATE SUMMARY
+2026-05-25 06:46:46  INFO: Run:                          0
+2026-05-25 06:46:46  INFO: Previously run:              31
+2026-05-25 06:46:46  INFO: Filtered out:                 0
+2026-05-25 06:46:46  INFO: -------------------------------
+2026-05-25 06:46:46  INFO: Total change sets:           31
+2026-05-25 06:46:46  INFO: Update summary generated
+2026-05-25 06:46:46  INFO: Command execution complete
+2026-05-25 06:46:49  WARN: Port disabled due to conflict - Address already in use: bind - BindException (...)
+2026-05-25 06:46:52  INFO: jetty-12.1.6; built: 2026-01-27T18:53:19.182Z; git: 88ca559572b1c8858b3c5684bb0293fa64e5e90f; jvm 21.0.7+6-LTS
+2026-05-25 06:46:52  INFO: Session workerName=node0
+2026-05-25 06:46:52  INFO: Started oeje10s.ServletContextHandler@54c4dd0c{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@3dbce53{STARTED}}
+2026-05-25 06:46:55  INFO: Started oeje10s.ServletContextHandler@54c4dd0c{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@3dbce53{STARTED}}
+2026-05-25 06:46:55  INFO: Started oejs.ServerConnector@1c223a7{HTTP/1.1, (http/1.1)}{0.0.0.0:8082}
+2026-05-25 06:46:55  INFO: Started oejs.Server@dbe8720{STARTING}[12.1.6,sto=0] @2910ms
+2026-05-25 11:49:08  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=4h2m26s752ms681µs700ns).
+2026-05-25 11:56:01  INFO: [Tb01f309f] connected
+2026-05-25 11:56:01  INFO: [Tb01f309f: tek < 0:0:0:0:0:0:0:1] GET /?token=wBRe0lJxj8Tm HTTP/1.1\r\nHost: localhost:5173\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\r\nAccept-Language: pt-BR,pt;q=0.6\r\nUpgrade: websocket\r\nOrigin: http://localhost:5175\r\nSec-WebSocket-Version: 13\r\nAccept-Encoding: gzip, deflate, br, zstd\r\nSec-WebSocket-Key: rzWkGYoY0640gg5ccsugkQ==\r\nSec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\r\nSec-WebSocket-Protocol: vite-hmr\r\n\r\n
+2026-05-25 11:56:01  WARN: Unknown device - f6b656e3d774252 (0:0:0:0:0:0:0:1)
+2026-05-25 11:56:01  WARN: Unknown device - 96c6c612f352e30 (0:0:0:0:0:0:0:1)
+2026-05-25 11:56:01  WARN: Unknown device - d42522c70743b71 (0:0:0:0:0:0:0:1)
+2026-05-25 11:56:01  WARN: Unknown device - 374640d0a536563 (0:0:0:0:0:0:0:1)
+2026-05-25 12:00:01  INFO: [Tb01f309f] disconnected
+2026-05-25 22:55:59  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1h32m48s916ms378µs900ns).

@@ -1,0 +1,70 @@
+name: Build and Deploy to Portainer
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Logar no GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e Push do Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ghcr.io/${{ github.repository }}-backend:latest
+
+      - name: Build e Push do Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ghcr.io/${{ github.repository }}-frontend:latest
+
+  deploy-portainer:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Atualizar Stack no Portainer (API)
+        run: |
+          echo "Enviando docker-compose para a API do Portainer..."
+          COMPOSE_CONTENT=$(cat docker-compose.yml | jq -Rs .)
+          PAYLOAD="{\"stackFileContent\": $COMPOSE_CONTENT, \"env\": [], \"prune\": false, \"pullImage\": true}"
+          
+          # Tenta atualizar assumindo Endpoint ID 1 (Padrão)
+          RESPONSE=$(curl -s -X PUT -k \
+            -H "X-API-Key: ${{ secrets.PORTAINER_SECRET }}" \
+            -H "Content-Type: application/json" \
+            "https://portainer.blrastreamentoveicular.com.br/api/stacks/1?endpointId=1" \
+            -d "$PAYLOAD")
+            
+          echo "Resposta do Portainer: $RESPONSE"
+          
+          if echo "$RESPONSE" | grep -q "err"; then
+            echo "Erro na atualização. O Endpoint ID pode ser 2."
+            curl -s -X PUT -k \
+              -H "X-API-Key: ${{ secrets.PORTAINER_SECRET }}" \
+              -H "Content-Type: application/json" \
+              "https://portainer.blrastreamentoveicular.com.br/api/stacks/1?endpointId=2" \
+              -d "$PAYLOAD"
+          fi

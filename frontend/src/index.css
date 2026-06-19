@@ -1,0 +1,237 @@
+:root {
+  --bg-main: #F4F7FE;
+  --bg-sidebar: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --text-primary: #2B3674;
+  --text-secondary: #A3AED0;
+  --text-gray: #707EAE;
+  --accent-purple: #6F42C1;
+  --accent-blue-light: #4318FF;
+  --accent-cyan: #00B8E2;
+  --accent-green: #05CD99;
+  --accent-blue: #3965FF;
+  --accent-gold: #D4AF37;
+  --border-color: #E0E5F2;
+  --sidebar-width: 260px;
+  --shadow-sm: 0px 4px 12px rgba(112, 144, 176, 0.08);
+  --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
+}
+
+:root.dark {
+  --bg-main: #0c0c0e;       /* Fundo preto cinza super elegante (quase preto) */
+  --bg-sidebar: #16161a;    /* Sidebar em preto cinza */
+  --bg-card: #1c1c21;       /* Cards em preto cinza */
+  --text-primary: #f4f4f5;  /* Texto principal claro (Zinc 100) */
+  --text-secondary: #a1a1aa;/* Texto secundário cinza (Zinc 400) */
+  --text-gray: #cbd5e1;     /* Texto geral cinza claro */
+  --border-color: #2b2b33;  /* Borda escura zincada */
+  --shadow-sm: 0px 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0px 18px 40px rgba(0, 0, 0, 0.7);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+ul {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ==========================================
+   SOBRESCRIÇÕES GLOBAIS PARA TEMA ESCURO (DARK)
+   Foca na compatibilidade de todas as páginas
+   ========================================== */
+:root.dark body,
+:root.dark .veiculos-page,
+:root.dark .clientes-page,
+:root.dark .gerenciar-page,
+:root.dark .comando-page,
+:root.dark .cercas-page,
+:root.dark .alertas-page {
+  background-color: var(--bg-main) !important;
+  background: var(--bg-main) !important;
+  color: var(--text-primary) !important;
+}
+
+:root.dark .card,
+:root.dark .card-box,
+:root.dark .form-card,
+:root.dark .table-card,
+:root.dark .table-container,
+:root.dark .veiculos-container,
+:root.dark .clientes-container,
+:root.dark .comando-container,
+:root.dark .alertas-container,
+:root.dark .gerenciar-container,
+:root.dark .cercas-container,
+:root.dark .control-panel,
+:root.dark .settings-box,
+:root.dark .panel,
+:root.dark .box,
+:root.dark .modal-content,
+:root.dark .popup,
+:root.dark .map-sidebar,
+:root.dark .map-controls-card,
+:root.dark .overview-card,
+:root.dark .overdue-customers-card,
+:root.dark .devices-overview-card,
+:root.dark .overdue-item,
+:root.dark .financial-panel > div,
+:root.dark .kpi-card,
+:root.dark .action-card,
+:root.dark .input-group,
+:root.dark .search-box,
+:root.dark .alertas-list,
+:root.dark .comando-card,
+:root.dark .info-box,
+:root.dark .clientes-table-container,
+:root.dark .clientes-table,
+:root.dark .veiculos-table,
+:root.dark .expanded-row,
+:root.dark .mini-thumb {
+  background-color: var(--bg-card) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+:root.dark input:not(.login-container input),
+:root.dark select:not(.login-container select),
+:root.dark textarea:not(.login-container textarea) {
+  background-color: var(--bg-main) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+:root.dark .search-box input,
+:root.dark .search-widget input,
+:root.dark .input-group input {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:root.dark input::placeholder,
+:root.dark textarea::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+:root.dark h1,
+:root.dark h2,
+:root.dark h3,
+:root.dark h4,
+:root.dark h5,
+:root.dark h6,
+:root.dark strong,
+:root.dark b,
+:root.dark .clientes-header h1,
+:root.dark .header-left h1 {
+  color: var(--text-primary) !important;
+}
+
+:root.dark p,
+:root.dark span,
+:root.dark label,
+:root.dark small {
+  color: var(--text-gray) !important;
+}
+
+/* Sobrescrita de Badges e Status Pills para Tema Escuro */
+:root.dark .status-pill.online,
+:root.dark .connection-pill.is-online,
+:root.dark .status-chip--online,
+:root.dark .status-chip--moving,
+:root.dark .stat-pill--online strong {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+:root.dark .status-pill.offline,
+:root.dark .connection-pill.is-offline,
+:root.dark .status-chip--offline,
+:root.dark .overdue-badge,
+:root.dark .overdue-total-pill {
+  background-color: rgba(255, 51, 51, 0.2) !important;
+  background: rgba(255, 51, 51, 0.2) !important;
+  color: #ff3333 !important;
+  border-color: rgba(255, 51, 51, 0.35) !important;
+}
+
+:root.dark .overdue-total-pill span,
+:root.dark .overdue-total-pill strong,
+:root.dark .overdue-badge span,
+:root.dark .status-pill.offline span,
+:root.dark .status-pill.offline {
+  color: #ff3333 !important;
+}
+
+:root.dark .badge-id {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+:root.dark .sync-tag {
+  background-color: rgba(67, 24, 255, 0.15) !important;
+  background: rgba(67, 24, 255, 0.15) !important;
+  color: #a3b8ff !important;
+  border-color: rgba(67, 24, 255, 0.3) !important;
+}
+
+:root.dark .nav-item span,
+:root.dark button span,
+:root.dark .btn-primary span,
+:root.dark .btn-add-veiculo span {
+  color: inherit !important;
+}
+
+/* Tabelas e grids */
+:root.dark table,
+:root.dark th,
+:root.dark td,
+:root.dark .veiculos-table th,
+:root.dark .veiculos-table td,
+:root.dark .clientes-table th,
+:root.dark .clientes-table td,
+:root.dark .table-head,
+:root.dark .table-row {
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  background-color: var(--bg-card) !important;
+}
+
+:root.dark th,
+:root.dark .veiculos-table th,
+:root.dark .clientes-table th,
+:root.dark .table-head {
+  background-color: var(--bg-main) !important;
+  background: var(--bg-main) !important;
+  border-bottom: 2px solid var(--border-color) !important;
+}
+
+:root.dark tr:hover,
+:root.dark .table-row:hover,
+:root.dark .clientes-table tbody tr:hover,
+:root.dark .veiculos-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}

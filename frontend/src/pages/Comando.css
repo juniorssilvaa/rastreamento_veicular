@@ -1,0 +1,169 @@
+.comando-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.comando-page h1 {
+  font-size: 28px;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.comando-page .subtitle {
+  color: #6B7280;
+  margin-bottom: 40px;
+}
+
+.comando-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.comando-card label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.device-select {
+  width: 100%;
+  height: 48px;
+  border-radius: 8px;
+  border: 1px solid #D1D5DB;
+  padding: 0 16px;
+  font-size: 16px;
+  color: #111827;
+  background-color: #fff;
+  margin-bottom: 32px;
+  outline: none;
+  cursor: pointer;
+}
+
+.device-select:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.btns-mini {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-mini-red, .btn-mini-green {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.btn-mini-red {
+  background-color: #DC2626;
+  color: white;
+}
+
+.btn-mini-green {
+  background-color: #22c55e;
+  color: white;
+}
+
+.btn-mini-red:hover, .btn-mini-green:hover {
+  opacity: 0.9;
+}
+
+.actions-group {
+  display: flex;
+  gap: 20px;
+}
+
+.btn-comando {
+  flex: 1;
+  height: 56px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #fff;
+}
+
+.btn-block {
+  background-color: #DC2626;
+}
+
+.btn-block:hover {
+  background-color: #DC2626;
+  transform: translateY(-2px);
+}
+
+.btn-unblock {
+  background-color: #10B981;
+}
+
+.btn-unblock:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+}
+
+.status-msg {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 6px;
+  background-color: #F3F4F6;
+  color: #374151;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.info-box {
+  margin-top: 32px;
+  background-color: #FFFBEB;
+  border: 1px solid #FEF3C7;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.info-box h4 {
+  color: #92400E;
+  margin-bottom: 8px;
+}
+
+.info-box p {
+  color: #B45309;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Alias para compatibilidade */
+.comando-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.comando-container h1 {
+  font-size: 28px;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.sms-inbound-box {
+  margin-top: 32px;
+  background: linear-gradient(135deg, rgba(30, 27, 15, 0.95), rgba(20, 18, 8, 0.98));
+  border: 1px solid rgba(226, 201, 78, 0.2);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(226, 201, 78, 0.08);
+}

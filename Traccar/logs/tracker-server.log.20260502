@@ -1,0 +1,5 @@
+2026-05-02 09:31:07  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=9h36s477ms425µs800ns).
+2026-05-02 12:26:54  INFO: [T44cf4e77] connected
+2026-05-02 12:26:54  INFO: [T44cf4e77: intellitrac < 127.0.0.1] 000chost:version
+2026-05-02 13:24:43  WARN: [T44cf4e77] error - Connection reset - SocketException (...)
+2026-05-02 13:24:43  INFO: [T44cf4e77] disconnected

@@ -1,0 +1,47 @@
+2026-05-18 09:09:46  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=9h27m39s716ms62µs400ns).
+2026-05-18 13:42:06  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1h49s956ms969µs900ns).
+2026-05-18 13:43:01  INFO: [T0df34878] connected
+2026-05-18 13:43:01  INFO: [T0df34878: intellitrac < 127.0.0.1] 000chost:version
+2026-05-18 19:47:03  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=47m26s6ms84µs300ns).
+2026-05-18 21:07:51  WARN: [T0df34878] error - Connection reset - SocketException (...)
+2026-05-18 21:07:51  INFO: [T0df34878] disconnected
+2026-05-18 22:10:15  INFO: Operating system name: Windows 10 version: 10.0 architecture: amd64
+2026-05-18 22:10:15  INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Microsoft version: 17.0.17+10-LTS
+2026-05-18 22:10:15  INFO: Memory limit heap: 2032mb non-heap: 0mb
+2026-05-18 22:10:15  INFO: Character encoding: windows-1252
+2026-05-18 22:10:15  INFO: Version: 6.12.2
+2026-05-18 22:10:15  INFO: Starting server...
+2026-05-18 22:10:16  INFO: HikariPool-1 - Starting...
+2026-05-18 22:10:18 ERROR: Main method error - The file is locked: E:/blrastreamento/Traccar/data/database.mv.db [2.4.240/7] - MVStoreException (... < DatabaseModule:80 < <gener:-1 < *:-1 < ... < MainModule:140 < <gener:-1 < ...)
+2026-05-18 22:30:40  INFO: Operating system name: Windows 10 version: 10.0 architecture: amd64
+2026-05-18 22:30:40  INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Microsoft version: 17.0.17+10-LTS
+2026-05-18 22:30:40  INFO: Memory limit heap: 2032mb non-heap: 0mb
+2026-05-18 22:30:40  INFO: Character encoding: windows-1252
+2026-05-18 22:30:40  INFO: Version: 6.12.2
+2026-05-18 22:30:40  INFO: Starting server...
+2026-05-18 22:30:41  INFO: HikariPool-1 - Starting...
+2026-05-18 22:30:42  INFO: HikariPool-1 - Added connection conn0: url=jdbc:h2:./data/database user=SA
+2026-05-18 22:30:42  INFO: HikariPool-1 - Start completed.
+2026-05-18 22:30:42  INFO: Set default schema name to PUBLIC
+2026-05-18 22:30:43  INFO: Successfully acquired change log lock
+2026-05-18 22:30:43  INFO: Clearing database change log checksums for database h2
+2026-05-18 22:30:43  INFO: Successfully released change log lock
+2026-05-18 22:30:43  INFO: Command execution complete
+2026-05-18 22:30:45  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-18 22:30:47  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-18 22:30:48  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-18 22:30:48  INFO: UPDATE SUMMARY
+2026-05-18 22:30:48  INFO: Run:                          0
+2026-05-18 22:30:48  INFO: Previously run:              31
+2026-05-18 22:30:48  INFO: Filtered out:                 0
+2026-05-18 22:30:48  INFO: -------------------------------
+2026-05-18 22:30:48  INFO: Total change sets:           31
+2026-05-18 22:30:48  INFO: Update summary generated
+2026-05-18 22:30:48  INFO: Command execution complete
+2026-05-18 22:30:51  WARN: Port disabled due to conflict - Address already in use: bind - BindException (...)
+2026-05-18 22:30:52  INFO: jetty-12.1.6; built: 2026-01-27T18:53:19.182Z; git: 88ca559572b1c8858b3c5684bb0293fa64e5e90f; jvm 17.0.17+10-LTS
+2026-05-18 22:30:52  INFO: Session workerName=node0
+2026-05-18 22:30:52  INFO: Started oeje10s.ServletContextHandler@7d18338b{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@3f4a605f{STARTED}}
+2026-05-18 22:30:54  INFO: Started oeje10s.ServletContextHandler@7d18338b{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@3f4a605f{STARTED}}
+2026-05-18 22:30:54  INFO: Started oejs.ServerConnector@52bc6fcf{HTTP/1.1, (http/1.1)}{0.0.0.0:8082}
+2026-05-18 22:30:54  INFO: Started oejs.Server@1942a36e{STARTING}[12.1.6,sto=0] @2090ms

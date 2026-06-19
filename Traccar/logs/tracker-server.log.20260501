@@ -1,0 +1,33 @@
+2026-05-01 11:07:15  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=8h6m56s106ms49µs601ns).
+2026-05-01 21:58:55  INFO: Operating system name: Windows 10 version: 10.0 architecture: amd64
+2026-05-01 21:58:55  INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Eclipse Adoptium version: 21.0.7+6-LTS
+2026-05-01 21:58:55  INFO: Memory limit heap: 2032mb non-heap: 0mb
+2026-05-01 21:58:55  INFO: Character encoding: UTF-8
+2026-05-01 21:58:55  INFO: Version: 6.12.2
+2026-05-01 21:58:55  INFO: Starting server...
+2026-05-01 21:58:56  INFO: HikariPool-1 - Starting...
+2026-05-01 21:58:58  INFO: HikariPool-1 - Added connection conn0: url=jdbc:h2:./data/database user=SA
+2026-05-01 21:58:58  INFO: HikariPool-1 - Start completed.
+2026-05-01 21:58:58  INFO: Set default schema name to PUBLIC
+2026-05-01 21:59:00  INFO: Successfully acquired change log lock
+2026-05-01 21:59:00  INFO: Clearing database change log checksums for database h2
+2026-05-01 21:59:00  INFO: Successfully released change log lock
+2026-05-01 21:59:00  INFO: Command execution complete
+2026-05-01 21:59:01  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-01 21:59:04  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-01 21:59:04  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-01 21:59:05  INFO: UPDATE SUMMARY
+2026-05-01 21:59:05  INFO: Run:                          0
+2026-05-01 21:59:05  INFO: Previously run:              31
+2026-05-01 21:59:05  INFO: Filtered out:                 0
+2026-05-01 21:59:05  INFO: -------------------------------
+2026-05-01 21:59:05  INFO: Total change sets:           31
+2026-05-01 21:59:05  INFO: Update summary generated
+2026-05-01 21:59:05  INFO: Command execution complete
+2026-05-01 21:59:08  WARN: Port disabled due to conflict - Address already in use: bind - BindException (...)
+2026-05-01 21:59:09  INFO: jetty-12.1.6; built: 2026-01-27T18:53:19.182Z; git: 88ca559572b1c8858b3c5684bb0293fa64e5e90f; jvm 21.0.7+6-LTS
+2026-05-01 21:59:09  INFO: Session workerName=node0
+2026-05-01 21:59:09  INFO: Started oeje10s.ServletContextHandler@9a09ea8{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@54c4dd0c{STARTED}}
+2026-05-01 21:59:12  INFO: Started oeje10s.ServletContextHandler@9a09ea8{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@54c4dd0c{STARTED}}
+2026-05-01 21:59:12  INFO: Started oejs.ServerConnector@36323ed5{HTTP/1.1, (http/1.1)}{0.0.0.0:8082}
+2026-05-01 21:59:12  INFO: Started oejs.Server@4fb7aff5{STARTING}[12.1.6,sto=0] @2581ms

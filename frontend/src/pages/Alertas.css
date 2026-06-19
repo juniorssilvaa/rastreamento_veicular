@@ -1,0 +1,379 @@
+.alertas-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.alertas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.title-section {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-action-red {
+  background-color: #DC2626; /* Vermelho forte */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.btn-action-red:hover {
+  background-color: #B91C1C;
+}
+
+.btn-action-white {
+  background-color: transparent;
+  color: #374151;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.add-section {
+    display: flex;
+    align-items: center;
+}
+
+.add-icon-btn {
+    background-color: #4B5563; /* Cinza chumbo conforme imagem */
+    color: white;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-icon-btn:hover {
+    background-color: #374151;
+    transform: scale(1.05);
+}
+
+.alertas-list {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border: 1px solid #F3F4F6;
+}
+
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.alert-item:last-child {
+  border-bottom: none;
+}
+
+.alert-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.alert-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid #D1D5DB;
+    cursor: pointer;
+}
+
+.alert-name {
+  font-size: 15px;
+  color: #111827;
+  font-weight: 500;
+}
+
+.alert-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2D3E50; /* Cor azul chumbo conforme imagem */
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.btn-del {
+  background: none;
+  border: none;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.btn-del:hover {
+  color: #DC2626;
+}
+
+/* Modal Tabs */
+.tabs-header {
+  display: flex;
+  background-color: #F3F4F6;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.tab-btn {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 12px;
+  font-size: 14px;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  background-color: #E5E7EB;
+}
+
+.tab-btn.active {
+  background-color: #fff;
+  color: #111827;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-bottom: 3px solid #1F2937;
+}
+
+.tab-body {
+  min-height: 200px;
+  margin-bottom: 30px;
+}
+
+/* Schedule Grid (Imagem 2) */
+.schedule-grid {
+    border: 1px solid #E5E7EB;
+    border-radius: 4px;
+    margin-top: 15px;
+    padding: 10px;
+}
+
+.grid-header {
+    display: flex;
+    justify-content: space-around;
+    padding-left: 30px;
+    font-size: 11px;
+    color: #9CA3AF;
+    margin-bottom: 5px;
+}
+
+.grid-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+
+.day-label {
+    width: 20px;
+    background-color: #D1D5DB;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 4px;
+    padding: 2px 0;
+}
+
+.grid-cells {
+    display: flex;
+    flex: 1;
+    gap: 1px;
+}
+
+.cell {
+    flex: 1;
+    height: 24px;
+    background-color: #FBFCFE;
+    border: 1px solid #F3F4F6;
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.cell:hover {
+    background-color: #f0f0f0;
+}
+
+.cell.selected {
+    background-color: #2D3E50; /* Mesmo azul do toggle */
+    border-color: #1F2937;
+}
+
+.schedule-grid.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+
+.device-selection-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    margin-top: 10px;
+    padding: 10px;
+}
+
+.device-check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-bottom: 1px solid #F3F4F6;
+    font-size: 14px;
+}
+
+.device-check-item:last-child {
+    border-bottom: none;
+}
+
+.device-check-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.grid-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.btn-small {
+    background-color: #94A3B8;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* Notifications Tab (Imagem 1) */
+.color-bar {
+    width: 100%;
+    height: 12px;
+    background: linear-gradient(to right, #000, #333);
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.form-check-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.form-control {
+    width: 100%;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #D1D5DB;
+    padding: 0 12px;
+    outline: none;
+}
+
+.form-control:focus {
+    border-color: #1F2937;
+}
+
+.modal-footer-btns {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.btn-save {
+    background-color: #2D3E50;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background-color: #F3F4F6;
+    color: #111827;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}

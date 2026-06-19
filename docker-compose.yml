@@ -1,0 +1,126 @@
+version: "3.8"
+
+services:
+  # ===============================
+  # 🐘 POSTGRESQL
+  # ===============================
+  blrastreamento-postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: blrastreamento
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - blrastreamento-postgres-data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d blrastreamento"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+
+  # ===============================
+  # 🧠 BACKEND DJANGO (API)
+  # ===============================
+  blrastreamento-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ghcr.io/juniorssilvaa/rastreamento_veicular-backend:latest
+    depends_on:
+      blrastreamento-postgres:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - internal
+      - blnet
+    volumes:
+      - blrastreamento-media:/app/media
+    environment:
+      # Credenciais do Django Superuser para o Docker criar automaticamente
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_PASSWORD=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@admin.com
+      
+      # Conexão com o Banco de Dados
+      - POSTGRES_HOST=blrastreamento-postgres
+      - POSTGRES_DB=blrastreamento
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_PORT=5432
+      
+      - SECRET_KEY=django-insecure-blrastreamento123
+      - DEBUG=False
+      - ALLOWED_HOSTS=*
+      - CORS_ALLOW_ALL_ORIGINS=True
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=blnet"
+        # O backend vai responder a qualquer requisicao que comece com /api, /admin ou /media
+        - "traefik.http.routers.blrastreamento-api.rule=Host(`app.blrastreamentoveicular.com.br`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/media`))"
+        - "traefik.http.routers.blrastreamento-api.entrypoints=websecure"
+        - "traefik.http.routers.blrastreamento-api.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.blrastreamento-api.priority=20"
+        - "traefik.http.routers.blrastreamento-api.service=blrastreamento-api-svc"
+        - "traefik.http.services.blrastreamento-api-svc.loadbalancer.server.port=8000"
+
+  # ===============================
+  # 🌐 FRONTEND (REACT/VITE)
+  # ===============================
+  blrastreamento-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: ghcr.io/juniorssilvaa/rastreamento_veicular-frontend:latest
+    networks:
+      - internal
+      - blnet
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 16M
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=blnet"
+        # O frontend responde a raiz do dominio
+        - "traefik.http.routers.blrastreamento-fe.rule=Host(`app.blrastreamentoveicular.com.br`)"
+        - "traefik.http.routers.blrastreamento-fe.entrypoints=websecure"
+        - "traefik.http.routers.blrastreamento-fe.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.blrastreamento-fe.priority=10"
+        - "traefik.http.routers.blrastreamento-fe.service=blrastreamento-fe-svc"
+        - "traefik.http.services.blrastreamento-fe-svc.loadbalancer.server.port=80"
+
+networks:
+  blnet:
+    external: true
+  internal:
+    driver: overlay
+
+volumes:
+  blrastreamento-media:
+  blrastreamento-postgres-data:

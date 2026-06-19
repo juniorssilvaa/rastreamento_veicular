@@ -1,0 +1,460 @@
+.veiculos-page {
+    padding: 24px;
+    background-color: #f9fafb;
+    min-height: 100vh;
+}
+
+.veiculos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header-left h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    width: 300px;
+    gap: 10px;
+    color: #9CA3AF;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: #374151;
+}
+
+.btn-add-veiculo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #111827;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* TABELA TÉCNICA */
+.veiculos-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.veiculos-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    background-color: white; 
+}
+
+.veiculos-table th {
+    background-color: #f9fafb;
+    padding: 14px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4B5563;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.veiculos-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.cell-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+}
+
+.mini-thumb {
+    width: 32px;
+    height: 32px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.mini-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.badge-id {
+    font-family: inherit;
+    background: #eff6ff;
+    color: #1e40af;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.cell-address {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #6B7280;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-edit-cell, .btn-del-cell {
+    padding: 6px;
+    border: none;
+    background: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-edit-cell { color: #2563eb; }
+.btn-del-cell { color: #dc2626; }
+
+.btn-edit-cell:hover { background: #eff6ff; }
+.btn-del-cell:hover { background: #fef2f2; }
+
+/* FORMULÁRIO EXPANDIDO */
+.veiculo-form-full {
+    background: white;
+    color: #111827;
+    padding: 20px;
+}
+
+.section {
+    margin-bottom: 24px;
+}
+
+.section h3 {
+    font-size: 14px;
+    color: #111827;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+    font-weight: 700;
+}
+
+.main-row {
+    display: flex;
+    gap: 20px;
+}
+
+.photo-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.preview-sq {
+    width: 100px;
+    height: 100px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9fafb;
+}
+
+.preview-sq img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-up-v2 {
+    font-size: 11px;
+    color: #2563eb;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.fields-side {
+    flex: 1;
+    display: grid;
+    gap: 16px;
+}
+
+.form-grid-v2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-box label {
+    font-size: 12px;
+    color: #374151;
+    font-weight: 600;
+}
+
+.input-box input, .input-box select {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #111827;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-box input:focus, .input-box select:focus {
+    border-color: #111827;
+}
+
+.check-box-v2 label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #111827;
+    font-weight: 500;
+}
+
+.modal-actions-v2 {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-confirm-v2 {
+    background: #111827;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-cancel-v2 {
+     background: none;
+     border: none;
+     color: #6b7280;
+     cursor: pointer;
+     font-size: 14px;
+}
+
+/* LINHA EXPANSÍVEL (MAPA) */
+.expanded-row {
+    background-color: #f9fafb;
+}
+
+.expanded-row > td {
+    padding: 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.mini-map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: #e5e7eb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.map-overlay-toolbar {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 1000;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.map-overlay-btn {
+    background: white;
+    color: #111827;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    transition: background 0.2s;
+}
+
+.map-overlay-btn:hover {
+    background: #f3f4f6;
+}
+
+.btn-expand {
+    padding: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6B7280;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.btn-expand:hover {
+    color: #111827;
+}
+
+.btn-expand.expanded {
+    transform: rotate(180deg);
+}
+
+.table-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.cell-veiculo-subtitle {
+    display: block;
+    font-size: 11px;
+    color: #6B7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+tr.expanded-parent td {
+    border-bottom: none;
+}
+
+/* ============================================
+   DARK MODE - Modal / Formulário de Veículo
+   ============================================ */
+:root.dark .veiculo-form-full {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
+:root.dark .section h3 {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+:root.dark .input-box label {
+  color: var(--text-secondary) !important;
+}
+
+:root.dark .input-box input,
+:root.dark .input-box select {
+  background: var(--bg-main) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+:root.dark .input-box input:focus,
+:root.dark .input-box select:focus {
+  border-color: var(--accent-gold) !important;
+}
+
+:root.dark .input-box input:-webkit-autofill,
+:root.dark .input-box input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-main) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+:root.dark .preview-sq {
+  background: var(--bg-main) !important;
+  border-color: var(--border-color) !important;
+}
+
+:root.dark .check-box-v2 label {
+  color: var(--text-primary) !important;
+}
+
+:root.dark .btn-confirm-v2 {
+  background: var(--accent-gold) !important;
+  color: #000 !important;
+}
+
+:root.dark .btn-cancel-v2 {
+  color: var(--text-secondary) !important;
+}
+
+:root.dark .veiculos-page {
+  background-color: var(--bg-main) !important;
+}
+
+:root.dark .veiculos-container {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+:root.dark .search-box {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+:root.dark .search-box input {
+  color: var(--text-primary) !important;
+  background: transparent !important;
+}
+
+:root.dark .expanded-row {
+  background-color: var(--bg-main) !important;
+}
+
+:root.dark .expanded-row > td {
+  border-bottom-color: var(--border-color) !important;
+}
+
+:root.dark .map-overlay-btn {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+:root.dark .map-overlay-btn:hover {
+  background: var(--bg-main) !important;
+}

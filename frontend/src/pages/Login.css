@@ -1,0 +1,185 @@
+.login-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.login-left {
+  width: 35vw;
+  min-width: 480px;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.login-left-content {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* Força a cor do texto para escuro na área de login (já que o fundo é sempre branco)
+   sobrescrevendo o !important global do modo escuro (index.css) */
+.login-left-content p,
+.login-left-content span,
+.login-left-content div,
+.login-left-content h1,
+.login-left-content h2,
+.login-left-content input,
+:root.dark .login-left-content p,
+:root.dark .login-left-content span,
+:root.dark .login-left-content div,
+:root.dark .login-left-content h1,
+:root.dark .login-left-content h2,
+:root.dark .login-left-content input {
+  color: #000000 !important;
+}
+
+.login-left-content .text-muted,
+:root.dark .login-left-content .text-muted {
+  color: #333333 !important;
+}
+
+.login-left-content button.btn-back-login,
+:root.dark .login-left-content button.btn-back-login {
+  color: #333333 !important;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 40px;
+  font-weight: 500;
+}
+
+.btn-back span {
+  font-size: 20px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-logo-wrapper {
+  background: #000;
+  padding: 20px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 40px;
+}
+
+.login-logo-img {
+  width: 120px;
+  object-fit: contain;
+}
+
+.login-form-styled {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-styled-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px 16px;
+  background-color: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-styled-wrapper:focus-within {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+}
+
+.input-styled-icon {
+  color: var(--accent-gold);
+  margin-right: 12px;
+}
+
+.input-styled-wrapper input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: #111827;
+}
+
+.input-styled-wrapper input::placeholder {
+  color: #9ca3af;
+}
+
+/* Sobrescreve o autofill escuro do browser */
+.input-styled-wrapper input:-webkit-autofill,
+.input-styled-wrapper input:-webkit-autofill:hover,
+.input-styled-wrapper input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
+  -webkit-text-fill-color: #111827;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.btn-acessar {
+  margin-top: 8px;
+  background-color: var(--accent-gold);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+}
+
+.btn-acessar:hover {
+  background-color: #C5A028; /* Slightly darker gold */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+}
+
+.btn-acessar:active {
+  transform: translateY(0);
+}
+
+.login-error {
+  color: #DC2626 !important;
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+  background-color: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.login-right {
+  flex: 1;
+  position: relative;
+}
+
+/* Esconder os créditos do mapa conforme solicitado */
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl {
+  display: none !important;
+}
+

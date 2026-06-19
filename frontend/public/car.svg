@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200">
+  <!-- Soft large drop shadow for 3D effect -->
+  <rect x="25" y="25" width="70" height="170" rx="20" fill="rgba(0,0,0,0.5)" filter="blur(4px)"/>
+  
+  <!-- Car Base/Chassis with gradient for depth -->
+  <defs>
+    <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#dee2e6"/>
+      <stop offset="50%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#adb5bd"/>
+    </linearGradient>
+    <linearGradient id="roofGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ced4da"/>
+      <stop offset="50%" stop-color="#f8f9fa"/>
+      <stop offset="100%" stop-color="#6c757d"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#212529"/>
+      <stop offset="100%" stop-color="#495057"/>
+    </linearGradient>
+  </defs>
+  
+  <rect x="15" y="10" width="70" height="180" rx="20" fill="url(#bodyGrad)"/>
+  
+  <!-- Side Mirrors -->
+  <path d="M 12 70 Q 5 70 5 60 L 15 65 Z" fill="#6c757d"/>
+  <path d="M 88 70 Q 95 70 95 60 L 85 65 Z" fill="#6c757d"/>
+  
+  <!-- Windshield -->
+  <path d="M 22 65 Q 50 50 78 65 L 72 85 L 28 85 Z" fill="url(#glassGrad)"/>
+  <path d="M 28 65 Q 50 58 72 65" stroke="rgba(255,255,255,0.4)" stroke-width="2" fill="none"/>
+  
+  <!-- Roof -->
+  <rect x="26" y="80" width="48" height="60" rx="12" fill="url(#roofGrad)"/>
+  
+  <!-- Rear Window -->
+  <path d="M 28 145 Q 50 160 72 145 L 68 135 L 32 135 Z" fill="url(#glassGrad)"/>
+  
+  <!-- Details -->
+  <!-- Headlights with glow -->
+  <circle cx="28" cy="16" r="6" fill="#fff" filter="drop-shadow(0px -4px 6px #ffd166)"/>
+  <circle cx="72" cy="16" r="6" fill="#fff" filter="drop-shadow(0px -4px 6px #ffd166)"/>
+  
+  <!-- Taillights -->
+  <rect x="22" y="185" width="14" height="6" rx="3" fill="#ff0000" filter="drop-shadow(0px 2px 4px #ff0000)"/>
+  <rect x="64" y="185" width="14" height="6" rx="3" fill="#ff0000" filter="drop-shadow(0px 2px 4px #ff0000)"/>
+</svg>

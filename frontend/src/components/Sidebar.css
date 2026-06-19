@@ -1,0 +1,97 @@
+.sidebar {
+  width: var(--sidebar-width);
+  height: calc(100vh - 64px);
+  background-color: var(--bg-sidebar); /* Cor de fundo muito clara baseada na imagem */
+  position: fixed;
+  left: 0;
+  top: 64px;
+  padding: 24px 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  border-right: 1px solid var(--border-color);
+}
+
+
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+.nav-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 12px 12px 0;
+  cursor: pointer;
+  color: var(--text-primary); /* Cinza bem escuro para o texto e ícones */
+  font-weight: 400;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  border-radius: 0;
+}
+
+.nav-item svg {
+  color: var(--text-primary);
+  stroke-width: 1.5px; /* Ícones mais finos na imagem */
+}
+
+.nav-item:hover {
+  color: var(--accent-gold);
+}
+
+.nav-item:hover svg {
+  color: var(--accent-gold);
+}
+
+.nav-item.active {
+  font-weight: 600;
+  color: var(--accent-gold);
+  background: transparent;
+  box-shadow: none;
+}
+
+.nav-item.active svg {
+  color: var(--accent-gold);
+}
+
+.top-item {
+  margin-bottom: -10px; /* pull slightly out of flow for balance */
+}

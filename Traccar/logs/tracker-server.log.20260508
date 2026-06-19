@@ -1,0 +1,34 @@
+2026-05-08 05:47:19  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=6h21m10s232ms362µs500ns).
+2026-05-08 12:25:52  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=3h39m31s871ms1µs100ns).
+2026-05-08 20:20:09  INFO: Operating system name: Windows 10 version: 10.0 architecture: amd64
+2026-05-08 20:20:09  INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Eclipse Adoptium version: 21.0.7+6-LTS
+2026-05-08 20:20:09  INFO: Memory limit heap: 2032mb non-heap: 0mb
+2026-05-08 20:20:09  INFO: Character encoding: UTF-8
+2026-05-08 20:20:09  INFO: Version: 6.12.2
+2026-05-08 20:20:09  INFO: Starting server...
+2026-05-08 20:20:11  INFO: HikariPool-1 - Starting...
+2026-05-08 20:20:13  INFO: HikariPool-1 - Added connection conn0: url=jdbc:h2:./data/database user=SA
+2026-05-08 20:20:13  INFO: HikariPool-1 - Start completed.
+2026-05-08 20:20:13  INFO: Set default schema name to PUBLIC
+2026-05-08 20:20:14  INFO: Successfully acquired change log lock
+2026-05-08 20:20:14  INFO: Clearing database change log checksums for database h2
+2026-05-08 20:20:14  INFO: Successfully released change log lock
+2026-05-08 20:20:14  INFO: Command execution complete
+2026-05-08 20:20:16  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-08 20:20:19  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-08 20:20:19  INFO: Reading from PUBLIC.DATABASECHANGELOG
+2026-05-08 20:20:19  INFO: UPDATE SUMMARY
+2026-05-08 20:20:19  INFO: Run:                          0
+2026-05-08 20:20:19  INFO: Previously run:              31
+2026-05-08 20:20:19  INFO: Filtered out:                 0
+2026-05-08 20:20:19  INFO: -------------------------------
+2026-05-08 20:20:19  INFO: Total change sets:           31
+2026-05-08 20:20:19  INFO: Update summary generated
+2026-05-08 20:20:19  INFO: Command execution complete
+2026-05-08 20:20:22  WARN: Port disabled due to conflict - Address already in use: bind - BindException (...)
+2026-05-08 20:20:23  INFO: jetty-12.1.6; built: 2026-01-27T18:53:19.182Z; git: 88ca559572b1c8858b3c5684bb0293fa64e5e90f; jvm 21.0.7+6-LTS
+2026-05-08 20:20:23  INFO: Session workerName=node0
+2026-05-08 20:20:23  INFO: Started oeje10s.ServletContextHandler@1e78fca6{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@6ca66ed8{STARTED}}
+2026-05-08 20:20:26  INFO: Started oeje10s.ServletContextHandler@1e78fca6{ROOT,/,b=file:///E:/blrastreamento/Traccar/web/,a=AVAILABLE,h=oeje10s.SessionHandler@6ca66ed8{STARTED}}
+2026-05-08 20:20:26  INFO: Started oejs.ServerConnector@32101a7a{HTTP/1.1, (http/1.1)}{0.0.0.0:8082}
+2026-05-08 20:20:26  INFO: Started oejs.Server@6b1d512d{STARTING}[12.1.6,sto=0] @2920ms

@@ -1,0 +1,24 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  margin-top: 64px; /* Empurrar para baixo devido ao Header */
+}
+
+.main-content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+  margin-left: var(--sidebar-width);
+  min-height: calc(100vh - 64px);
+}
+
+.main-content--mapa {
+  padding: 8px;
+}

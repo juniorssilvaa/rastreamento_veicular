@@ -1,0 +1,10 @@
+2026-05-27 06:09:42  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=9h32m30s690ms135µs901ns).
+2026-05-27 09:23:23  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=45m10s276ms278µs500ns).
+2026-05-27 19:57:07  WARN: HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1h1m11s941ms21µs800ns).
+2026-05-27 20:42:09  INFO: [Tdb1d104d] connected
+2026-05-27 20:42:09  INFO: [Tdb1d104d: tek < 0:0:0:0:0:0:0:1] GET /?token=wBRe0lJxj8Tm HTTP/1.1\r\nHost: localhost:5173\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36\r\nAccept-Language: pt-BR,pt;q=0.6\r\nUpgrade: websocket\r\nOrigin: http://localhost:5175\r\nSec-WebSocket-Version: 13\r\nAccept-Encoding: gzip, deflate, br, zstd\r\nSec-WebSocket-Key: SRypuucNn5xnOhYUSqfkzg==\r\nSec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\r\nSec-WebSocket-Protocol: vite-hmr\r\n\r\n
+2026-05-27 20:42:09  WARN: Unknown device - f6b656e3d774252 (0:0:0:0:0:0:0:1)
+2026-05-27 20:42:11  WARN: Unknown device - 96c6c612f352e30 (0:0:0:0:0:0:0:1)
+2026-05-27 20:42:11  WARN: Unknown device - d42522c70743b71 (0:0:0:0:0:0:0:1)
+2026-05-27 20:42:11  WARN: Unknown device - 374640d0a536563 (0:0:0:0:0:0:0:1)
+2026-05-27 20:46:09  INFO: [Tdb1d104d] disconnected
