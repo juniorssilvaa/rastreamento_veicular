@@ -3,8 +3,8 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Variaveis de ambiente
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Dependencias do sistema
 RUN apt-get update && apt-get install -y --no-install-recommends \
