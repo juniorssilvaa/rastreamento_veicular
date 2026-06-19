@@ -95,8 +95,10 @@ services:
       - internal
       - blnet
     ports:
-      - "5000-5050:5000-5050/tcp"
-      - "5000-5050:5000-5050/udp"
+      - "5055:5055/tcp" # OsmAnd protocol
+      - "5023:5023/tcp" # GT06 protocol
+      - "5013:5013/tcp" # H02 protocol
+      - "5001:5001/tcp" # GPS103 protocol
     volumes:
       - ./Traccar/conf/traccar.xml:/opt/traccar/conf/traccar.xml:ro
       - ./Traccar/data:/opt/traccar/data
