@@ -6,10 +6,8 @@ services:
   # ===============================
   blrastreamento-postgres:
     image: postgres:14
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-blrastreamento}
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+    env_file:
+      - .env
     volumes:
       - blrastreamento-postgres-data:/var/lib/postgresql/data
     networks:
@@ -49,23 +47,8 @@ services:
       - blnet
     volumes:
       - blrastreamento-media:/app/media
-    environment:
-      # Credenciais do Django Superuser para o Docker criar automaticamente
-      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin}
-      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-admin}
-      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}
-      
-      # Conexão com o Banco de Dados
-      - POSTGRES_HOST=blrastreamento-postgres
-      - POSTGRES_DB=${POSTGRES_DB:-blrastreamento}
-      - POSTGRES_USER=${POSTGRES_USER:-admin}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
-      - POSTGRES_PORT=5432
-      
-      - SECRET_KEY=${SECRET_KEY:-django-insecure-blrastreamento123}
-      - DEBUG=${DEBUG:-False}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
-      - CORS_ALLOW_ALL_ORIGINS=${CORS_ALLOW_ALL_ORIGINS:-True}
+    env_file:
+      - .env
     deploy:
       resources:
         limits:
