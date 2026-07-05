@@ -11,6 +11,7 @@ import Veiculos from './pages/Veiculos';
 import CercasVirtuais from './pages/CercasVirtuais';
 import Login from './pages/Login';
 import Clientes from './pages/Clientes';
+import Tecnicos from './pages/Tecnicos';
 import ClienteApp from './pages/cliente/ClienteApp';
 import { Toaster } from 'react-hot-toast';
 
@@ -97,13 +98,14 @@ function App() {
         <Sidebar activeItem={activeItem} setActiveItem={handlePageChange} />
         <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''}`}>
           {activeItem === 'Dashboard' && <Dashboard />}
-          {activeItem === 'Gerenciar' && <Gerenciar />}
+          {activeItem === 'Gerenciar' && <Gerenciar onNavigate={handlePageChange} />}
           {activeItem === 'Mapa' && <Mapa />}
           {activeItem === 'Comando' && <Comando />}
           {activeItem === 'Alertas' && <Alertas />}
           {activeItem === 'Veículos' && <Veiculos />}
           {activeItem === 'Cercas Virtuais' && <CercasVirtuais />}
           {activeItem === 'Clientes' && <Clientes />}
+          {activeItem === 'Técnicos' && <Tecnicos />}
           {activeItem !== 'Dashboard' && 
            activeItem !== 'Gerenciar' && 
            activeItem !== 'Mapa' && 
@@ -111,7 +113,8 @@ function App() {
            activeItem !== 'Alertas' && 
            activeItem !== 'Veículos' &&
            activeItem !== 'Cercas Virtuais' &&
-           activeItem !== 'Clientes' && (
+           activeItem !== 'Clientes' && 
+           activeItem !== 'Técnicos' && (
              <div style={{padding: '40px'}}>
                <h2>{activeItem}</h2>
                <p style={{color: '#6B7280', marginTop: '12px'}}>Página em construção...</p>

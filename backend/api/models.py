@@ -42,3 +42,41 @@ class Customer(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.cpf_cnpj}"
+
+class Technician(models.Model):
+    # Status and general options
+    is_active = models.BooleanField(default=True) # Status do Técnico
+    permitir_finalizar_os = models.BooleanField(default=False)
+    ponto_fixo = models.BooleanField(default=False)
+    has_contract = models.BooleanField(default=False) # Mantido por compatibilidade
+    
+    # Personal info
+    name = models.CharField(max_length=255)
+    cpf = models.CharField(max_length=20, unique=True)
+    
+    # Address
+    cep = models.CharField(max_length=20, null=True, blank=True)
+    numero = models.CharField(max_length=50, null=True, blank=True)
+    bairro = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=255, null=True, blank=True)
+    state = models.CharField(max_length=50, null=True, blank=True)
+    rua = models.CharField(max_length=255, null=True, blank=True)
+    complemento = models.CharField(max_length=255, null=True, blank=True)
+    
+    # Contact
+    email = models.EmailField(null=True, blank=True)
+    celular = models.CharField(max_length=50, null=True, blank=True)
+    whatsapp = models.CharField(max_length=50, null=True, blank=True)
+    fone_fixo = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Financial/Stock
+    stock_total = models.IntegerField(default=0)
+    valor_instalacao_simples = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    valor_instalacao_bloqueio = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    valor_desinstalacao = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

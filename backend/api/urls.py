@@ -24,7 +24,9 @@ from .views import (
     AsaasOverdueCustomersView,
     ConfigSmsGatewayView,
     SmsDebugProxyView,
-    SmsInboundView
+    SmsInboundView,
+    TechnicianView,
+    TechnicianDetailView
 )
 from .views_auth import (
     AuthLoginView,
@@ -82,4 +84,8 @@ urlpatterns = [
     path('traccar/server-info/', TraccarServerInfoView.as_view(), name='traccar_server_info'),
     path('traccar/entity/<str:endpoint>/', TraccarEntityView.as_view(), name='traccar_entity_list'),
     path('traccar/entity/<str:endpoint>/<int:pk>/', TraccarEntityDetailView.as_view(), name='traccar_entity_detail'),
+    
+    # Técnicos
+    path('technicians/', TechnicianView.as_view(), name='technicians'),
+    path('technicians/<int:pk>/', TechnicianDetailView.as_view(), name='technician_detail'),
 ]

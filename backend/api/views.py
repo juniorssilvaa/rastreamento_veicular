@@ -206,6 +206,8 @@ class TraccarCommandView(APIView):
                 elif provider == "smsmarket":
                     smsmarket_api_url = "https://api.smsmarket.com.br/webservice-rest/send-single"
                     payload = {
+                        "user": login,
+                        "password": token,
                         "type": 2, # SMS Interativo
                         "country_code": "55",
                         "number": phone,
@@ -216,8 +218,8 @@ class TraccarCommandView(APIView):
                     print(f" [DEBUG SMS] Credenciais extraidas - User: '{login}' | Token: '{token}'")
                     print(" Enviando para SMS Market API real...")
                     
-                    # Usa o parâmetro auth nativo do requests para evitar qualquer problema de base64/encoding
-                    resp = req_lib.post(smsmarket_api_url, data=payload, auth=(login, token), timeout=15)
+                    # Enviando credenciais no payload (x-www-form-urlencoded) para suportar caracteres especiais na senha
+                    resp = req_lib.post(smsmarket_api_url, data=payload, timeout=15)
                     
                     print(f" Resposta SMS Market (Status {resp.status_code}): {resp.text}")
                     print("="*50 + "\n")
@@ -329,7 +331,7 @@ class TraccarServerInfoView(APIView):
 
 import requests
 
-from .models import Customer
+from .models import Customer, Technician
 import datetime
 
 class AsaasCustomerView(APIView):
@@ -795,6 +797,126 @@ class ConfigSmsGatewayView(APIView):
             )
             if put_resp.status_code not in (200, 204):
                 return Response({"error": f"Falha ao salvar no Traccar: {put_resp.text}"}, status=status.HTTP_502_BAD_GATEWAY)
+
+            return Response({"success": f"Gateway {provider} configurado com sucesso no Traccar"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TechnicianView(APIView):
+    def get(self, request):
+        technicians = Technician.objects.all().order_by('-created_at')
+        data = [{
+            "id": t.id,
+            "name": t.name,
+            "cpf": t.cpf,
+            "city": t.city,
+            "state": t.state,
+            "stock_total": t.stock_total,
+            "is_active": t.is_active,
+            "permitir_finalizar_os": t.permitir_finalizar_os,
+            "ponto_fixo": t.ponto_fixo,
+            "has_contract": t.has_contract,
+            "cep": t.cep,
+            "numero": t.numero,
+            "bairro": t.bairro,
+            "rua": t.rua,
+            "complemento": t.complemento,
+            "email": t.email,
+            "celular": t.celular,
+            "whatsapp": t.whatsapp,
+            "fone_fixo": t.fone_fixo,
+            "valor_instalacao_simples": float(t.valor_instalacao_simples) if t.valor_instalacao_simples else None,
+            "valor_instalacao_bloqueio": float(t.valor_instalacao_bloqueio) if t.valor_instalacao_bloqueio else None,
+            "valor_desinstalacao": float(t.valor_desinstalacao) if t.valor_desinstalacao else None,
+            "created_at": t.created_at.isoformat(),
+        } for t in technicians]
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        data = request.data
+        try:
+            tech = Technician.objects.create(
+                name=data.get('name', ''),
+                cpf=data.get('cpf', ''),
+                city=data.get('city', ''),
+                state=data.get('state', ''),
+                stock_total=int(data.get('stock_total', 0)),
+                is_active=data.get('is_active', True),
+                permitir_finalizar_os=data.get('permitir_finalizar_os', False),
+                ponto_fixo=data.get('ponto_fixo', False),
+                has_contract=data.get('has_contract', False),
+                cep=data.get('cep', ''),
+                numero=data.get('numero', ''),
+                bairro=data.get('bairro', ''),
+                rua=data.get('rua', ''),
+                complemento=data.get('complemento', ''),
+                email=data.get('email', ''),
+                celular=data.get('celular', ''),
+                whatsapp=data.get('whatsapp', ''),
+                fone_fixo=data.get('fone_fixo', ''),
+                valor_instalacao_simples=data.get('valor_instalacao_simples') or None,
+                valor_instalacao_bloqueio=data.get('valor_instalacao_bloqueio') or None,
+                valor_desinstalacao=data.get('valor_desinstalacao') or None
+            )
+            return Response({"id": tech.id, "message": "Técnico cadastrado com sucesso!"}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class TechnicianDetailView(APIView):
+    def put(self, request, pk):
+        try:
+            tech = Technician.objects.get(pk=pk)
+            data = request.data
+            
+            tech.name = data.get('name', tech.name)
+            tech.cpf = data.get('cpf', tech.cpf)
+            tech.city = data.get('city', tech.city)
+            tech.state = data.get('state', tech.state)
+            
+            tech.cep = data.get('cep', tech.cep)
+            tech.numero = data.get('numero', tech.numero)
+            tech.bairro = data.get('bairro', tech.bairro)
+            tech.rua = data.get('rua', tech.rua)
+            tech.complemento = data.get('complemento', tech.complemento)
+            
+            tech.email = data.get('email', tech.email)
+            tech.celular = data.get('celular', tech.celular)
+            tech.whatsapp = data.get('whatsapp', tech.whatsapp)
+            tech.fone_fixo = data.get('fone_fixo', tech.fone_fixo)
+            
+            if 'valor_instalacao_simples' in data:
+                tech.valor_instalacao_simples = data.get('valor_instalacao_simples') or None
+            if 'valor_instalacao_bloqueio' in data:
+                tech.valor_instalacao_bloqueio = data.get('valor_instalacao_bloqueio') or None
+            if 'valor_desinstalacao' in data:
+                tech.valor_desinstalacao = data.get('valor_desinstalacao') or None
+
+            if 'stock_total' in data:
+                tech.stock_total = int(data.get('stock_total'))
+            if 'is_active' in data:
+                tech.is_active = bool(data.get('is_active'))
+            if 'permitir_finalizar_os' in data:
+                tech.permitir_finalizar_os = bool(data.get('permitir_finalizar_os'))
+            if 'ponto_fixo' in data:
+                tech.ponto_fixo = bool(data.get('ponto_fixo'))
+            if 'has_contract' in data:
+                tech.has_contract = bool(data.get('has_contract'))
+                
+            tech.save()
+            return Response({"message": "Técnico atualizado!"}, status=status.HTTP_200_OK)
+        except Technician.DoesNotExist:
+            return Response({"error": "Técnico não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            tech = Technician.objects.get(pk=pk)
+            tech.delete()
+            return Response({"message": "Técnico removido"}, status=status.HTTP_204_NO_CONTENT)
+        except Technician.DoesNotExist:
+            return Response({"error": "Técnico não encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
             return Response({"success": f"Gateway {provider} configurado com sucesso no Traccar"}, status=status.HTTP_200_OK)
 

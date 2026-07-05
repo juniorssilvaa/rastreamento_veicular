@@ -480,7 +480,7 @@ const CercasVirtuais = () => {
 
                 <MapContainer center={mapCenter} zoom={zoom} className="cercas-map" zoomControl={false}>
                     {mapLayer === 'streets' && <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />}
-                    {mapLayer === 'satellite' && <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />}
+                    {mapLayer === 'satellite' && <TileLayer url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
                     {mapLayer === 'hybrid' && <TileLayer url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
                     
                     <MapUpdater center={mapCenter} zoom={zoom} />

@@ -18,13 +18,13 @@
 }
 
 :root.dark {
-  --bg-main: #0c0c0e;       /* Fundo preto cinza super elegante (quase preto) */
-  --bg-sidebar: #16161a;    /* Sidebar em preto cinza */
-  --bg-card: #1c1c21;       /* Cards em preto cinza */
+  --bg-main: #202124;       /* Fundo cinza escuro */
+  --bg-sidebar: #292a2d;    /* Sidebar em cinza */
+  --bg-card: #292a2d;       /* Cards em cinza */
   --text-primary: #f4f4f5;  /* Texto principal claro (Zinc 100) */
   --text-secondary: #a1a1aa;/* Texto secundário cinza (Zinc 400) */
   --text-gray: #cbd5e1;     /* Texto geral cinza claro */
-  --border-color: #2b2b33;  /* Borda escura zincada */
+  --border-color: #3c4043;  /* Borda escura zincada */
   --shadow-sm: 0px 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-card: 0px 18px 40px rgba(0, 0, 0, 0.7);
 }
@@ -109,6 +109,10 @@ a {
   color: var(--text-primary) !important;
   border-color: var(--border-color) !important;
   box-shadow: var(--shadow-card) !important;
+}
+
+:root.dark .action-icon {
+  color: var(--text-primary) !important;
 }
 
 :root.dark input:not(.login-container input),

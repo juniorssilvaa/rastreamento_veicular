@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './Gerenciar.css';
 import { Search, Link, Package, Box, Car, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare } from 'lucide-react';
 
-const Gerenciar = () => {
+const Gerenciar = ({ onNavigate }) => {
   const [currentView, setCurrentView] = useState('main'); // main, integracoes, asaas, gmaps
   
   // States for forms
@@ -83,16 +83,6 @@ const Gerenciar = () => {
   return (
     <div className="gerenciar-page">
       
-      {/* BARRA DE PESQUISA */}
-      <div className="search-bar-container">
-        <div className="input-group">
-          <Search size={18} color="#6B7280" className="search-icon" />
-          <input type="text" placeholder="Digite aqui o que está buscando!" />
-          <button className="btn-arrow">&rarr;</button>
-        </div>
-        <button className="btn-ok">OK</button>
-      </div>
-
       {currentView === 'main' && (
         <>
           {/* SEÇÃO OPERAÇÕES */}
@@ -101,22 +91,22 @@ const Gerenciar = () => {
             <div className="grid-cards">
               
               <div className="action-card" onClick={() => setCurrentView('integracoes')}>
-                <Link size={32} color="#1F2937" />
+                <Link size={32} className="action-icon" />
                 <span>Integrações</span>
               </div>
 
               <div className="action-card">
-                <Package size={32} color="#1F2937" />
+                <Package size={32} className="action-icon" />
                 <span>Estoque</span>
               </div>
 
               <div className="action-card">
-                <Box size={32} color="#1F2937" />
+                <Box size={32} className="action-icon" />
                 <span>Produtos</span>
               </div>
 
               <div className="action-card">
-                <Car size={32} color="#1F2937" />
+                <Car size={32} className="action-icon" />
                 <span>Pronta Resposta</span>
               </div>
 
@@ -129,17 +119,17 @@ const Gerenciar = () => {
             <div className="grid-cards">
               
               <div className="action-card">
-                <FileText size={32} color="#1F2937" />
+                <FileText size={32} className="action-icon" />
                 <span>Contrato</span>
               </div>
 
               <div className="action-card">
-                <Users size={32} color="#1F2937" />
+                <Users size={32} className="action-icon" />
                 <span>Motoristas</span>
               </div>
 
-              <div className="action-card">
-                <UserCog size={32} color="#1F2937" />
+              <div className="action-card" onClick={() => onNavigate && onNavigate('Técnicos')}>
+                <UserCog size={32} className="action-icon" />
                 <span>Técnico</span>
               </div>
 
@@ -163,22 +153,22 @@ const Gerenciar = () => {
             
             <div className="grid-cards">
               <div className="action-card" onClick={() => setCurrentView('asaas')}>
-                <CreditCard size={32} color="#1F2937" />
+                <CreditCard size={32} className="action-icon" />
                 <span>Asaas</span>
               </div>
 
               <div className="action-card" onClick={() => setCurrentView('gmaps')}>
-                <MapPin size={32} color="#1F2937" />
+                <MapPin size={32} className="action-icon" />
                 <span>Google Maps</span>
               </div>
 
               <div className="action-card" onClick={() => setCurrentView('kingsms')}>
-                <MessageSquare size={32} color="#1F2937" />
+                <MessageSquare size={32} className="action-icon" />
                 <span>KingSMS</span>
               </div>
 
               <div className="action-card" onClick={() => setCurrentView('smsmarket')}>
-                <MessageSquare size={32} color="#1F2937" />
+                <MessageSquare size={32} className="action-icon" />
                 <span>SMS Market</span>
               </div>
             </div>

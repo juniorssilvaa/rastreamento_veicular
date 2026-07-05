@@ -337,16 +337,7 @@ const Veiculos = () => {
           <p>Configure dispositivos, grupos e parâmetros do motor</p>
         </div>
         <div className="header-actions">
-          <div className="search-box">
-            <Search size={18} />
-            <input
-              type="text"
-              placeholder="Buscar por nome ou ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <button className="btn-add-veiculo" onClick={() => { setEditingId(null); resetForm(); setIsModalOpen(true); }}>
+          <button className="btn-primary" onClick={() => { setEditingId(null); resetForm(); setIsModalOpen(true); }}>
             <Plus size={20} />
             Novo Veículo
           </button>

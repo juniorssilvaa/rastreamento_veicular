@@ -1,0 +1,360 @@
+.tecnicos-page {
+  padding: 24px;
+  background-color: var(--bg-main);
+  min-height: calc(100vh - 64px);
+  color: var(--text-primary);
+}
+
+.tecnicos-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--bg-card);
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+}
+
+.header-title h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.filters-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.filter-group select {
+  padding: 6px 32px 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--bg-main);
+}
+
+.search-box input {
+  border: none;
+  padding: 8px 12px;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  width: 200px;
+}
+
+.search-btn {
+  background-color: #1e293b;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px;
+}
+
+.plus-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #3B82F6;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tecnicos-table-container {
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
+}
+
+.tecnicos-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tecnicos-table th,
+.tecnicos-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+}
+
+.tecnicos-table th {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tecnicos-table tbody tr:hover {
+  background-color: rgba(0,0,0,0.02);
+}
+
+:root.dark .tecnicos-table tbody tr:hover {
+  background-color: rgba(255,255,255,0.02);
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.stock-badge {
+  background-color: #1e293b;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-block;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background-color: #22c55e;
+  color: #ffffff;
+}
+
+.status-badge.inactive {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.contract-badge {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.contract-badge.yes {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.contract-badge.no {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+}
+
+.btn-icon.delete:hover {
+  color: #ef4444;
+}
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty-message {
+  text-align: center;
+  padding: 40px !important;
+  color: var(--text-secondary);
+}
+
+/* Modal specific for Technician */
+.technician-modal {
+  max-width: 800px;
+  width: 90%;
+}
+
+.technician-modal .modal-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.technician-modal .modal-header h2 {
+  font-size: 18px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.technician-modal .btn-close {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.checkboxes-top {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px !important;
+  justify-content: space-between;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row.triple {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group.full-width {
+  width: 100%;
+}
+
+.form-group.half-width {
+  width: calc(50% - 8px);
+}
+
+.form-group label,
+.checkbox-label {
+  font-size: 13px;
+  color: #ffffff;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.form-group input {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: #3B82F6;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+}
+
+.btn-save {
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-save:hover {
+  background-color: #2563EB;
+}
