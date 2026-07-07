@@ -177,13 +177,7 @@ class TraccarCommandView(APIView):
                 if not sms_url:
                     return Response({"error": "Gateway SMS não informado e não configurado no traccar.xml"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-                if "kingsms" in sms_url:
-                    provider = "kingsms"
-                    login_m = re_lib.search(r'login=([^&]+)', sms_url)
-                    token_m = re_lib.search(r'token=([^&]+)', sms_url)
-                    login = login_m.group(1) if login_m else None
-                    token = token_m.group(1) if token_m else None
-                elif "smsmarket" in sms_url:
+                if "smsmarket" in sms_url:
                     provider = "smsmarket"
                     login_m = re_lib.search(r'user=([^&]+)', sms_url)
                     token_m = re_lib.search(r'password=([^&]+)', sms_url)
@@ -194,16 +188,7 @@ class TraccarCommandView(APIView):
                 return Response({"error": "Credenciais SMS inválidas ou não encontradas"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             try:
-                if provider == "kingsms":
-                    kingsms_api_url = "http://painel.kingsms.com.br/kingsms/api.php"
-                    params = {"acao": "sendsms", "login": login, "token": token, "numero": phone, "msg": message}
-                    print(" Enviando para KingSMS API real...")
-                    resp = req_lib.get(kingsms_api_url, params=params, timeout=15)
-                    print(f" Resposta KingSMS (Status {resp.status_code}): {resp.text}")
-                    print("="*50 + "\n")
-                    return Response({"success": True, "kingsms_response": resp.text}, status=status.HTTP_200_OK)
-                    
-                elif provider == "smsmarket":
+                if provider == "smsmarket":
                     smsmarket_api_url = "https://api.smsmarket.com.br/webservice-rest/send-single"
                     payload = {
                         "user": login,
@@ -754,9 +739,7 @@ class ConfigSmsGatewayView(APIView):
             return Response({"error": "Provider, login e token são obrigatórios"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Formata a URL dependendo do provider
-        if provider == 'kingsms':
-            sms_url = f"http://painel.kingsms.com.br/kingsms/api.php?acao=sendsms&login={login}&token={token}&numero={{phone}}&msg={{message}}"
-        elif provider == 'smsmarket':
+        if provider == 'smsmarket':
             sms_url = f"https://api.smsmarket.com.br/webservice-rest/send-single?user={login}&password={token}&number={{phone}}&content={{message}}&type=2&country_code=55"
         else:
             return Response({"error": "Provedor SMS inválido"}, status=status.HTTP_400_BAD_REQUEST)
@@ -923,85 +906,10 @@ class TechnicianDetailView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class SmsDebugProxyView(APIView):
-    """Proxy para debugar o envio de SMS do Traccar pelo KingSMS"""
-    def get(self, request):
-        numero = request.query_params.get('numero')
-        msg = request.query_params.get('msg')
-        login = request.query_params.get('login')
-        token = request.query_params.get('token')
-        
-        print("\n" + "="*50)
-        print(" [DEBUG SMS] TENTATIVA DE ENVIO DE SMS")
-        print("="*50)
-        print(f" Destinatário (Número): {numero}")
-        print(f" Mensagem: {msg}")
-        print(f" Usando Login KingSMS: {login}")
-        print(f" Usando Token KingSMS: {token}")
-        print("="*50 + "\n")
-        
-        if not numero or not msg:
-            return Response({"error": "Parâmetros insuficientes"}, status=status.HTTP_400_BAD_REQUEST)
-            
-        # Repassa para o KingSMS real
-        kingsms_url = "http://painel.kingsms.com.br/kingsms/api.php"
-        params = {
-            "acao": "sendsms",
-            "login": login,
-            "token": token,
-            "numero": numero,
-            "msg": msg
-        }
-        
-        try:
-            print(" Enviando para KingSMS API real...")
-            resp = requests.get(kingsms_url, params=params)
-            print(f" Resposta KingSMS (Status {resp.status_code}): {resp.text}")
-            print("="*50 + "\n")
-            return Response({"kingsms_response": resp.text, "status": resp.status_code}, status=status.HTTP_200_OK)
-        except Exception as e:
-            print(f" Erro ao conectar no KingSMS: {e}")
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class SmsInboundView(APIView):
-    """Busca respostas SMS recebidas do rastreador via KingSMS"""
+    """Busca respostas SMS recebidas do rastreador (não suportado atualmente)"""
     def get(self, request):
-        import requests as req_lib, xml.etree.ElementTree as ET, re as re_lib
+        return Response([], status=status.HTTP_200_OK)
 
-        flag = request.query_params.get('flag', 'unread')  # 'unread' ou 'read'
-
-        # Lê credenciais do KingSMS do traccar.xml
-        traccar_conf_path = r'e:\blrastreamento\Traccar\conf\traccar.xml'
-        king_login, king_token = None, None
-        try:
-            tree = ET.parse(traccar_conf_path)
-            root = tree.getroot()
-            for entry in root.findall('entry'):
-                key = entry.get('key', '')
-                if key == 'sms.http.url':
-                    url_val = entry.text or ''
-                    login_m = re_lib.search(r'login=([^&]+)', url_val)
-                    token_m = re_lib.search(r'token=([^&]+)', url_val)
-                    if login_m: king_login = login_m.group(1)
-                    if token_m: king_token = token_m.group(1)
-        except Exception as e:
-            return Response({"error": f"Erro ao ler traccar.xml: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        if not king_login or not king_token:
-            return Response({"error": "Credenciais KingSMS não encontradas no traccar.xml"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        kingsms_url = "https://painel.kingsms.com.br/kingsms/api.php"
-        params = {
-            "acao": "resposta",
-            "login": king_login,
-            "token": king_token,
-            "flag": flag
-        }
-
-        try:
-            resp = req_lib.get(kingsms_url, params=params, timeout=15)
-            data = resp.json()
-            print(f"\n[DEBUG INBOUND SMS] flag={flag} | Resposta: {data}\n")
-            return Response(data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

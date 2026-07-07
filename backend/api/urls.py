@@ -23,7 +23,6 @@ from .views import (
     AsaasCustomerDetailView,
     AsaasOverdueCustomersView,
     ConfigSmsGatewayView,
-    SmsDebugProxyView,
     SmsInboundView,
     TechnicianView,
     TechnicianDetailView
@@ -61,7 +60,6 @@ urlpatterns = [
 
     # Configs
     path('config/smsgateway/', ConfigSmsGatewayView.as_view(), name='config_smsgateway'),
-    path('sms-proxy/', SmsDebugProxyView.as_view(), name='sms_debug_proxy'),
     path('sms/inbound/', SmsInboundView.as_view(), name='sms_inbound'),
 
     # Real Traccar integration

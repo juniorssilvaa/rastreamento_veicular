@@ -1,18 +1,226 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Comando.css';
-import { Send, X, Loader2 } from 'lucide-react';
+import { 
+  Wifi, Calendar, Clock, Car, Users, Settings, Globe, 
+  Search, Lock, Unlock, PenTool, Zap, Send, CheckSquare, Square,
+  MessageSquare, List
+} from 'lucide-react';
 
 const Comando = () => {
+  // State for devices and selection
   const [devices, setDevices] = useState([]);
-  const [selectedDevice, setSelectedDevice] = useState('');
+  const [selectedDevices, setSelectedDevices] = useState(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
   
-  const [chatHistory, setChatHistory] = useState([]);
-  const [currentInput, setCurrentInput] = useState('');
+  // State for config
+  const [scope, setScope] = useState('veiculo'); // veiculo, grupo, modelo, todos
+  const [channel, setChannel] = useState('gprs'); // gprs, sms
   
-  // Traccar command integration specific state
-  const [forceSms, setForceSms] = useState(true); // Assuming SMS for raw text cmds
-  const [smsGateway, setSmsGateway] = useState('kingsms');
-  const chatEndRef = useRef(null);
+  const [protocol, setProtocol] = useState('gt06');
+  const [commandType, setCommandType] = useState('1-BLOQUEAR');
+  const [customCommandText, setCustomCommandText] = useState('');
+  
+  // SMS specific state
+  const [smsAction, setSmsAction] = useState(null);
+  const [smsAtivacaoSelecionado, setSmsAtivacaoSelecionado] = useState('');
+
+  const smsFabricantesList = [
+    { name: "Coban TK303 - TK311", id: 7 },
+    { name: "Concox CRX3 - CRX1", id: 8 },
+    { name: "Concox JM01", id: 6 },
+    { name: "BWS E3+", id: 11 },
+    { name: "WanWay EV02", id: 6 },
+    { name: "CJ780 CJ780", id: 9 },
+    { name: "Maxtrack MXT140 - MXT150", id: 5 },
+    { name: "UNIGPS F1 - M1 comandos separados", id: 6 },
+    { name: "X3 TECH NT20", id: 8 },
+    { name: "Maxtrack MXT130 - MXT160", id: 4 },
+    { name: "Queclink GV55", id: 3 },
+    { name: "Queclink GV50", id: 3 },
+    { name: "Queclink GV75", id: 1 },
+    { name: "Sinotrack ST-901 - ST-907 - OBD2", id: 7 },
+    { name: "LV12 LV12", id: 5 },
+    { name: "Iter ITR120 - ITR150 - ITR155", id: 6 },
+    { name: "Suntech ST300 - ST340 - ST310 - ST350 operadora vivo (comandos separados)", id: 3 },
+    { name: "Teltonika FMB920", id: 7 },
+    { name: "Santana SR411 - S116 porta 6023", id: 6 },
+    { name: "Queclink GV300", id: 5 },
+    { name: "Mobilogix MT-2000", id: 4 },
+    { name: "TR05 TR05", id: 5 },
+    { name: "BMS BMS-1", id: 6 },
+    { name: "Queclink GV57", id: 4 },
+    { name: "Accurate GT02", id: 8 },
+    { name: "Accurate GT02A", id: 8 },
+    { name: "Accurate GT02D", id: 8 },
+    { name: "Accurate GT06 Slot Metal", id: 4 },
+    { name: "Accurate GT06 Slot plástico", id: 4 },
+    { name: "Coban TK06", id: 4 },
+    { name: "Oneblock J16 -10024", id: 13 },
+    { name: "Suntech ST380", id: 3 },
+    { name: "Suntech ST300 - ST340 - ST310 - ST350 - outras operadoras (comandos separados)", id: 3 },
+    { name: "Jimi JC400", id: 5 },
+    { name: "SL-44 SL-44", id: 8 },
+    { name: "TK STAR TK06A, TK103B, TK816, TK905, TK909", id: 13 },
+    { name: "Suntech ST200 - ST210 - ST215 - ST240 operadora vivo (comando único)", id: 1 },
+    { name: "Suntech ST200 - ST210 - ST215 - ST240 outras operadoras (comando único)", id: 1 },
+    { name: "Suntech ST390", id: 2 },
+    { name: "Oneblock J16 - 5023", id: 5 },
+    { name: "BWS E3", id: 6 },
+    { name: "Calamp LMU800 - LMU2160 - LMU400", id: 10 },
+    { name: "URBTRACK U116", id: 5 },
+    { name: "UNIGPS F1 - M1 comando único", id: 1 },
+    { name: "OBD G500M", id: 4 },
+    { name: "OBD G200", id: 4 },
+    { name: "Oneblock Oneblock (V1)", id: 7 },
+    { name: "Carcell CR4000A", id: 5 },
+    { name: "G900 G900", id: 4 },
+    { name: "STG T50", id: 2 },
+    { name: "LK LK106, LK109, LK110, LK120, LK206 (A,B), LK208, LK209, LK210, LK310, LK610, LK710, LK800", id: 8 },
+    { name: "Global Position Global Position 4G", id: 5 },
+    { name: "Tracker Safe MT1, MT1X, MT1X, MT1Z, A1X, A1X", id: 10 },
+    { name: "STG STG 100", id: 8 },
+    { name: "Carcell CR2000", id: 5 },
+    { name: "Meiligao Meiligao", id: 1 },
+    { name: "ST 10 ST 10", id: 8 },
+    { name: "JM-VL03 JM-VL03", id: 4 },
+    { name: "Jimi M60 - M04A - GS05P", id: 6 },
+    { name: "H02 H02", id: 4 },
+    { name: "MW-06 MW-06", id: 4 },
+    { name: "Oneblock Oneblock personalizado", id: 7 },
+    { name: "WJ1 / J1 / J14 WJ1 / J1 / J14", id: 12 },
+    { name: "Iter ITR270", id: 4 },
+    { name: "G109 G109", id: 4 },
+    { name: "AT08 AT08", id: 6 },
+    { name: "Hinova H.E 114", id: 8 },
+    { name: "Suntech ST4315", id: 2 },
+    { name: "SmartGPS SMT4G", id: 4 },
+    { name: "Mobilogix MT-2000 (comando unico)", id: 1 },
+    { name: "Oneblock J16 4G PRO - Moto", id: 12 },
+    { name: "Oneblock J16 4G PRO", id: 8 },
+    { name: "SafetyCar GS900X 4G", id: 5 },
+    { name: "SL-48 SL-48", id: 8 },
+    { name: "Coban TK303 - TK311 (com senha)", id: 7 },
+    { name: "SmartGPS SMT4G A16 BLINDADO", id: 5 },
+    { name: "YGA-4G YGA-4G", id: 3 },
+    { name: "EC33 EC33", id: 5 },
+    { name: "Jimi JC181", id: 4 }
+  ];
+
+  const TEMPLATE_COMMANDS = [
+    "SERVER,1,smartconn.mine.nu,5023,0#",
+    "APN,smart.m2m.vivo.com.br,vivo,vivo#",
+    "HBT,30,18000#",
+    "SZCS#GPS_DISSLP=0",
+    "TIMER,60,18000#",
+    "SZCS#SLPDISCONNECT=0",
+    "SZCS#SLEEPT=3",
+    "SZCS#MTK_DISSLP=0",
+    "SZCS#GT06SEL=1#GT06IEXVOL=2#GT06METER=0",
+    "SZCS#GT06SEL=1#GT06METER=1",
+    "MILEAGE=0#",
+    "RESET#"
+  ];
+
+  const [templateLogs, setTemplateLogs] = useState([]);
+  const [isExecutingTemplate, setIsExecutingTemplate] = useState(false);
+  const logsEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  useEffect(() => { 
+    if (templateLogs.length > 0) scrollToBottom(); 
+  }, [templateLogs]);
+
+  const executeTemplateSequence = async () => {
+    if (selectedDevices.size === 0) {
+      alert("Por favor, selecione pelo menos um veículo para o template.");
+      return;
+    }
+    
+    setIsExecutingTemplate(true);
+    setTemplateLogs([]);
+
+    const devId = Array.from(selectedDevices)[0]; // Executing for first selected
+    
+    for (let i = 0; i < TEMPLATE_COMMANDS.length; i++) {
+      const cmdText = TEMPLATE_COMMANDS[i];
+      const timeStr = new Date().toLocaleString('pt-BR');
+      
+      setTemplateLogs(prev => [...prev, {
+        id: Date.now() + Math.random(),
+        type: 'pending',
+        title: `Aguardando o recebimento do comando ${i + 1}/${TEMPLATE_COMMANDS.length}:`,
+        text: cmdText,
+        time: timeStr
+      }]);
+
+      try {
+        const payload = {
+          deviceId: devId,
+          textChannel: channel === 'sms',
+          type: 'custom',
+          attributes: { data: cmdText }
+        };
+
+        if (channel === 'sms') {
+          payload.smsGateway = 'smsmarket';
+          payload.smsLogin = localStorage.getItem('smsmarketLogin') || '';
+          payload.smsToken = localStorage.getItem('smsmarketToken') || '';
+        }
+
+        await fetch('/api/traccar/commands/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        // Polling loop
+        let confirmed = false;
+        for (let poll = 0; poll < 12; poll++) {
+          await new Promise(r => setTimeout(r, 5000));
+          try {
+            const res = await fetch(`/api/sms/inbound/?flag=unread`);
+            if (res.ok) {
+              const data = await res.json();
+              // In a real scenario we'd match the message ID. 
+              // Here we just accept any incoming new SMS as confirmation for the flow.
+              if (Array.isArray(data) && data.length > 0) {
+                confirmed = true;
+                break;
+              }
+            }
+          } catch(e) {}
+        }
+
+        const confirmTime = new Date().toLocaleString('pt-BR');
+        
+        if (confirmed) {
+           setTemplateLogs(prev => [...prev, {
+             id: Date.now() + Math.random(),
+             type: 'success',
+             title: `Comando confirmado:`,
+             text: cmdText,
+             time: confirmTime
+           }]);
+        } else {
+           setTemplateLogs(prev => [...prev, {
+             id: Date.now() + Math.random(),
+             type: 'error',
+             title: `Aviso (Tempo limite excedido):`,
+             text: cmdText,
+             time: confirmTime
+           }]);
+        }
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    setIsExecutingTemplate(false);
+  };
 
   useEffect(() => {
     fetch('/api/traccar/devices/')
@@ -21,160 +229,393 @@ const Comando = () => {
       .catch(err => console.error(err));
   }, []);
 
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleToggleSelectAll = () => {
+    if (selectedDevices.size === filteredDevices.length) {
+      setSelectedDevices(new Set());
+    } else {
+      setSelectedDevices(new Set(filteredDevices.map(d => d.id)));
+    }
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatHistory]);
+  const handleToggleDevice = (id) => {
+    const newSet = new Set(selectedDevices);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedDevices(newSet);
+  };
+
+  const filteredDevices = devices.filter(d => 
+    d.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    d.uniqueId?.includes(searchQuery)
+  );
 
   const handleSend = async () => {
-    if (!selectedDevice) {
-      alert("Por favor, selecione um veículo primeiro.");
+    if (selectedDevices.size === 0) {
+      alert("Por favor, selecione pelo menos um veículo.");
       return;
     }
-    if (!currentInput.trim()) return;
-
-    const commandText = currentInput.trim();
-    setCurrentInput('');
     
-    const newMessage = {
-      id: Date.now(),
-      text: commandText,
-      type: 'sent',
-      status: 'loading',
-      date: new Date().toLocaleString('pt-BR')
+    // Convert generic commands to what we expect
+    let cmdData = '';
+    if (commandType === '1-BLOQUEAR') cmdData = 'engineStop';
+    else if (commandType === '2-DESBLOQUEAR') cmdData = 'engineResume';
+    else if (commandType === 'custom') cmdData = customCommandText;
+    else cmdData = commandType; // For templates, though we don't have real logic here yet
+
+    if (!cmdData && commandType === 'custom') {
+      alert("Defina o comando a ser enviado.");
+      return;
+    }
+
+    const payloadTemplate = {
+      textChannel: channel === 'sms',
+      type: 'custom',
+      attributes: { data: cmdData }
     };
 
-    setChatHistory(prev => [...prev, newMessage]);
-
-    try {
-      const payload = {
-        deviceId: selectedDevice,
-        textChannel: forceSms,
-        type: 'custom',
-        attributes: { data: commandText }
-      };
-
-      if (forceSms) {
-          payload.smsGateway = smsGateway;
-          if (smsGateway === 'kingsms') {
-              payload.smsLogin = localStorage.getItem('kingsmsLogin') || '';
-              payload.smsToken = localStorage.getItem('kingsmsToken') || '';
-          } else {
-              payload.smsLogin = localStorage.getItem('smsmarketLogin') || '';
-              payload.smsToken = localStorage.getItem('smsmarketToken') || '';
-          }
-      }
-
-      const response = await fetch('/api/traccar/commands/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        setChatHistory(prev => prev.map(msg => 
-          msg.id === newMessage.id ? { ...msg, status: 'success' } : msg
-        ));
-      } else {
-        setChatHistory(prev => prev.map(msg => 
-          msg.id === newMessage.id ? { ...msg, status: 'error' } : msg
-        ));
-      }
-    } catch (err) {
-      setChatHistory(prev => prev.map(msg => 
-        msg.id === newMessage.id ? { ...msg, status: 'error' } : msg
-      ));
+    if (channel === 'sms') {
+      payloadTemplate.smsGateway = 'smsmarket';
+      payloadTemplate.smsLogin = localStorage.getItem('smsmarketLogin') || '';
+      payloadTemplate.smsToken = localStorage.getItem('smsmarketToken') || '';
     }
-  };
 
-  const fetchResponses = async () => {
-    if (!selectedDevice) return;
-    try {
-      const res = await fetch(`/api/sms/inbound/?flag=unread`);
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const newResponses = data.map(msg => ({
-          id: msg.ID || Date.now() + Math.random(),
-          text: msg.Text,
-          type: 'received',
-          status: 'success',
-          date: msg.ReceivingDateTime || new Date().toLocaleString('pt-BR')
-        }));
-        setChatHistory(prev => [...prev, ...newResponses]);
+    let successCount = 0;
+    
+    for (const devId of selectedDevices) {
+      try {
+        const payload = { ...payloadTemplate, deviceId: devId };
+        const response = await fetch('/api/traccar/commands/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (response.ok) successCount++;
+      } catch (err) {
+        console.error(err);
       }
-    } catch (e) {
-      console.error(e);
     }
-  };
 
-  useEffect(() => {
-    const interval = setInterval(fetchResponses, 10000); // Check every 10s
-    return () => clearInterval(interval);
-  }, [selectedDevice]);
+    alert(`Comando enviado para ${successCount} de ${selectedDevices.size} veículos selecionados.`);
+  };
 
   return (
-    <div className="comando-page">
-      <div className="comando-header-selector">
-        <label>Veículo Selecionado</label>
-        <select 
-          value={selectedDevice} 
-          onChange={(e) => setSelectedDevice(e.target.value)}
-          className="device-select"
-        >
-          <option value="">Escolha um rastreador...</option>
-          {devices.map(d => (
-            <option key={d.id} value={d.id}>{d.name} ({d.uniqueId})</option>
-          ))}
-        </select>
+    <div className="cmd-container">
+      {/* Header Tabs */}
+      <div className="cmd-header-tabs">
+        <div className="cmd-tabs-left">
+          <button className="cmd-tab active"><Wifi size={16}/> GPRS</button>
+          <button className="cmd-tab"><Calendar size={16}/> AGENDAMENTO</button>
+          <button className="cmd-tab"><Clock size={16}/> HISTÓRICO</button>
+        </div>
+        <div className="cmd-tabs-right">
+          <span className="saldo-sms">SALDO: <strong>375</strong></span>
+        </div>
       </div>
 
-      <div className="comando-chat-card">
-        <div className="chat-header">
-          <h3>Envio de comandos</h3>
-        </div>
-        
-        <div className="chat-body">
-          {chatHistory.length === 0 && (
-            <div className="chat-empty"></div>
-          )}
-          {chatHistory.map(msg => (
-            <div key={msg.id} className={`chat-bubble-container ${msg.type}`}>
-              <div className={`chat-bubble ${msg.type === 'sent' ? 'bubble-blue' : 'bubble-green'}`}>
-                <div className="bubble-text">
-                  {msg.type === 'sent' && <strong>Enviando comando:</strong>}
-                  <br />
-                  {msg.text}
+      <div className="cmd-layout">
+        {/* Sidebar Esquerda */}
+        <div className="cmd-sidebar">
+          
+          <div className="cmd-section">
+            <span className="cmd-section-title">ESCOPO</span>
+            <div className="cmd-scope-grid">
+              <button className={`scope-btn ${scope === 'veiculo' ? 'active' : ''}`} onClick={() => setScope('veiculo')}>
+                <Car size={20} className="scope-icon blue"/>
+                <span>Veículo</span>
+              </button>
+              <button className={`scope-btn ${scope === 'grupo' ? 'active' : ''}`} onClick={() => setScope('grupo')}>
+                <Users size={20} className="scope-icon gray"/>
+                <span>Grupo</span>
+              </button>
+              <button className={`scope-btn ${scope === 'modelo' ? 'active' : ''}`} onClick={() => setScope('modelo')}>
+                <Settings size={20} className="scope-icon gray"/>
+                <span>Modelo</span>
+              </button>
+              <button className={`scope-btn ${scope === 'todos' ? 'active' : ''}`} onClick={() => setScope('todos')}>
+                <Globe size={20} className="scope-icon gray"/>
+                <span>Todos</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="cmd-search-box">
+            <Search size={16} className="search-icon" />
+            <input 
+              type="text" 
+              placeholder="Buscar veículo..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="cmd-selection-header">
+            <span>{selectedDevices.size} selecionados</span>
+            <div className="cmd-selection-actions">
+              <span onClick={handleToggleSelectAll}>Selecionar todos</span>
+              <span onClick={() => setSelectedDevices(new Set())}>Limpar</span>
+            </div>
+          </div>
+
+          <div className="cmd-device-list">
+            {filteredDevices.map(d => (
+              <div 
+                key={d.id} 
+                className={`cmd-device-item ${selectedDevices.has(d.id) ? 'selected' : ''}`}
+                onClick={() => handleToggleDevice(d.id)}
+              >
+                <div className="device-checkbox">
+                  {selectedDevices.has(d.id) ? <CheckSquare size={18} color="#3b82f6" /> : <Square size={18} color="#9ca3af" />}
                 </div>
-                <div className="bubble-meta">
-                  {msg.status === 'loading' && <Loader2 size={12} className="spin" />}
-                  {msg.status === 'error' && <X size={12} color="#ff4444" />}
-                  <span>{msg.date}</span>
+                <div className="device-info">
+                  <strong className="device-name">{d.name}</strong>
+                  <span className="device-sub">Frota • gt06</span>
                 </div>
               </div>
+            ))}
+          </div>
+
+          <div className="cmd-section channel-section">
+            <span className="cmd-section-title">CANAL</span>
+            <div className="cmd-channel-grid">
+              <div 
+                className={`channel-card ${channel === 'gprs' ? 'active' : ''}`}
+                onClick={() => setChannel('gprs')}
+              >
+                <div className="channel-icon-wrap">
+                  <Globe size={20} />
+                  {channel === 'gprs' && <span className="badge-ativo">ATIVO</span>}
+                </div>
+                <strong>GPRS</strong>
+                <span>TCP/IP</span>
+              </div>
+              
+              <div 
+                className={`channel-card ${channel === 'sms' ? 'active' : ''}`}
+                onClick={() => setChannel('sms')}
+              >
+                <div className="channel-icon-wrap">
+                  <Wifi size={20} />
+                  {channel === 'sms' && <span className="badge-ativo">ATIVO</span>}
+                </div>
+                <strong>SMS</strong>
+                <span>Mensagem</span>
+              </div>
             </div>
-          ))}
-          <div ref={chatEndRef} />
+          </div>
         </div>
 
-        <div className="chat-footer">
-          <input 
-            type="text"
-            className="chat-input"
-            value={currentInput}
-            onChange={e => setCurrentInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSend()}
-            placeholder="reset#"
-            disabled={!selectedDevice}
-          />
-          <button className="chat-btn-send" onClick={handleSend} disabled={!selectedDevice || !currentInput.trim()}>
-            <Send size={18} />
-          </button>
-          <button className="chat-btn-cancel" onClick={() => setCurrentInput('')} disabled={!currentInput}>
-            <X size={18} />
-          </button>
+        {/* Área Principal */}
+        <div className="cmd-main">
+          <div className="cmd-breadcrumb">
+            <span className="bc-icon">■</span>
+            <strong>COMANDO</strong> • <span className="blue-text">{selectedDevices.size === 1 ? Array.from(selectedDevices)[0] && devices.find(d => d.id === Array.from(selectedDevices)[0])?.name : `${selectedDevices.size} VEÍCULOS`}</span>
+          </div>
+
+          {channel === 'gprs' ? (
+            <>
+              <div className="cmd-form-group">
+                <label>PROTOCOLO</label>
+                <div className="cmd-select-wrapper">
+                  <select value={protocol} onChange={(e) => setProtocol(e.target.value)}>
+                    <option value="gt06">gt06</option>
+                    <option value="h02">h02</option>
+                    <option value="suntech">suntech</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="cmd-form-group">
+                <label>TIPO</label>
+                <div className="cmd-select-wrapper">
+                  <select value={commandType} onChange={(e) => setCommandType(e.target.value)}>
+                    <option value="1-BLOQUEAR">1-BLOQUEAR</option>
+                    <option value="2-DESBLOQUEAR">2-DESBLOQUEAR</option>
+                    <option value="custom">Comando personalizado</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="cmd-section" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+                <span className="cmd-section-title">ATALHOS</span>
+                <div className="cmd-shortcuts-grid">
+                  
+                  <div className={`shortcut-card ${commandType === '1-BLOQUEAR' ? 'active' : ''}`} onClick={() => setCommandType('1-BLOQUEAR')}>
+                    <div className="shortcut-title">
+                      <Lock size={16} className="text-red" />
+                      <strong className="text-red">1-BLOQUEAR</strong>
+                    </div>
+                    <span className="shortcut-sub">engineStop</span>
+                  </div>
+
+                  <div className={`shortcut-card ${commandType === '2-DESBLOQUEAR' ? 'active' : ''}`} onClick={() => setCommandType('2-DESBLOQUEAR')}>
+                    <div className="shortcut-title">
+                      <Unlock size={16} className="text-gray" />
+                      <strong>2-DESBLOQUEAR</strong>
+                    </div>
+                    <span className="shortcut-sub">engineResume</span>
+                  </div>
+
+                  <div className={`shortcut-card ${commandType === 'custom' ? 'active' : ''}`} onClick={() => setCommandType('custom')}>
+                    <div className="shortcut-title">
+                      <PenTool size={16} className="text-gray" />
+                      <strong>Comando personalizado</strong>
+                    </div>
+                    <span className="shortcut-sub">custom</span>
+                  </div>
+
+                  <div className="shortcut-card">
+                    <div className="shortcut-title">
+                      <Zap size={16} className="text-orange" />
+                      <strong>SERVER,1,dns... (Template GPRS)</strong>
+                    </div>
+                    <span className="shortcut-sub">template_812</span>
+                  </div>
+
+                </div>
+                
+                {commandType === 'custom' && (
+                  <div className="custom-command-input-area">
+                    <label>Texto do Comando Personalizado</label>
+                    <input 
+                      type="text" 
+                      value={customCommandText}
+                      onChange={(e) => setCustomCommandText(e.target.value)}
+                      placeholder="Ex: reset#" 
+                    />
+                  </div>
+                )}
+                
+                <div className="cmd-add-template-link">
+                  Não achou o que queria? <span>Adicionar um comando GPRS</span>
+                </div>
+              </div>
+              
+              <div className="cmd-footer">
+                <button className="btn-cancelar">Cancelar</button>
+                <button className="btn-enviar" onClick={handleSend}>Enviar</button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* LAYOUT SMS */}
+              <div className="cmd-sms-layout">
+                <div className="sms-section-title">
+                  <Car size={16} /> Veículos:
+                </div>
+                
+                <div className="sms-selected-card">
+                  <div className="sms-selected-icon">
+                    {selectedDevices.size > 1 ? `+${selectedDevices.size}` : <Car size={24} color="#fff" />}
+                  </div>
+                  <div className="sms-selected-info">
+                    {selectedDevices.size > 1 && <span className="sms-badge">Multiple</span>}
+                    <p className="sms-names">
+                      {selectedDevices.size === 0 ? 'Nenhum veículo selecionado' : 
+                       selectedDevices.size === 1 ? devices.find(d => d.id === Array.from(selectedDevices)[0])?.name :
+                       Array.from(selectedDevices).slice(0, 8).map(id => devices.find(d => d.id === id)?.name).join(', ') + (selectedDevices.size > 8 ? ' ...' : '')
+                      }
+                    </p>
+                    {selectedDevices.size === 1 && (
+                      <span className="sms-last-contact">
+                        Última comunicação: {devices.find(d => d.id === Array.from(selectedDevices)[0])?.lastContact ? new Date(devices.find(d => d.id === Array.from(selectedDevices)[0]).lastContact).toLocaleString('pt-BR') : 'Sem registro'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="sms-toggle">
+                    <div className="toggle-track active"><div className="toggle-thumb"></div></div>
+                  </div>
+                </div>
+
+                <div className="sms-section-title">
+                  <Settings size={16} /> {smsAction ? 'Opção selecionada' : 'Escolha uma das opções'}
+                </div>
+
+                <div className="sms-options-grid">
+                  <div 
+                    className={`sms-option-card ${smsAction === 'ativacao' ? 'active' : ''}`}
+                    onClick={() => setSmsAction(smsAction === 'ativacao' ? null : 'ativacao')}
+                  >
+                    <Settings size={32} />
+                    <strong>ATIVAÇÃO</strong>
+                  </div>
+                  <div 
+                    className={`sms-option-card ${smsAction === 'mensagem' ? 'active' : ''}`}
+                    onClick={() => setSmsAction(smsAction === 'mensagem' ? null : 'mensagem')}
+                  >
+                    <MessageSquare size={32} />
+                    <strong>MENSAGEM</strong>
+                  </div>
+                  <div 
+                    className={`sms-option-card ${smsAction === 'template' ? 'active' : ''}`}
+                    onClick={() => setSmsAction(smsAction === 'template' ? null : 'template')}
+                  >
+                    <List size={32} />
+                    <strong>TEMPLATE</strong>
+                  </div>
+                </div>
+
+                {smsAction === 'ativacao' && (
+                  <div className="sms-action-container">
+                    <div className="cmd-form-group" style={{ padding: '24px 0 0 0' }}>
+                      <label>FABRICANTE (ATIVAÇÃO)</label>
+                      <div className="cmd-select-wrapper">
+                        <select 
+                          value={smsAtivacaoSelecionado} 
+                          onChange={(e) => setSmsAtivacaoSelecionado(e.target.value)}
+                        >
+                          <option value="">Selecione uma opção</option>
+                          {smsFabricantesList.map((fab, idx) => (
+                            <option key={idx} value={fab.name}>{fab.name} | {fab.id}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {smsAction === 'template' && (
+                  <div className="sms-action-container template-view">
+                    <div className="template-info">
+                      Serão enviados 12 comandos em sequência para configurar o equipamento.
+                    </div>
+                    
+                    <div className="template-console">
+                      {templateLogs.length === 0 && !isExecutingTemplate && (
+                        <div className="template-empty">Clique em Enviar para iniciar a sequência.</div>
+                      )}
+                      
+                      {templateLogs.map(log => (
+                        <div key={log.id} className={`template-log-line ${log.type}`}>
+                          <div className="log-title">{log.title}</div>
+                          <div className="log-text">{log.text}</div>
+                          <div className="log-time">{log.time}</div>
+                        </div>
+                      ))}
+                      {isExecutingTemplate && (
+                        <div className="template-loading">Processando...</div>
+                      )}
+                      <div ref={logsEndRef} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="cmd-footer">
+                <button className="btn-cancelar">Cancelar</button>
+                {smsAction === 'ativacao' && (
+                  <button className="btn-enviar" onClick={handleSend}>Enviar</button>
+                )}
+                {smsAction === 'template' && (
+                  <button className="btn-enviar" onClick={executeTemplateSequence} disabled={isExecutingTemplate}>
+                    {isExecutingTemplate ? 'Enviando...' : 'Enviar'}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -179,11 +179,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-v2">
-      <header className="dashboard-v2-header">
-        <span className="sync-tag">
-          Última atualização: {lastSync ? lastSync.toLocaleTimeString('pt-BR') : '--:--:--'}
-        </span>
-      </header>
+
 
       <section className="kpi-grid">
         <div className="kpi-card">
@@ -289,7 +285,7 @@ const Dashboard = () => {
           </div>
           
           <div className="overview-column">
-            <p className="devices-overview-label">Inadimplência (Asaas)</p>
+            <p className="devices-overview-label">Inadimplência</p>
             <div className="card-box overdue-customers-card">
               <div className="devices-overview-head">
                 <h3 className="box-title flat">Clientes Inadimplentes</h3>

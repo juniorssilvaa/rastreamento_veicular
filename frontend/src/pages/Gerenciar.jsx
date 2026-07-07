@@ -10,8 +10,7 @@ const Gerenciar = ({ onNavigate }) => {
   const [asaasToken, setAsaasToken] = useState(() => localStorage.getItem('asaasToken') || '');
   const [asaasEnv, setAsaasEnv] = useState(() => localStorage.getItem('asaasEnv') || 'sandbox'); // sandbox or production
   
-  const [kingsmsLogin, setKingsmsLogin] = useState(() => localStorage.getItem('kingsmsLogin') || '');
-  const [kingsmsToken, setKingsmsToken] = useState(() => localStorage.getItem('kingsmsToken') || '');
+
 
   const [smsmarketLogin, setSmsmarketLogin] = useState(() => localStorage.getItem('smsmarketLogin') || '');
   const [smsmarketToken, setSmsmarketToken] = useState(() => localStorage.getItem('smsmarketToken') || '');
@@ -30,17 +29,7 @@ const Gerenciar = ({ onNavigate }) => {
     let token = '';
     let providerName = '';
 
-    if (provider === 'kingsms') {
-      if (!kingsmsLogin || !kingsmsToken) {
-        alert('Por favor, insira o Login e Token da KingSMS.');
-        return;
-      }
-      login = kingsmsLogin;
-      token = kingsmsToken;
-      providerName = 'KingSMS';
-      localStorage.setItem('kingsmsLogin', kingsmsLogin);
-      localStorage.setItem('kingsmsToken', kingsmsToken);
-    } else if (provider === 'smsmarket') {
+    if (provider === 'smsmarket') {
       if (!smsmarketLogin || !smsmarketToken) {
         alert('Por favor, insira o Usuário e Senha do SMS Market.');
         return;
@@ -162,10 +151,7 @@ const Gerenciar = ({ onNavigate }) => {
                 <span>Google Maps</span>
               </div>
 
-              <div className="action-card" onClick={() => setCurrentView('kingsms')}>
-                <MessageSquare size={32} className="action-icon" />
-                <span>KingSMS</span>
-              </div>
+
 
               <div className="action-card" onClick={() => setCurrentView('smsmarket')}>
                 <MessageSquare size={32} className="action-icon" />
@@ -292,56 +278,7 @@ const Gerenciar = ({ onNavigate }) => {
         </>
       )}
 
-      {currentView === 'kingsms' && (
-        <>
-          <div className="section-block">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-              <button 
-                onClick={() => setCurrentView('integracoes')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
-              >
-                <ArrowLeft size={24} />
-              </button>
-              <h2 style={{ margin: 0 }}>Integração KingSMS</h2>
-            </div>
-            
-            <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '600px' }}>
-              <p style={{ color: '#4B5563', fontSize: '14px', marginBottom: '20px' }}>
-                Configure a sua conta KingSMS para habilitar o envio de SMS a partir do servidor. Ao salvar, as configurações do Traccar serão atualizadas automaticamente para utilizar este Gateway SMS.
-              </p>
-              
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Login KingSMS</label>
-                <input 
-                  type="text" 
-                  value={kingsmsLogin}
-                  onChange={(e) => setKingsmsLogin(e.target.value)}
-                  placeholder="Seu login da KingSMS" 
-                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
-                />
-              </div>
 
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Token KingSMS</label>
-                <input 
-                  type="password" 
-                  value={kingsmsToken}
-                  onChange={(e) => setKingsmsToken(e.target.value)}
-                  placeholder="Seu token da KingSMS" 
-                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
-                />
-              </div>
-
-              <button 
-                onClick={() => handleSaveSmsGateway('kingsms')}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#3B82F6', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
-              >
-                <Save size={18} /> Salvar Integração SMS
-              </button>
-            </div>
-          </div>
-        </>
-      )}
 
       {currentView === 'smsmarket' && (
         <>

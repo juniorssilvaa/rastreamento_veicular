@@ -124,9 +124,14 @@
   color: var(--accent-gold);
 }
 
+.btn-logout {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
 .btn-logout:hover {
-  background-color: #FEF2F2;
-  color: #DC2626;
+  background-color: #dc2626;
+  color: #ffffff;
 }
 
 /* Dark theme style overrides for widgets */
