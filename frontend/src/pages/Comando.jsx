@@ -191,7 +191,9 @@ const Comando = () => {
                 break;
               }
             }
-          } catch(e) {}
+          } catch (e) {
+            console.error('Polling error:', e);
+          }
         }
 
         const confirmTime = new Date().toLocaleString('pt-BR');
