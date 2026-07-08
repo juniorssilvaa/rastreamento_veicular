@@ -101,9 +101,9 @@ class VehiclePhotoUploadView(APIView):
         filename = fs.save(f"vehicles/{photo.name}", photo)
         file_url = fs.url(filename)
         
-        # Retorna a URL absoluta para salvar nos atributos do Traccar
-        full_url = request.build_absolute_uri(file_url)
-        return Response({"url": full_url}, status=status.HTTP_201_CREATED)
+        # Retorna a URL relativa para salvar nos atributos do Traccar
+        # Isso evita erros de "Mixed Content" (http vs https) no frontend
+        return Response({"url": file_url}, status=status.HTTP_201_CREATED)
 
 class TraccarPositionsView(APIView):
     def get(self, request):

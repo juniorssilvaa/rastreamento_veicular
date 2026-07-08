@@ -174,14 +174,22 @@ const Veiculos = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    const uploadData = new FormData();
+    uploadData.append('photo', file);
+
+    try {
+      const response = await fetch('/api/traccar/upload-photo/', {
+        method: 'POST',
+        body: uploadData
+      });
+      const data = await response.json();
       setFormData({
         ...formData,
-        attributes: { ...formData.attributes, foto: reader.result }
+        attributes: { ...formData.attributes, foto: data.url }
       });
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Erro no upload da foto:", err);
+    }
   };
 
   const handleSave = async () => {
