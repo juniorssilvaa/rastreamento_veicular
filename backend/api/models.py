@@ -111,3 +111,9 @@ class SmsCommandHistory(models.Model):
 
     def __str__(self):
         return f"{self.direction} - {self.phone_number} - {self.status_code}"
+
+import uuid
+class VehiclePhoto(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    photo_base64 = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

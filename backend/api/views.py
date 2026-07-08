@@ -91,19 +91,36 @@ class TraccarDeviceDetailView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({"error": "Falha ao excluir veículo"}, status=status.HTTP_400_BAD_REQUEST)
 
+from .models import VehiclePhoto
+import base64
+from django.http import HttpResponse
+
 class VehiclePhotoUploadView(APIView):
     def post(self, request):
         if 'photo' not in request.FILES:
             return Response({"error": "Nenhuma foto enviada"}, status=status.HTTP_400_BAD_REQUEST)
         
         photo = request.FILES['photo']
-        fs = FileSystemStorage()
-        filename = fs.save(f"vehicles/{photo.name}", photo)
-        file_url = fs.url(filename)
+        photo_bytes = photo.read()
+        b64 = base64.b64encode(photo_bytes).decode('utf-8')
+        mime_type = photo.content_type
+        photo_base64 = f"data:{mime_type};base64,{b64}"
         
-        # Retorna a URL relativa para salvar nos atributos do Traccar
-        # Isso evita erros de "Mixed Content" (http vs https) no frontend
-        return Response({"url": file_url}, status=status.HTTP_201_CREATED)
+        # Salva no banco de dados Django (seguro contra restarts)
+        obj = VehiclePhoto.objects.create(photo_base64=photo_base64)
+        
+        # Retorna a url para o frontend usar no Traccar
+        return Response({"url": f"/api/photos/{obj.id}/"}, status=status.HTTP_201_CREATED)
+
+class VehiclePhotoServeView(APIView):
+    def get(self, request, pk):
+        try:
+            photo = VehiclePhoto.objects.get(id=pk)
+            format, imgstr = photo.photo_base64.split(';base64,')
+            ext = format.split('/')[-1]
+            return HttpResponse(base64.b64decode(imgstr), content_type=f'image/{ext}')
+        except Exception:
+            return HttpResponse(status=404)
 
 class TraccarPositionsView(APIView):
     def get(self, request):
