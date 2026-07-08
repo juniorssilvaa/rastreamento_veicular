@@ -11,24 +11,11 @@
     <entry key='logger.level'>all</entry>
 
     <!-- SMS Gateway Configuration -->
-
-    <entry key='notificator.types'>web,mail,sms</entry>
-
-    <!-- SMS Gateway Configuration -->
-    <entry key='notificator.types'>web,mail,sms</entry>
-
-    <!-- SMS Gateway Configuration -->
-    <entry key='notificator.types'>web,mail,sms</entry>
-
-    <!-- SMS Gateway Configuration -->
-    <entry key='notificator.types'>web,mail,sms</entry>
-
-    <!-- SMS Gateway Configuration -->
-    <entry key='notificator.types'>web,mail,sms</entry>
-
-    <!-- SMS Gateway Configuration -->
     <entry key='notificator.types'>web,mail,sms</entry>
     <entry key='sms.http.url'>https://api.smsmarket.com.br/webservice-rest/send-single?user=niohubtec&amp;password=Semfim01@&amp;number={phone}&amp;content={message}&amp;type=2&amp;country_code=55</entry>
     <entry key='sms.http.template'>
+        {
+            "content": "{message}"
+        }
     </entry>
 </properties>

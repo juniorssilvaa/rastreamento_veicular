@@ -12,6 +12,18 @@ const Comando = () => {
   const [selectedDevices, setSelectedDevices] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   
+  const getSmsStatusText = (code) => {
+    switch(code) {
+      case -1: return "Mensagem enfileirada, aguardando provedor...";
+      case 0: return "Enviado à operadora, aguardando chegar no aparelho...";
+      case 1: return "Entregue com sucesso.";
+      case 3: return "Preparando para envio...";
+      default:
+        if (code < 0) return `Erro ao enviar. Código: ${code}`;
+        return `Comando confirmado (Status ${code})`;
+    }
+  };
+  
   // State for config
   const [scope, setScope] = useState('veiculo'); // veiculo, grupo, modelo, todos
   const [channel, setChannel] = useState('gprs'); // gprs, sms
@@ -23,7 +35,15 @@ const Comando = () => {
   // SMS specific state
   const [smsAction, setSmsAction] = useState(null);
   const [smsAtivacaoSelecionado, setSmsAtivacaoSelecionado] = useState('');
-
+  const [smsTemplateSelecionado, setSmsTemplateSelecionado] = useState('');
+  
+  const [smsBalance, setSmsBalance] = useState('...');
+  const [commandCombos, setCommandCombos] = useState([]);
+  
+  // SMS Chat state
+  const [smsChatMessages, setSmsChatMessages] = useState([]);
+  const [smsChatInput, setSmsChatInput] = useState('');
+  
   const smsFabricantesList = [
     { name: "Coban TK303 - TK311", id: 7 },
     { name: "Concox CRX3 - CRX1", id: 8 },
@@ -133,25 +153,253 @@ const Comando = () => {
     if (templateLogs.length > 0) scrollToBottom(); 
   }, [templateLogs]);
 
+  const chatLogsEndRef = useRef(null);
+  const scrollToBottomChat = () => {
+    chatLogsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  useEffect(() => { 
+    scrollToBottomChat(); 
+  }, [smsChatMessages]);
+
+  const chatSessionStartRef = useRef(null);
+
+  useEffect(() => {
+     if (channel === 'sms' && smsAction === 'mensagem') {
+        chatSessionStartRef.current = new Date();
+        setSmsChatMessages([]);
+     }
+  }, [channel, smsAction, selectedDevices]);
+
+  useEffect(() => {
+    let intervalId;
+    
+    if (channel === 'sms' && smsAction === 'mensagem' && selectedDevices.size === 1) {
+      const devId = Array.from(selectedDevices)[0];
+      
+      const fetchHistory = async () => {
+        try {
+          const res = await fetch(`/api/sms/history/${devId}/`);
+          if (res.ok) {
+            const data = await res.json();
+            if (chatSessionStartRef.current) {
+              const filtered = data.filter(m => new Date(m.created_at) >= chatSessionStartRef.current);
+              setSmsChatMessages(filtered);
+            }
+          }
+        } catch (e) {
+          console.error('Erro ao buscar historico de sms', e);
+        }
+      };
+
+      fetchHistory();
+      intervalId = setInterval(fetchHistory, 5000);
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [channel, smsAction, selectedDevices]);
+
+  const handleSendSmsChat = async () => {
+    if (!smsChatInput.trim() || selectedDevices.size === 0) return;
+    
+    const devId = Array.from(selectedDevices)[0];
+    const messageText = smsChatInput;
+    setSmsChatInput('');
+    
+    // Otimisticamente adiciona na UI
+    setSmsChatMessages(prev => [...prev, {
+      id: Date.now(),
+      device_id: devId,
+      phone_number: '', // backend resolve
+      content: messageText,
+      status_code: -1,
+      direction: 'outbound',
+      created_at: new Date().toISOString()
+    }]);
+
+    try {
+      const payload = {
+        deviceId: devId,
+        textChannel: true,
+        type: 'custom',
+        attributes: { data: messageText },
+        smsGateway: 'smsmarket',
+        smsLogin: localStorage.getItem('smsmarketLogin') || '',
+        smsToken: localStorage.getItem('smsmarketToken') || ''
+      };
+
+      await fetch('/api/traccar/commands/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      // Polling vai atualizar o status
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const executeTemplateSequence = async () => {
     if (selectedDevices.size === 0) {
       alert("Por favor, selecione pelo menos um veículo para o template.");
       return;
     }
     
+    if (!smsTemplateSelecionado) {
+      alert("Selecione um template (combo) na lista.");
+      return;
+    }
+
+    const selectedCombo = commandCombos.find(c => c.id.toString() === smsTemplateSelecionado);
+    if (!selectedCombo || !selectedCombo.comandos || selectedCombo.comandos.length === 0) {
+      alert("Template selecionado é inválido ou não possui comandos.");
+      return;
+    }
+
     setIsExecutingTemplate(true);
     setTemplateLogs([]);
 
     const devId = Array.from(selectedDevices)[0]; // Executing for first selected
+    const cmdsToRun = selectedCombo.comandos;
     
-    for (let i = 0; i < TEMPLATE_COMMANDS.length; i++) {
-      const cmdText = TEMPLATE_COMMANDS[i];
+    for (let i = 0; i < cmdsToRun.length; i++) {
+      let cmdText = cmdsToRun[i];
+      // Limpa os delimitadores { } se vierem assim do backend
+      if (cmdText.startsWith('{') && cmdText.endsWith('}')) {
+        cmdText = cmdText.slice(1, -1);
+      }
+      
       const timeStr = new Date().toLocaleString('pt-BR');
       
       setTemplateLogs(prev => [...prev, {
         id: Date.now() + Math.random(),
         type: 'pending',
-        title: `Aguardando o recebimento do comando ${i + 1}/${TEMPLATE_COMMANDS.length}:`,
+        title: `Enviando comando ${i + 1}/${cmdsToRun.length}...`,
+        text: cmdText,
+        time: timeStr
+      }]);
+
+      try {
+        const payload = {
+          deviceId: devId,
+          textChannel: true, // we are in SMS template mode
+          type: 'custom',
+          attributes: { data: cmdText },
+          smsGateway: 'smsmarket',
+          smsLogin: localStorage.getItem('smsmarketLogin') || '',
+          smsToken: localStorage.getItem('smsmarketToken') || ''
+        };
+
+        const postRes = await fetch('/api/traccar/commands/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        let smsMarketId = null;
+        if (postRes.ok) {
+           const postData = await postRes.json();
+           // Attempt to parse smsmarket_response for the queued ID if available
+           try {
+               const rawResp = JSON.parse(postData.smsmarket_response);
+               if (rawResp && rawResp.id) smsMarketId = rawResp.id;
+           } catch(e){}
+        }
+
+        // Polling loop for this command (Wait up to 60s)
+        let confirmed = false;
+        let finalStatus = -1;
+        for (let poll = 0; poll < 12; poll++) { // 12 * 5s = 60s
+          await new Promise(r => setTimeout(r, 5000));
+          try {
+            const res = await fetch(`/api/sms/history/${devId}/`);
+            if (res.ok) {
+              const data = await res.json();
+              // Look for our outbound message or any inbound response
+              // If we have an smsMarketId, check if its status changed to delivered (1 or >3)
+              // Or if we received a new inbound message recently
+              
+              if (smsMarketId) {
+                 const ourMsg = data.find(m => m.direction === 'outbound' && String(m.id) === String(smsMarketId) || m.sms_market_id == smsMarketId);
+                 if (ourMsg && (ourMsg.status_code === 1 || ourMsg.status_code > 3)) {
+                    confirmed = true;
+                    finalStatus = ourMsg.status_code;
+                    break;
+                 }
+              }
+              
+              // Fallback: check if there's any recent inbound message in the last 60 seconds
+              const recentInbounds = data.filter(m => m.direction === 'inbound' && (new Date() - new Date(m.created_at)) < 60000);
+              if (recentInbounds.length > 0) {
+                 confirmed = true;
+                 break;
+              }
+            }
+          } catch (e) {
+            console.error('Polling error:', e);
+          }
+        }
+
+        const confirmTime = new Date().toLocaleString('pt-BR');
+        
+        if (confirmed) {
+           setTemplateLogs(prev => [...prev, {
+             id: Date.now() + Math.random(),
+             type: 'success',
+             title: `Comando confirmado (Sucesso):`,
+             text: cmdText,
+             time: confirmTime
+           }]);
+        } else {
+           setTemplateLogs(prev => [...prev, {
+             id: Date.now() + Math.random(),
+             type: 'error',
+             title: `Aviso: Tempo limite excedido (O veículo não respondeu). Sequência interrompida.`,
+             text: cmdText,
+             time: confirmTime
+           }]);
+           break; // Stop sequence on error
+        }
+
+      } catch (err) {
+        console.error(err);
+        setTemplateLogs(prev => [...prev, {
+             id: Date.now() + Math.random(),
+             type: 'error',
+             title: `Erro interno ao enviar. Sequência interrompida.`,
+             text: cmdText,
+             time: new Date().toLocaleString('pt-BR')
+        }]);
+        break;
+      }
+    }
+    
+    setIsExecutingTemplate(false);
+  };
+
+  const executeComboSequence = async (combo) => {
+    if (selectedDevices.size === 0) {
+      alert("Por favor, selecione pelo menos um veículo para enviar o combo.");
+      return;
+    }
+    
+    // Switch to GPRS view if needed, or handle in the active channel? Let's assume GPRS for now, or use selected channel.
+    setIsExecutingTemplate(true);
+    setTemplateLogs([]);
+    setSmsAction('template'); // Use the template view to show logs
+
+    const devId = Array.from(selectedDevices)[0];
+    const cmds = combo.comandos.map(c => c.replace('{', '').replace('}', '')); // Clean up { }
+    
+    for (let i = 0; i < cmds.length; i++) {
+      const cmdText = cmds[i];
+      const timeStr = new Date().toLocaleString('pt-BR');
+      
+      setTemplateLogs(prev => [...prev, {
+        id: Date.now() + Math.random(),
+        type: 'pending',
+        title: `Enviando comando ${i + 1}/${cmds.length}:`,
         text: cmdText,
         time: timeStr
       }]);
@@ -176,7 +424,7 @@ const Comando = () => {
           body: JSON.stringify(payload)
         });
 
-        // Polling loop
+        // Polling loop for response
         let confirmed = false;
         for (let poll = 0; poll < 12; poll++) {
           await new Promise(r => setTimeout(r, 5000));
@@ -184,8 +432,6 @@ const Comando = () => {
             const res = await fetch(`/api/sms/inbound/?flag=unread`);
             if (res.ok) {
               const data = await res.json();
-              // In a real scenario we'd match the message ID. 
-              // Here we just accept any incoming new SMS as confirmation for the flow.
               if (Array.isArray(data) && data.length > 0) {
                 confirmed = true;
                 break;
@@ -215,7 +461,6 @@ const Comando = () => {
              time: confirmTime
            }]);
         }
-
       } catch (err) {
         console.error(err);
       }
@@ -228,6 +473,23 @@ const Comando = () => {
     fetch('/api/traccar/devices/')
       .then(res => res.json())
       .then(json => setDevices(json))
+      .catch(err => console.error(err));
+      
+    fetch('/api/command-combos/')
+      .then(res => res.json())
+      .then(json => setCommandCombos(json))
+      .catch(err => console.error(err));
+
+    const smsUser = localStorage.getItem('smsmarketLogin') || '';
+    const smsToken = localStorage.getItem('smsmarketToken') || '';
+    
+    fetch(`/api/sms/balance/?user=${encodeURIComponent(smsUser)}&token=${encodeURIComponent(smsToken)}`)
+      .then(res => res.json())
+      .then(json => {
+         if (json && json.total !== undefined) {
+             setSmsBalance(json.total);
+         }
+      })
       .catch(err => console.error(err));
   }, []);
 
@@ -313,7 +575,7 @@ const Comando = () => {
           <button className="cmd-tab"><Clock size={16}/> HISTÓRICO</button>
         </div>
         <div className="cmd-tabs-right">
-          <span className="saldo-sms">SALDO: <strong>375</strong></span>
+          <span className="saldo-sms">SALDO: <strong>{smsBalance}</strong></span>
         </div>
       </div>
 
@@ -325,7 +587,7 @@ const Comando = () => {
             <span className="cmd-section-title">ESCOPO</span>
             <div className="cmd-scope-grid">
               <button className={`scope-btn ${scope === 'veiculo' ? 'active' : ''}`} onClick={() => setScope('veiculo')}>
-                <Car size={20} className="scope-icon blue"/>
+                <Car size={20} className="scope-icon gold"/>
                 <span>Veículo</span>
               </button>
               <button className={`scope-btn ${scope === 'grupo' ? 'active' : ''}`} onClick={() => setScope('grupo')}>
@@ -344,13 +606,15 @@ const Comando = () => {
           </div>
 
           <div className="cmd-search-box">
-            <Search size={16} className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Buscar veículo..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <div className="cmd-search-input-wrapper">
+              <Search size={16} className="search-icon" />
+              <input 
+                type="text" 
+                placeholder="Buscar veículo..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="cmd-selection-header">
@@ -362,21 +626,30 @@ const Comando = () => {
           </div>
 
           <div className="cmd-device-list">
-            {filteredDevices.map(d => (
+            {filteredDevices.map(d => {
+              const foto = d.attributes?.foto || 'https://via.placeholder.com/150';
+              const statusColor = d.status === 'online' ? '#10b981' : d.status === 'offline' ? '#ef4444' : '#f59e0b';
+              const lastUpdate = d.lastUpdate ? new Date(d.lastUpdate).toLocaleString('pt-BR') : 'Sem comunicação';
+              const statusText = d.status === 'online' ? 'Online' : d.status === 'offline' ? 'Offline' : 'Desconhecido';
+              
+              return (
               <div 
                 key={d.id} 
                 className={`cmd-device-item ${selectedDevices.has(d.id) ? 'selected' : ''}`}
                 onClick={() => handleToggleDevice(d.id)}
               >
                 <div className="device-checkbox">
-                  {selectedDevices.has(d.id) ? <CheckSquare size={18} color="#3b82f6" /> : <Square size={18} color="#9ca3af" />}
+                  {selectedDevices.has(d.id) ? <CheckSquare size={18} color="var(--accent-gold)" /> : <Square size={18} color="#9ca3af" />}
                 </div>
-                <div className="device-info">
+                <div className="device-photo" style={{ backgroundImage: `url(${foto})` }}></div>
+                <div className="device-info-rich">
                   <strong className="device-name">{d.name}</strong>
-                  <span className="device-sub">Frota • gt06</span>
+                  <div className="device-detail"><span className="device-status-dot" style={{backgroundColor: statusColor}}></span> {statusText}</div>
+                  <div className="device-detail">ID: {d.uniqueId}</div>
+                  <div className="device-detail">Últ. com.: {lastUpdate}</div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
 
           <div className="cmd-section channel-section">
@@ -413,7 +686,7 @@ const Comando = () => {
         <div className="cmd-main">
           <div className="cmd-breadcrumb">
             <span className="bc-icon">■</span>
-            <strong>COMANDO</strong> • <span className="blue-text">{selectedDevices.size === 1 ? Array.from(selectedDevices)[0] && devices.find(d => d.id === Array.from(selectedDevices)[0])?.name : `${selectedDevices.size} VEÍCULOS`}</span>
+            <strong>COMANDO</strong> • <span className="gold-text">{selectedDevices.size === 1 ? Array.from(selectedDevices)[0] && devices.find(d => d.id === Array.from(selectedDevices)[0])?.name : `${selectedDevices.size} VEÍCULOS`}</span>
           </div>
 
           {channel === 'gprs' ? (
@@ -477,6 +750,23 @@ const Comando = () => {
                   </div>
 
                 </div>
+
+                {commandCombos.length > 0 && (
+                  <>
+                    <span className="cmd-section-title mt-4" style={{ marginTop: '24px', display: 'block' }}>COMBOS SALVOS</span>
+                    <div className="cmd-shortcuts-grid combos-grid">
+                      {commandCombos.map(combo => (
+                        <div key={combo.id} className="shortcut-card combo-card" onClick={() => executeComboSequence(combo)}>
+                          <div className="shortcut-title">
+                            <List size={16} className="text-gold" />
+                            <strong>{combo.nome}</strong>
+                          </div>
+                          <span className="shortcut-sub">{combo.comandos.length} comandos em sequência</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
                 
                 {commandType === 'custom' && (
                   <div className="custom-command-input-area">
@@ -578,27 +868,96 @@ const Comando = () => {
                   </div>
                 )}
                 
-                {smsAction === 'template' && (
-                  <div className="sms-action-container template-view">
-                    <div className="template-info">
-                      Serão enviados 12 comandos em sequência para configurar o equipamento.
-                    </div>
+                {smsAction === 'mensagem' && (
+                  <div className="sms-action-container chat-view">
+                    <div className="chat-title">Envio de comandos</div>
                     
-                    <div className="template-console">
-                      {templateLogs.length === 0 && !isExecutingTemplate && (
-                        <div className="template-empty">Clique em Enviar para iniciar a sequência.</div>
+                    <div className="chat-history">
+                      {smsChatMessages.length === 0 && (
+                        <div className="chat-empty">Nenhum comando recente para este veículo.</div>
                       )}
                       
-                      {templateLogs.map(log => (
-                        <div key={log.id} className={`template-log-line ${log.type}`}>
-                          <div className="log-title">{log.title}</div>
-                          <div className="log-text">{log.text}</div>
-                          <div className="log-time">{log.time}</div>
-                        </div>
-                      ))}
-                      {isExecutingTemplate && (
-                        <div className="template-loading">Processando...</div>
+                      {smsChatMessages.map(msg => {
+                         const isPending = msg.direction === 'outbound' && (msg.status_code === -1 || msg.status_code === 0);
+                         return (
+                          <div key={msg.id} className={`chat-bubble ${msg.direction === 'inbound' ? 'inbound' : 'outbound'} ${msg.status_code === 1 || msg.status_code > 3 ? 'delivered' : 'pending'}`}>
+                            <div className="bubble-text">
+                              <strong>{msg.direction === 'inbound' ? 'Recebido:' : (msg.status_code === 1 || msg.status_code > 3 ? 'Comando confirmado:' : 'Enviado à operadora, aguardando chegar no aparelho:')}</strong>
+                              <br/>
+                              {msg.content}
+                            </div>
+                            <div className="bubble-meta">
+                              {msg.status_code === -1 && <Clock size={12}/>}
+                              {msg.status_code === 0 && <Clock size={12}/>}
+                              {(msg.status_code === 1 || msg.status_code > 3) && <CheckSquare size={12}/>}
+                              <span>{new Date(msg.created_at).toLocaleString('pt-BR')}</span>
+                            </div>
+                            {isPending && <div className="timeout-bar"></div>}
+                          </div>
+                        );
+                      })}
+                      <div ref={chatLogsEndRef} />
+                    </div>
+
+                    <div className="chat-input-area">
+                      <input 
+                        type="text" 
+                        placeholder="Digite seu comando" 
+                        value={smsChatInput}
+                        onChange={(e) => setSmsChatInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendSmsChat()}
+                      />
+                      <button className="btn-chat-send" onClick={handleSendSmsChat}><Send size={16}/></button>
+                      <button className="btn-chat-clear" onClick={() => setSmsChatInput('')}>&times;</button>
+                    </div>
+                  </div>
+                )}
+                
+                {smsAction === 'template' && (
+                  <div className="sms-action-container template-view">
+                    <div className="cmd-form-group" style={{ marginBottom: '16px' }}>
+                      <label>SELECIONE UM TEMPLATE</label>
+                      <div className="cmd-select-wrapper">
+                        <select 
+                          value={smsTemplateSelecionado} 
+                          onChange={(e) => setSmsTemplateSelecionado(e.target.value)}
+                        >
+                          <option value="">-- Escolha um combo --</option>
+                          {commandCombos.map(combo => (
+                            <option key={combo.id} value={combo.id}>
+                              {combo.nome} ({combo.comandos.length} comandos)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="chat-history">
+                      {templateLogs.length === 0 && !isExecutingTemplate && (
+                        <div className="chat-empty">Clique em Enviar para iniciar a sequência.</div>
                       )}
+                      
+                      {templateLogs.map(log => {
+                         let statusClass = 'pending';
+                         if (log.type === 'success') statusClass = 'delivered';
+                         if (log.type === 'error') statusClass = ''; 
+                         
+                         return (
+                          <div key={log.id} className={`chat-bubble outbound ${statusClass}`} style={log.type === 'error' ? {backgroundColor: '#ef4444', color: 'white'} : {}}>
+                            <div className="bubble-text">
+                              <strong>{log.title}</strong>
+                              <br/>
+                              {log.text}
+                            </div>
+                            <div className="bubble-meta">
+                              {log.type === 'pending' && <Clock size={12}/>}
+                              {log.type === 'success' && <CheckSquare size={12}/>}
+                              <span>{log.time}</span>
+                            </div>
+                            {log.type === 'pending' && <div className="timeout-bar"></div>}
+                          </div>
+                        );
+                      })}
+                      {/* Removed processando block */}
                       <div ref={logsEndRef} />
                     </div>
                   </div>
@@ -612,7 +971,7 @@ const Comando = () => {
                 )}
                 {smsAction === 'template' && (
                   <button className="btn-enviar" onClick={executeTemplateSequence} disabled={isExecutingTemplate}>
-                    {isExecutingTemplate ? 'Enviando...' : 'Enviar'}
+                    Enviar
                   </button>
                 )}
               </div>

@@ -25,7 +25,14 @@ from .views import (
     ConfigSmsGatewayView,
     SmsInboundView,
     TechnicianView,
-    TechnicianDetailView
+    TechnicianDetailView,
+    CommandComboView,
+    CommandComboDetailView,
+    SmsMarketBalanceView,
+    VehicleIconView,
+    VehicleIconDetailView,
+    SmsHistoryView,
+    SmsCallbackView,
 )
 from .views_auth import (
     AuthLoginView,
@@ -86,4 +93,19 @@ urlpatterns = [
     # Técnicos
     path('technicians/', TechnicianView.as_view(), name='technicians'),
     path('technicians/<int:pk>/', TechnicianDetailView.as_view(), name='technician_detail'),
+
+    # Command Combos
+    path('command-combos/', CommandComboView.as_view(), name='command_combos'),
+    path('command-combos/<int:pk>/', CommandComboDetailView.as_view(), name='command_combo_detail'),
+
+    # SMS Balance
+    path('sms/balance/', SmsMarketBalanceView.as_view(), name='sms_balance'),
+    
+    # Vehicle Icons
+    path('vehicle-icons/', VehicleIconView.as_view(), name='vehicle_icons'),
+    path('vehicle-icons/<int:pk>/', VehicleIconDetailView.as_view(), name='vehicle_icon_detail'),
+
+    # SMS History & Callback
+    path('sms/history/<int:device_id>/', SmsHistoryView.as_view(), name='sms_history'),
+    path('sms-callback/', SmsCallbackView.as_view(), name='sms_callback'),
 ]

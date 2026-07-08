@@ -80,3 +80,34 @@ class Technician(models.Model):
 
     def __str__(self):
         return self.name
+
+class CommandCombo(models.Model):
+    nome = models.CharField(max_length=255)
+    comandos = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.nome
+
+class VehicleIcon(models.Model):
+    name = models.CharField(max_length=255)
+    image_url = models.URLField(max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+class SmsCommandHistory(models.Model):
+    device_id = models.IntegerField(null=True, blank=True)
+    phone_number = models.CharField(max_length=50)
+    content = models.TextField()
+    status_code = models.IntegerField(default=-1)
+    sms_market_id = models.CharField(max_length=100, null=True, blank=True)
+    direction = models.CharField(max_length=20, default='outbound')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.direction} - {self.phone_number} - {self.status_code}"

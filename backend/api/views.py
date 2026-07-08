@@ -208,6 +208,23 @@ class TraccarCommandView(APIView):
                     
                     print(f" Resposta SMS Market (Status {resp.status_code}): {resp.text}")
                     print("="*50 + "\n")
+
+                    sms_market_id = None
+                    try:
+                        resp_json = resp.json()
+                        sms_market_id = str(resp_json.get("id", ""))
+                    except:
+                        pass
+
+                    from .models import SmsCommandHistory
+                    SmsCommandHistory.objects.create(
+                        device_id=device_id,
+                        phone_number=phone,
+                        content=message,
+                        status_code=-1, # Enfileirada
+                        sms_market_id=sms_market_id
+                    )
+
                     return Response({"success": True, "smsmarket_response": resp.text}, status=status.HTTP_200_OK)
                 else:
                     return Response({"error": "Provedor SMS desconhecido"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -913,3 +930,186 @@ class SmsInboundView(APIView):
     def get(self, request):
         return Response([], status=status.HTTP_200_OK)
 
+from .models import CommandCombo
+
+class CommandComboView(APIView):
+    def get(self, request):
+        combos = CommandCombo.objects.all().order_by('-created_at')
+        data = [
+            {
+                "id": c.id,
+                "nome": c.nome,
+                "comandos": c.comandos
+            } for c in combos
+        ]
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        nome = request.data.get('nome')
+        comandos = request.data.get('comandos', [])
+        if not nome or not comandos:
+            return Response({"error": "Nome e comandos são obrigatórios"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        combo = CommandCombo.objects.create(nome=nome, comandos=comandos)
+        return Response({
+            "id": combo.id,
+            "nome": combo.nome,
+            "comandos": combo.comandos
+        }, status=status.HTTP_201_CREATED)
+
+class CommandComboDetailView(APIView):
+    def put(self, request, pk):
+        try:
+            combo = CommandCombo.objects.get(pk=pk)
+            nome = request.data.get('nome')
+            comandos = request.data.get('comandos')
+            
+            if nome is not None:
+                combo.nome = nome
+            if comandos is not None:
+                combo.comandos = comandos
+                
+            combo.save()
+            return Response({
+                "id": combo.id,
+                "nome": combo.nome,
+                "comandos": combo.comandos
+            }, status=status.HTTP_200_OK)
+        except CommandCombo.DoesNotExist:
+            return Response({"error": "Combo não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, pk):
+        try:
+            combo = CommandCombo.objects.get(pk=pk)
+            combo.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except CommandCombo.DoesNotExist:
+            return Response({"error": "Combo não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+import urllib.request
+import json
+import base64
+
+class SmsMarketBalanceView(APIView):
+    def get(self, request):
+        url = 'https://api.smsmarket.com.br/webservice-rest/balance'
+        try:
+            # Pega do front-end ou usa fallback
+            user = request.GET.get('user', 'niohubtec')
+            password = request.GET.get('token', 'Semfim01@')
+            credentials = f"{user}:{password}"
+            encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+            
+            req = urllib.request.Request(url, headers={
+                'User-Agent': 'Mozilla/5.0',
+                'Authorization': f'Basic {encoded_credentials}'
+            })
+            
+            with urllib.request.urlopen(req) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                
+                if 'sms' in data:
+                    total_sms = int(data.get('sms', 0))
+                elif 'balance_1' in data:
+                    total_sms = int(data.get('balance_1', 0))
+                else:
+                    total_sms = 0
+                
+                return Response({"total": total_sms, "raw": data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e), "total": 0}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VehicleIconView(APIView):
+    def get(self, request):
+        from .models import VehicleIcon
+        icons = VehicleIcon.objects.all().order_by('-created_at')
+        data = [
+            {
+                "id": i.id,
+                "name": i.name,
+                "image_url": i.image_url
+            } for i in icons
+        ]
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        from .models import VehicleIcon
+        name = request.data.get('name')
+        image_url = request.data.get('image_url')
+        if not name or not image_url:
+            return Response({"error": "Nome e URL da imagem são obrigatórios"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        icon = VehicleIcon.objects.create(name=name, image_url=image_url)
+        return Response({
+            "id": icon.id,
+            "name": icon.name,
+            "image_url": icon.image_url
+        }, status=status.HTTP_201_CREATED)
+
+class VehicleIconDetailView(APIView):
+    def delete(self, request, pk):
+        from .models import VehicleIcon
+        try:
+            icon = VehicleIcon.objects.get(pk=pk)
+            icon.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except VehicleIcon.DoesNotExist:
+            return Response({"error": "Ícone não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+class SmsHistoryView(APIView):
+    def get(self, request, device_id):
+        from .models import SmsCommandHistory
+        messages = SmsCommandHistory.objects.filter(device_id=device_id).order_by('created_at')
+        data = []
+        for msg in messages:
+            data.append({
+                "id": msg.id,
+                "device_id": msg.device_id,
+                "phone_number": msg.phone_number,
+                "content": msg.content,
+                "status_code": msg.status_code,
+                "direction": msg.direction,
+                "created_at": msg.created_at.isoformat()
+            })
+        return Response(data, status=status.HTTP_200_OK)
+
+class SmsCallbackView(APIView):
+    def get(self, request):
+        # SMS Market envia GET
+        from .models import SmsCommandHistory
+        
+        # ex: ?id=150&status=4&date=...&number=...&content=...
+        sms_market_id = request.query_params.get('id')
+        status_code_str = request.query_params.get('status')
+        content = request.query_params.get('content')
+        phone = request.query_params.get('number')
+        
+        if not sms_market_id and not content:
+            return Response({"error": "Parâmetros insuficientes"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            status_code = int(status_code_str) if status_code_str is not None else None
+        except ValueError:
+            status_code = None
+
+        if sms_market_id and status_code is not None:
+            # Atualiza status da mensagem enviada
+            try:
+                msg = SmsCommandHistory.objects.filter(sms_market_id=sms_market_id).last()
+                if msg:
+                    msg.status_code = status_code
+                    msg.save()
+            except Exception as e:
+                pass
+                
+        # Trata recebimento de mensagem (inbound)
+        if status_code == 4 and content and phone:
+            SmsCommandHistory.objects.create(
+                phone_number=phone,
+                content=content,
+                status_code=4,
+                sms_market_id=sms_market_id,
+                direction='inbound'
+            )
+            
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)

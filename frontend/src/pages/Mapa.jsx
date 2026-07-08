@@ -22,6 +22,7 @@ import {
   Power,
   Activity,
   CarFront,
+  MoreHorizontal,
 } from 'lucide-react';
 
 const addressCache = new Map();
@@ -93,9 +94,21 @@ const escapeAttr = (s) =>
     .replace(/</g, '&lt;');
 
 const createDeviceDivIcon = (device) => {
+  const safeLabel = escapeAttr(device.name || 'Veículo');
+  
+  if (device.attributes && device.attributes.iconUrl) {
+    const iconUrl = escapeAttr(device.attributes.iconUrl);
+    return L.divIcon({
+      className: 'device-custom-icon-root',
+      html: `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid var(--accent-gold, #D4AF37); overflow: hidden;" role="img" aria-label="${safeLabel}"><img src="${iconUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${safeLabel}" /></div>`,
+      iconSize: [48, 48],
+      iconAnchor: [24, 24],
+      popupAnchor: [0, -24],
+    });
+  }
+
   const letter = (device.name || 'V').slice(0, 1).toUpperCase();
   const cls = deviceStatusClass(device);
-  const safeLabel = escapeAttr(device.name || 'Veículo');
   return L.divIcon({
     className: 'device-marker-root',
     html: `<div class="device-marker-pin device-marker-pin--${cls}" role="img" aria-label="${safeLabel}"><span class="device-marker-letter">${letter}</span></div>`,
@@ -460,38 +473,46 @@ const Mapa = () => {
                   className={selectedDevice?.id === device.id ? 'active' : ''}
                   onClick={() => handleSelectDevice(device)}
                 >
-                  <div className="vehicle-card">
-                    <div className="vehicle-avatar">{(device.name || 'V').slice(0, 1).toUpperCase()}</div>
-                    <div className="vehicle-info">
-                      <div className="vehicle-title-row">
-                        <strong>{device.name || 'Sem nome'}</strong>
-                        <span className={`connection-pill ${device.status === 'online' ? 'is-online' : 'is-offline'}`}>
-                          {device.status === 'online' ? 'Conectado' : 'Offline'}
-                        </span>
+                  <div className="vehicle-card-v2">
+                    <div className="v2-avatar-wrapper">
+                      <div className="v2-avatar">
+                        {device.attributes && (device.attributes.foto || device.attributes.iconUrl) ? (
+                          <img src={device.attributes.foto || device.attributes.iconUrl} alt={device.name} />
+                        ) : (
+                          (device.name || 'V').slice(0, 1).toUpperCase()
+                        )}
                       </div>
-                      <span className="vehicle-model">ID: {getDeviceSubtitle(device)}</span>
-                      <span className="vehicle-time">Última comunicação: {formatRelativeTime(device.lastContact)}</span>
+                      <div className={`v2-status-dot is-${device.status}`} />
                     </div>
-                    <div className="vehicle-side">
-                      <div className="vehicle-speed">
-                        <strong>{device.speedKmh}</strong>
-                        <span>KM/H</span>
+                    
+                    <div className="v2-info">
+                      <div className="v2-title-row">
+                        <div className="v2-title-text">
+                          <strong>{device.name || 'Sem nome'}</strong>
+                          {device.model && <span className="v2-model">· {device.model}</span>}
+                        </div>
+                        <button type="button" className="v2-more-btn">
+                          <MoreHorizontal size={16} />
+                        </button>
                       </div>
-                      <div className="vehicle-icons">
-                        <span
-                          className={`telemetry-icon ${device.engineOn ? 'is-on' : 'is-off'}`}
-                          title={device.engineOn ? 'Motor ligado' : 'Motor desligado'}
-                        >
-                          <Power size={12} />
+                      
+                      <div className="v2-status-row">
+                        <span className={`v2-state-text is-${device.status}`}>
+                          {device.status === 'online' ? (device.speedKmh > 0 ? 'Em movimento' : 'Parado') : 'Offline'}
                         </span>
-                        <span
-                          className={`telemetry-icon ${
-                            device.batteryLevel == null ? 'is-unknown' : device.batteryLevel >= 20 ? 'is-on' : 'is-low'
-                          }`}
-                          title={device.batteryLevel == null ? 'Bateria sem dado' : `Bateria ${device.batteryLevel}%`}
-                        >
-                          <BatteryCharging size={12} />
-                        </span>
+                        <span className="v2-separator">·</span>
+                        <span className="v2-time">{formatRelativeTime(device.lastContact)}</span>
+                        {device.lastContact && (
+                          <>
+                            <span className="v2-separator">·</span>
+                            <span className="v2-date">{new Date(device.lastContact).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(' de ', '/')}</span>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="v2-address-row">
+                        <MapPin size={12} className="v2-pin-icon" />
+                        <span>{device.position?.address || 'Endereço não disponível'}</span>
                       </div>
                     </div>
                   </div>

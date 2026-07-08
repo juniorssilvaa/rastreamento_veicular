@@ -12,12 +12,13 @@
 .mapa-sidebar {
   position: absolute;
   z-index: 530;
-  top: 56px;
+  top: 14px;
   left: 14px;
   right: auto;
-  bottom: auto;
-  width: min(300px, calc(100% - 28px));
-  max-height: calc(100% - 72px);
+  bottom: 14px;
+  height: calc(100% - 28px);
+  width: min(350px, calc(100% - 28px));
+  max-height: none;
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(226, 232, 240, 0.9);
@@ -25,6 +26,7 @@
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
   padding: 14px 14px 12px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar-header {
@@ -253,13 +255,22 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(145deg, #e2f3ff, #c6e9ff);
-  color: #0b7bc0;
-  display: inline-flex;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 17px;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
+}
+
+.vehicle-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .vehicle-info {
@@ -812,4 +823,286 @@
     padding: 6px;
     -webkit-overflow-scrolling: touch;
   }
+}
+
+/* Dark Mode Overrides for Sidebar */
+:root.dark .mapa-sidebar {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+:root.dark .sidebar-title-block h3 {
+  color: #f8fafc;
+}
+
+:root.dark .sidebar-sub {
+  color: #94a3b8;
+}
+
+:root.dark .device-list li {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+:root.dark .device-list li:hover {
+  background: #2a2a2d;
+  border-color: var(--accent-gold);
+}
+
+:root.dark .device-list li.active {
+  background: #333333;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.35), 0 8px 22px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark .vehicle-card {
+  background: transparent;
+  border: none;
+}
+
+:root.dark .vehicle-title-row strong {
+  color: #f1f5f9;
+}
+
+:root.dark .vehicle-avatar {
+  background: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+:root.dark .vehicle-model,
+:root.dark .vehicle-time {
+  color: #94a3b8;
+}
+
+:root.dark .vehicle-speed strong {
+  color: #f1f5f9;
+}
+
+:root.dark .icon-btn, :root.dark .close-btn {
+  background: var(--bg-main);
+  border-color: var(--border-color);
+  color: var(--text-gray);
+}
+
+:root.dark .icon-btn:hover, :root.dark .close-btn:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+:root.dark .add-btn {
+  background: var(--accent-gold);
+  color: #111827;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+}
+
+:root.dark .select-btn {
+  border-color: var(--accent-gold, #D4AF37);
+  color: var(--accent-gold, #D4AF37);
+}
+
+:root.dark .select-btn:hover {
+  background: var(--accent-gold, #D4AF37);
+  color: #111827;
+}
+
+:root.dark .sync-info {
+  color: #64748b;
+}
+
+:root.dark .devices-title-row h4, :root.dark .group-title {
+  color: #f8fafc;
+}
+
+:root.dark .stat-pill {
+  background: var(--bg-main);
+  border-color: var(--border-color);
+}
+
+:root.dark .stat-pill strong {
+  color: var(--text-primary);
+}
+
+:root.dark .stat-pill--online strong {
+  color: var(--accent-green);
+}
+:root.dark .stat-pill--offline strong {
+  color: #ef4444;
+}
+:root.dark .stat-pill--moving strong {
+  color: var(--accent-blue);
+}
+:root.dark .stat-pill--muted strong {
+  color: var(--text-secondary);
+}
+
+/* Vehicle Card V2 Layout */
+.vehicle-card-v2 {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: transparent;
+  border: none;
+}
+
+.v2-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.v2-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-weight: 700;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+:root.dark .v2-avatar {
+  background: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.v2-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-status-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background-color: #94a3b8;
+}
+
+:root.dark .v2-status-dot {
+  border-color: var(--bg-card);
+}
+
+.v2-status-dot.is-online { background-color: var(--accent-green, #059669); }
+.v2-status-dot.is-offline { background-color: #ef4444; }
+
+.v2-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 2px;
+}
+
+.v2-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.v2-title-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-title-text strong {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+:root.dark .v2-title-text strong {
+  color: var(--text-primary);
+}
+
+.v2-model {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+:root.dark .v2-model {
+  color: var(--text-secondary);
+}
+
+.v2-more-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.v2-more-btn:hover {
+  background-color: #f1f5f9;
+}
+
+:root.dark .v2-more-btn:hover {
+  background-color: var(--border-color);
+}
+
+.v2-status-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root.dark .v2-status-row {
+  color: var(--text-secondary);
+}
+
+.v2-state-text.is-online { color: var(--accent-green, #059669); }
+.v2-state-text.is-offline { color: #ef4444; }
+
+.v2-separator {
+  color: #cbd5e1;
+}
+
+:root.dark .v2-separator {
+  color: #475569;
+}
+
+.v2-address-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 12px;
+  color: #3b82f6;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+:root.dark .v2-address-row {
+  color: var(--accent-blue, #38bdf8);
+}
+
+.v2-pin-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
 }

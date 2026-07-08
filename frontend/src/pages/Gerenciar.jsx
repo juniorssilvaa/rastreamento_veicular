@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './Gerenciar.css';
-import { Search, Link, Package, Box, Car, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare } from 'lucide-react';
+import { Search, Link as LinkIcon, Package, Box, Car, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare, Image as ImageIcon, Trash2 } from 'lucide-react';
 
 const Gerenciar = ({ onNavigate }) => {
   const [currentView, setCurrentView] = useState('main'); // main, integracoes, asaas, gmaps
@@ -14,6 +14,57 @@ const Gerenciar = ({ onNavigate }) => {
 
   const [smsmarketLogin, setSmsmarketLogin] = useState(() => localStorage.getItem('smsmarketLogin') || '');
   const [smsmarketToken, setSmsmarketToken] = useState(() => localStorage.getItem('smsmarketToken') || '');
+  
+  // States for icons
+  const [vehicleIcons, setVehicleIcons] = useState([]);
+  const [newIconName, setNewIconName] = useState('');
+  const [newIconUrl, setNewIconUrl] = useState('');
+
+  const fetchIcons = async () => {
+    try {
+      const res = await fetch('/api/vehicle-icons/');
+      if (res.ok) {
+        const data = await res.json();
+        setVehicleIcons(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar ícones:', error);
+    }
+  };
+
+  const handleAddIcon = async () => {
+    if (!newIconName || !newIconUrl) {
+      alert('Nome e URL são obrigatórios.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/vehicle-icons/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newIconName, image_url: newIconUrl })
+      });
+      if (res.ok) {
+        setNewIconName('');
+        setNewIconUrl('');
+        fetchIcons();
+        alert('Ícone salvo com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar ícone:', error);
+    }
+  };
+
+  const handleDeleteIcon = async (id) => {
+    if (!window.confirm('Excluir este ícone?')) return;
+    try {
+      const res = await fetch(`/api/vehicle-icons/${id}/`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchIcons();
+      }
+    } catch (error) {
+      console.error('Erro ao excluir ícone:', error);
+    }
+  };
 
   const handleSaveGmaps = () => {
     if (!gmapsKey) {
@@ -80,7 +131,7 @@ const Gerenciar = ({ onNavigate }) => {
             <div className="grid-cards">
               
               <div className="action-card" onClick={() => setCurrentView('integracoes')}>
-                <Link size={32} className="action-icon" />
+                <LinkIcon size={32} className="action-icon" />
                 <span>Integrações</span>
               </div>
 
@@ -120,6 +171,11 @@ const Gerenciar = ({ onNavigate }) => {
               <div className="action-card" onClick={() => onNavigate && onNavigate('Técnicos')}>
                 <UserCog size={32} className="action-icon" />
                 <span>Técnico</span>
+              </div>
+
+              <div className="action-card" onClick={() => { setCurrentView('icones'); fetchIcons(); }}>
+                <ImageIcon size={32} className="action-icon" />
+                <span>Ícones</span>
               </div>
 
             </div>
@@ -326,6 +382,72 @@ const Gerenciar = ({ onNavigate }) => {
               >
                 <Save size={18} /> Salvar Integração SMS Market
               </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {currentView === 'icones' && (
+        <>
+          <div className="section-block">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+              <button 
+                onClick={() => setCurrentView('main')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
+              >
+                <ArrowLeft size={24} />
+              </button>
+              <h2 style={{ margin: 0 }}>Gerenciar Ícones de Veículos</h2>
+            </div>
+            
+            <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '800px' }}>
+              <p style={{ color: '#4B5563', fontSize: '14px', marginBottom: '20px' }}>
+                Adicione ícones personalizados usando o link (URL) da imagem. Estes ícones poderão ser selecionados no cadastro de veículos para aparecerem no mapa em vez do pino padrão.
+              </p>
+              
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Nome do Ícone (ex: Moto Honda)</label>
+                  <input 
+                    type="text" 
+                    value={newIconName}
+                    onChange={(e) => setNewIconName(e.target.value)}
+                    placeholder="Nome" 
+                    style={{ width: '100%', padding: '10px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
+                  />
+                </div>
+                <div style={{ flex: 2 }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>URL da Imagem</label>
+                  <input 
+                    type="text" 
+                    value={newIconUrl}
+                    onChange={(e) => setNewIconUrl(e.target.value)}
+                    placeholder="https://exemplo.com/imagem.png" 
+                    style={{ width: '100%', padding: '10px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
+                  />
+                </div>
+                <button 
+                  onClick={handleAddIcon}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent-gold, #D4AF37)', color: '#111827', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', height: '42px' }}
+                >
+                  <Save size={18} /> Adicionar
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }}>
+                {vehicleIcons.map(icon => (
+                  <div key={icon.id} style={{ border: '1px solid #E5E7EB', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                    <button 
+                      onClick={() => handleDeleteIcon(icon.id)}
+                      style={{ position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                    <img src={icon.image_url} alt={icon.name} style={{ width: '60px', height: '60px', objectFit: 'contain', marginBottom: '8px' }} />
+                    <span style={{ fontSize: '13px', fontWeight: '500', textAlign: 'center', color: '#374151', wordBreak: 'break-word' }}>{icon.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </>

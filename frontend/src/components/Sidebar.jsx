@@ -31,6 +31,7 @@ const Sidebar = ({ activeItem, setActiveItem }) => {
   const menuItemsAdministrativo = [
     { name: 'Clientes', icon: <Users size={20} /> },
     { name: 'Veículos', icon: <Car size={20} /> },
+    { name: 'Criar Comandos', icon: <SendHorizontal size={20} /> },
     { name: 'Gerenciar', icon: <Settings size={20} /> },
   ];
 

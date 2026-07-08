@@ -11,6 +11,7 @@ import Veiculos from './pages/Veiculos';
 import CercasVirtuais from './pages/CercasVirtuais';
 import Login from './pages/Login';
 import Clientes from './pages/Clientes';
+import CriarComandos from './pages/CriarComandos';
 import Tecnicos from './pages/Tecnicos';
 import ClienteApp from './pages/cliente/ClienteApp';
 import { Toaster } from 'react-hot-toast';
@@ -105,6 +106,7 @@ function App() {
           {activeItem === 'Veículos' && <Veiculos />}
           {activeItem === 'Cercas Virtuais' && <CercasVirtuais />}
           {activeItem === 'Clientes' && <Clientes />}
+          {activeItem === 'Criar Comandos' && <CriarComandos />}
           {activeItem === 'Técnicos' && <Tecnicos />}
           {activeItem !== 'Dashboard' && 
            activeItem !== 'Gerenciar' && 
@@ -114,6 +116,7 @@ function App() {
            activeItem !== 'Veículos' &&
            activeItem !== 'Cercas Virtuais' &&
            activeItem !== 'Clientes' && 
+           activeItem !== 'Criar Comandos' &&
            activeItem !== 'Técnicos' && (
              <div style={{padding: '40px'}}>
                <h2>{activeItem}</h2>

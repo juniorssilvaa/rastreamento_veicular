@@ -102,6 +102,7 @@ const Veiculos = () => {
   const [vehicles, setVehicles] = useState([]);
   const [groups, setGroups] = useState([]);
   const [calendars, setCalendars] = useState([]);
+  const [vehicleIcons, setVehicleIcons] = useState([]);
   const [positions, setPositions] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -124,7 +125,8 @@ const Veiculos = () => {
     expirationTime: '2099-01-01T00:00:00Z',
     attributes: {
       foto: '',
-      iccid: ''
+      iccid: '',
+      iconUrl: ''
     }
   });
 
@@ -135,11 +137,12 @@ const Veiculos = () => {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [devRes, groupRes, calRes, posRes] = await Promise.all([
+      const [devRes, groupRes, calRes, posRes, iconsRes] = await Promise.all([
         fetch('/api/traccar/devices/?all=true'),
         fetch('/api/traccar/entity/groups/'),
         fetch('/api/traccar/entity/calendars/'),
-        fetch('/api/traccar/positions/')
+        fetch('/api/traccar/positions/'),
+        fetch('/api/vehicle-icons/')
       ]);
 
       const devs = await devRes.json();
@@ -152,6 +155,13 @@ const Veiculos = () => {
       setVehicles(devs);
       setGroups(await groupRes.json());
       setCalendars(await calRes.json());
+      
+      let iconsData = [];
+      if (iconsRes.ok) {
+        iconsData = await iconsRes.json();
+      }
+      setVehicleIcons(iconsData);
+      
       setPositions(posMap);
     } catch (err) {
       console.error("Erro ao carregar dados iniciais:", err);
@@ -510,9 +520,16 @@ const Veiculos = () => {
                   <input type="text" value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })} />
                 </div>
                 <div className="input-box">
-                  <label>Categoria</label>
+                  <label>Categoria Padrão</label>
                   <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>
                     {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="input-box">
+                  <label>Ícone Personalizado do Mapa</label>
+                  <select value={formData.attributes.iconUrl || ''} onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, iconUrl: e.target.value }})}>
+                    <option value="">(Usar Pino Padrão)</option>
+                    {vehicleIcons.map(icon => <option key={icon.id} value={icon.image_url}>{icon.name}</option>)}
                   </select>
                 </div>
                 <div className="input-box">
