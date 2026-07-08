@@ -121,26 +121,24 @@
 
 .scope-btn span {
   font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary, #6b7280);
+  font-weight: 600;
+  color: #ffffff;
 }
 
-.scope-icon.gold { color: var(--accent-gold); }
-.scope-icon.gray { color: var(--text-secondary, #6b7280); }
+.scope-icon { color: #ffffff; }
+
+.scope-btn.scope-veiculo { background-color: #e83e8c; border-color: transparent; }
+.scope-btn.scope-grupo { background-color: #007bff; border-color: transparent; }
+.scope-btn.scope-modelo { background-color: #ffc107; border-color: transparent; }
+.scope-btn.scope-todos { background-color: #ff6b6b; border-color: transparent; }
 
 .scope-btn:hover {
-  background: var(--bg-hover, #f3f4f6);
+  filter: brightness(1.1);
 }
 
 .scope-btn.active {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.3);
-}
-.scope-btn.active span {
-  color: var(--accent-gold);
-}
-.scope-btn.active .scope-icon.gray {
-  color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.8);
+  transform: scale(0.96);
 }
 
 .cmd-search-box {
@@ -544,7 +542,6 @@
   border-color: var(--border-color);
 }
 
-:root.dark .scope-btn,
 :root.dark .cmd-selection-header,
 :root.dark .channel-card,
 :root.dark .custom-command-input-area input {
@@ -554,10 +551,11 @@
 }
 
 :root.dark .cmd-tab:not(.active),
-:root.dark .scope-btn span,
 :root.dark .device-sub,
 :root.dark .channel-card span:last-child,
 :root.dark .cmd-breadcrumb,
+:root.dark .history-msg-meta,
+:root.dark .cmd-radio-option span:last-child,
 :root.dark .shortcut-sub {
   color: var(--text-secondary);
 }

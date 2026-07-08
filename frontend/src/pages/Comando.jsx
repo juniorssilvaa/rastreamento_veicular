@@ -304,7 +304,9 @@ const Comando = () => {
            try {
                const rawResp = JSON.parse(postData.smsmarket_response);
                if (rawResp && rawResp.id) smsMarketId = rawResp.id;
-           } catch(e){}
+           } catch(e){
+               console.error("Erro no parse do smsmarket_response", e);
+           }
         }
 
         // Polling loop for this command (Wait up to 60s)
@@ -586,20 +588,20 @@ const Comando = () => {
           <div className="cmd-section">
             <span className="cmd-section-title">ESCOPO</span>
             <div className="cmd-scope-grid">
-              <button className={`scope-btn ${scope === 'veiculo' ? 'active' : ''}`} onClick={() => setScope('veiculo')}>
-                <Car size={20} className="scope-icon gold"/>
+              <button className={`scope-btn scope-veiculo ${scope === 'veiculo' ? 'active' : ''}`} onClick={() => setScope('veiculo')}>
+                <Car size={20} className="scope-icon"/>
                 <span>Veículo</span>
               </button>
-              <button className={`scope-btn ${scope === 'grupo' ? 'active' : ''}`} onClick={() => setScope('grupo')}>
-                <Users size={20} className="scope-icon gray"/>
+              <button className={`scope-btn scope-grupo ${scope === 'grupo' ? 'active' : ''}`} onClick={() => setScope('grupo')}>
+                <Users size={20} className="scope-icon"/>
                 <span>Grupo</span>
               </button>
-              <button className={`scope-btn ${scope === 'modelo' ? 'active' : ''}`} onClick={() => setScope('modelo')}>
-                <Settings size={20} className="scope-icon gray"/>
+              <button className={`scope-btn scope-modelo ${scope === 'modelo' ? 'active' : ''}`} onClick={() => setScope('modelo')}>
+                <Settings size={20} className="scope-icon"/>
                 <span>Modelo</span>
               </button>
-              <button className={`scope-btn ${scope === 'todos' ? 'active' : ''}`} onClick={() => setScope('todos')}>
-                <Globe size={20} className="scope-icon gray"/>
+              <button className={`scope-btn scope-todos ${scope === 'todos' ? 'active' : ''}`} onClick={() => setScope('todos')}>
+                <Globe size={20} className="scope-icon"/>
                 <span>Todos</span>
               </button>
             </div>
