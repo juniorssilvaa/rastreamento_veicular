@@ -195,8 +195,8 @@ const Dashboard = () => {
     .sort((a, b) => new Date(b.lastContact || 0) - new Date(a.lastContact || 0))
     .slice(0, 6);
 
+  const [now] = useState(() => Date.now());
   const offlineHighlights = useMemo(() => {
-    const now = Date.now();
     const oneDay = 24 * 60 * 60 * 1000;
     const twoDays = 48 * 60 * 60 * 1000;
 
