@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, ScaleControl, useMap } from 'react-lea
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './Mapa.css';
+import Modal from '../components/Modal';
 import {
   Crosshair,
   LocateFixed,
@@ -20,6 +21,7 @@ import {
   Battery,
   BatteryCharging,
   Power,
+  KeyRound,
   Activity,
   CarFront,
   MoreHorizontal,
@@ -118,12 +120,9 @@ const createDeviceDivIcon = (device) => {
   });
 };
 
-const MapActionMenu = ({ selectedDevice }) => {
+const MapActionMenu = ({ selectedDevice, onOpenViewConfig }) => {
   const map = useMap();
   const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const handleZoomIn = () => map.zoomIn();
-  const handleZoomOut = () => map.zoomOut();
 
   const handleLocateMe = () => {
     map.locate({ setView: true, maxZoom: 16 });
@@ -158,15 +157,8 @@ const MapActionMenu = ({ selectedDevice }) => {
       <button type="button" onClick={handleCenterOnVehicle} title="Seguir veículo selecionado">
         <Navigation size={16} />
       </button>
-      <button type="button" onClick={() => map.flyTo([-14.235, -51.9253], 4)} title="Centralizar Brasil">
-        <Crosshair size={16} />
-      </button>
-      <div className="divider" />
-      <button type="button" onClick={handleZoomIn} title="Zoom +">
-        <Plus size={16} />
-      </button>
-      <button type="button" onClick={handleZoomOut} title="Zoom -">
-        <Minus size={16} />
+      <button type="button" onClick={onOpenViewConfig} title="Visualização dos carros">
+        <Settings size={16} />
       </button>
     </div>
   );
@@ -227,6 +219,13 @@ const getDeviceSubtitle = (device) => {
   return 'Rastreador';
 };
 
+const normalizeMapDeviceLabelMode = (value) => {
+  if (value === 'cliente') return 'nome';
+  if (value === 'placa') return 'placa';
+  if (value === 'nome' || value === 'nome_placa') return value;
+  return 'nome_placa';
+};
+
 const formatCourse = (deg) => {
   if (deg == null || Number.isNaN(Number(deg))) return '—';
   const d = ((Number(deg) % 360) + 360) % 360;
@@ -237,6 +236,7 @@ const formatCourse = (deg) => {
 const Mapa = () => {
   const [positions, setPositions] = useState([]);
   const [devices, setDevices] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [lastSync, setLastSync] = useState(null);
   const [search, setSearch] = useState('');
@@ -244,20 +244,40 @@ const Mapa = () => {
   const [resolvedAddress, setResolvedAddress] = useState(null);
   const [addressError, setAddressError] = useState(false);
   const [devicesPanelOpen, setDevicesPanelOpen] = useState(false);
+  const [isViewConfigOpen, setIsViewConfigOpen] = useState(false);
+  const [mapDeviceLabelMode, setMapDeviceLabelMode] = useState(() =>
+    normalizeMapDeviceLabelMode(localStorage.getItem('mapDeviceLabelMode'))
+  );
+  const [pendingMapDeviceLabelMode, setPendingMapDeviceLabelMode] = useState(() =>
+    normalizeMapDeviceLabelMode(localStorage.getItem('mapDeviceLabelMode'))
+  );
 
   const closeDevicesPanel = () => setDevicesPanelOpen(false);
   const toggleDevicesPanel = () => setDevicesPanelOpen((open) => !open);
+  const openViewConfig = () => {
+    setPendingMapDeviceLabelMode(mapDeviceLabelMode);
+    setIsViewConfigOpen(true);
+  };
+  const closeViewConfig = () => setIsViewConfigOpen(false);
+  const saveViewConfig = () => {
+    setMapDeviceLabelMode(pendingMapDeviceLabelMode);
+    localStorage.setItem('mapDeviceLabelMode', pendingMapDeviceLabelMode);
+    setIsViewConfigOpen(false);
+  };
 
   // Carregar dados
   const fetchData = async () => {
     try {
-      const [devRes, posRes] = await Promise.all([
+      const [devRes, groupRes, posRes] = await Promise.all([
         fetch('/api/traccar/devices/'),
+        fetch('/api/traccar/entity/groups/'),
         fetch('/api/traccar/positions/')
       ]);
       const devicesArr = await devRes.json();
+      const groupsArr = groupRes.ok ? await groupRes.json() : [];
       const posArr = await posRes.json();
       setDevices(devicesArr);
+      setGroups(Array.isArray(groupsArr) ? groupsArr : []);
       setPositions(posArr);
       setLastSync(new Date());
     } catch (err) {
@@ -312,20 +332,48 @@ const Mapa = () => {
     return map;
   }, [positions]);
 
+  const groupById = useMemo(() => {
+    const map = {};
+    groups.forEach((group) => {
+      map[group.id] = group;
+    });
+    return map;
+  }, [groups]);
+
   const enrichedDevices = useMemo(() => {
     return devices
       .map((device) => {
         const position = positionByDeviceId[device.id];
-        const attrs = position?.attributes || {};
+        const attrs = {
+          ...(position?.attributes || {}),
+          ...(device.attributes || {}),
+        };
         const engineOn = attrs.ignition === true || attrs.motion === true;
+        const customerName =
+          attrs.customerName ||
+          attrs.customer ||
+          attrs.clienteNome ||
+          attrs.cliente ||
+          groupById[device.groupId]?.name ||
+          '';
+        const plate =
+          attrs.placa ||
+          attrs.plate ||
+          attrs.licensePlate ||
+          attrs.vehiclePlate ||
+          attrs.registration ||
+          '';
         return {
           ...device,
           position,
+          attributes: attrs,
           engineOn,
           speedKmh: toKmH(position?.speed),
           totalDistance: toKm(attrs.totalDistance),
           batteryLevel: normalizeBatteryLevel(attrs.batteryLevel ?? attrs.battery),
           lastContact: device.lastUpdate || position?.serverTime || position?.deviceTime,
+          customerName,
+          plate,
         };
       })
       .sort((a, b) => {
@@ -333,7 +381,7 @@ const Mapa = () => {
         if (a.status !== 'online' && b.status === 'online') return 1;
         return a.name.localeCompare(b.name);
       });
-  }, [devices, positionByDeviceId]);
+  }, [devices, groupById, positionByDeviceId]);
 
   const filteredDevices = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -349,14 +397,14 @@ const Mapa = () => {
   const metrics = useMemo(() => {
     const online = enrichedDevices.filter((d) => d.status === 'online').length;
     const offline = enrichedDevices.length - online;
-    const moving = enrichedDevices.filter((d) => d.position && d.speedKmh > 0).length;
-    const removed = 0;
+    const engineOn = enrichedDevices.filter((d) => d.engineOn === true).length;
+    const engineOff = Math.max(enrichedDevices.length - engineOn, 0);
     return {
       total: enrichedDevices.length,
       online,
       offline,
-      moving,
-      removed,
+      engineOn,
+      engineOff,
     };
   }, [enrichedDevices]);
 
@@ -364,6 +412,23 @@ const Mapa = () => {
   const clearSelectedDevice = () => setSelectedDevice(null);
 
   const displayAddress = resolvedAddress || (addressError ? 'Endereço indisponível' : 'Buscando endereço…');
+  const selectedPrimaryLabel =
+    mapDeviceLabelMode === 'placa'
+      ? selectedDevice?.plate || selectedDevice?.name || selectedDevice?.uniqueId || 'Sem placa'
+      : mapDeviceLabelMode === 'nome'
+        ? selectedDevice?.name || selectedDevice?.plate || selectedDevice?.uniqueId || 'Veículo sem nome'
+        : [selectedDevice?.name, selectedDevice?.plate].filter(Boolean).join(' • ') ||
+          selectedDevice?.name ||
+          selectedDevice?.plate ||
+          selectedDevice?.uniqueId ||
+          'Veículo sem nome';
+  const selectedSecondaryLabel =
+    mapDeviceLabelMode === 'placa'
+      ? selectedDevice?.name || selectedDevice?.customerName || selectedDevice?.uniqueId || 'Veículo sem nome'
+      : mapDeviceLabelMode === 'nome'
+        ? selectedDevice?.plate || selectedDevice?.customerName || selectedDevice?.uniqueId || 'Sem placa'
+        : selectedDevice?.customerName || selectedDevice?.uniqueId || 'Sem cliente';
+  const selectedIgnitionText = selectedDevice?.engineOn ? 'ligado' : 'desligado';
 
   const mapTiles = {
     clean: {
@@ -429,13 +494,15 @@ const Mapa = () => {
                 <strong>{metrics.offline}</strong>
                 <span>offline</span>
               </div>
-              <div className="stat-pill stat-pill--moving">
-                <strong>{metrics.moving}</strong>
-                <span>em mov.</span>
+              <div className="stat-pill stat-pill--engine-on">
+                <strong>{metrics.engineOn}</strong>
+                <span>ligados</span>
+                <KeyRound size={12} className="stat-pill__icon" />
               </div>
-              <div className="stat-pill stat-pill--muted">
-                <strong>{metrics.removed}</strong>
-                <span>removidos</span>
+              <div className="stat-pill stat-pill--engine-off">
+                <strong>{metrics.engineOff}</strong>
+                <span>desligados</span>
+                <KeyRound size={12} className="stat-pill__icon" />
               </div>
               <div className="stats-strip-tools">
                 <button type="button" className="icon-btn" title="Configurações">
@@ -545,20 +612,27 @@ const Mapa = () => {
             </button>
             <div className="detail-card-head">
               <div>
-                <h4>{selectedDevice.name || 'Veículo sem nome'}</h4>
+                <h4>{selectedPrimaryLabel}</h4>
                 <p className="id-line">
-                  <span className="mono">{selectedDevice.uniqueId || '—'}</span>
+                  <span>{selectedSecondaryLabel}</span>
                   <span className="dot-sep">·</span>
                   {formatDateTime(selectedDevice.lastContact)}
                 </p>
               </div>
-              <span className={`status-chip status-chip--${deviceStatusClass(selectedDevice)}`}>
-                {selectedDevice.status === 'online'
-                  ? selectedDevice.speedKmh > 0
-                    ? 'Em movimento'
-                    : 'Parado'
-                  : 'Offline'}
+              <span className={`status-chip status-chip--${selectedDevice.engineOn ? 'engine-on' : 'engine-off'}`}>
+                {selectedIgnitionText}
               </span>
+            </div>
+
+            <div className="detail-summary-strip">
+              <div className="summary-chip">
+                <Gauge size={14} className="summary-chip__icon" aria-hidden />
+                <span>{selectedDevice.speedKmh} km/h</span>
+              </div>
+              <div className={`summary-chip summary-chip--ignition ${selectedDevice.engineOn ? 'is-on' : 'is-off'}`}>
+                <KeyRound size={14} className="summary-chip__icon" aria-hidden />
+                <span>{selectedIgnitionText}</span>
+              </div>
             </div>
 
             <div className="detail-metrics">
@@ -643,7 +717,7 @@ const Mapa = () => {
         <MapContainer center={[-23.5505, -46.6333]} zoom={5} style={{ height: '100%', width: '100%' }} zoomControl={false}>
           <ScaleControl position="bottomright" imperial={false} />
           <FitBoundsWhenIdle devices={enrichedDevices} selectedId={selectedDevice?.id ?? null} />
-          <MapActionMenu selectedDevice={selectedDevice} />
+          <MapActionMenu selectedDevice={selectedDevice} onOpenViewConfig={openViewConfig} />
           <TileLayer
             key={mapTheme}
             attribution={activeTile.attribution}
@@ -680,6 +754,65 @@ const Mapa = () => {
         >
           <CarFront size={22} strokeWidth={2.2} aria-hidden />
         </button>
+
+        <Modal isOpen={isViewConfigOpen} onClose={closeViewConfig} title="Visualização dos Veiculos noa Mapa">
+          <div className="map-view-config">
+            <p className="map-view-config__desc">
+              Escolha como os vaiclos devem ser identificados na visualização do mapa
+            </p>
+
+            <label className="map-view-option">
+              <input
+                type="radio"
+                name="map-device-label-mode"
+                value="nome_placa"
+                checked={pendingMapDeviceLabelMode === 'nome_placa'}
+                onChange={(event) => setPendingMapDeviceLabelMode(event.target.value)}
+              />
+              <div>
+                <strong>Nome + placa</strong>
+                <span>Exibe o nome do veículo junto com a placa.</span>
+              </div>
+            </label>
+
+            <label className="map-view-option">
+              <input
+                type="radio"
+                name="map-device-label-mode"
+                value="nome"
+                checked={pendingMapDeviceLabelMode === 'nome'}
+                onChange={(event) => setPendingMapDeviceLabelMode(event.target.value)}
+              />
+              <div>
+                <strong>Apenas nome</strong>
+                <span>Mostra somente o nome do veículo.</span>
+              </div>
+            </label>
+
+            <label className="map-view-option">
+              <input
+                type="radio"
+                name="map-device-label-mode"
+                value="placa"
+                checked={pendingMapDeviceLabelMode === 'placa'}
+                onChange={(event) => setPendingMapDeviceLabelMode(event.target.value)}
+              />
+              <div>
+                <strong>Apenas placa</strong>
+                <span>Exibe somente a placa quando disponível.</span>
+              </div>
+            </label>
+
+            <div className="map-view-config__actions">
+              <button type="button" className="map-view-config__btn map-view-config__btn--ghost" onClick={closeViewConfig}>
+                Cancelar
+              </button>
+              <button type="button" className="map-view-config__btn map-view-config__btn--primary" onClick={saveViewConfig}>
+                Salvar
+              </button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
   );

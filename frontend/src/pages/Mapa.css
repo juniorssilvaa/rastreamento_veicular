@@ -123,17 +123,28 @@
   color: #64748b;
 }
 
+.stat-pill__icon {
+  margin-top: 4px;
+  stroke-width: 2.5;
+}
+
 .stat-pill--online strong {
   color: #059669;
 }
 .stat-pill--offline strong {
   color: #dc2626;
 }
-.stat-pill--moving strong {
+.stat-pill--engine-on strong {
   color: #2563eb;
 }
-.stat-pill--muted strong {
+.stat-pill--engine-on .stat-pill__icon {
+  color: #16a34a;
+}
+.stat-pill--engine-off strong {
   color: #94a3b8;
+}
+.stat-pill--engine-off .stat-pill__icon {
+  color: #dc2626;
 }
 
 .stats-strip-tools {
@@ -556,6 +567,51 @@
   background: #fee2e2;
   color: #DC2626;
 }
+.status-chip--engine-on {
+  background: #dcfce7;
+  color: #15803d;
+}
+.status-chip--engine-off {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.detail-summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+
+.summary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.summary-chip__icon {
+  flex-shrink: 0;
+}
+
+.summary-chip--ignition.is-on {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
+}
+
+.summary-chip--ignition.is-off {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
 
 .detail-metrics {
   display: grid;
@@ -724,6 +780,76 @@
   height: 1px;
   background: rgba(148, 163, 184, 0.35);
   margin: 3px 0;
+}
+
+.map-view-config {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.map-view-config__desc {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.map-view-option {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.map-view-option input {
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.map-view-option strong {
+  display: block;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.map-view-option span {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.map-view-config__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.map-view-config__btn {
+  min-width: 110px;
+  height: 38px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.map-view-config__btn--ghost {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.map-view-config__btn--primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
 }
 
 /* Marcadores personalizados (divIcon) */
@@ -930,11 +1056,67 @@
 :root.dark .stat-pill--offline strong {
   color: #ef4444;
 }
-:root.dark .stat-pill--moving strong {
+:root.dark .stat-pill--engine-on strong {
   color: var(--accent-blue);
 }
-:root.dark .stat-pill--muted strong {
+:root.dark .stat-pill--engine-on .stat-pill__icon {
+  color: #22c55e;
+}
+:root.dark .stat-pill--engine-off strong {
   color: var(--text-secondary);
+}
+:root.dark .stat-pill--engine-off .stat-pill__icon {
+  color: #ef4444;
+}
+
+:root.dark .status-chip--engine-on {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+:root.dark .status-chip--engine-off {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+}
+
+:root.dark .summary-chip {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #e2e8f0;
+}
+
+:root.dark .summary-chip--ignition.is-on {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.32);
+  color: #4ade80;
+}
+
+:root.dark .summary-chip--ignition.is-off {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.32);
+  color: #f87171;
+}
+
+:root.dark .map-view-config__desc {
+  color: #cbd5e1;
+}
+
+:root.dark .map-view-option {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+:root.dark .map-view-option strong {
+  color: #f8fafc;
+}
+
+:root.dark .map-view-option span {
+  color: #cbd5e1;
+}
+
+:root.dark .map-view-config__btn--ghost {
+  background: rgba(148, 163, 184, 0.16);
+  color: #e2e8f0;
 }
 
 /* Vehicle Card V2 Layout */

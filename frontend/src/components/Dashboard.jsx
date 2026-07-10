@@ -1,10 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import './Dashboard.css';
-import { Activity, Gauge, MapPin, Wifi, WifiOff } from 'lucide-react';
+import { Activity, Car, Gauge, MapPin, Wifi, WifiOff } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const Dashboard = () => {
   const [devices, setDevices] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [positions, setPositions] = useState([]);
   const [lastSync, setLastSync] = useState(null);
   const [financial, setFinancial] = useState({ receber: 0, a_pagar: 0 });
@@ -17,18 +18,21 @@ const Dashboard = () => {
         const asaasEnv = localStorage.getItem('asaasEnv') || 'sandbox';
         const headers = { 'X-Asaas-Token': asaasToken, 'X-Asaas-Env': asaasEnv };
 
-        const [devicesRes, positionsRes, summaryRes, overdueRes] = await Promise.all([
+        const [devicesRes, groupsRes, positionsRes, summaryRes, overdueRes] = await Promise.all([
           fetch('/api/traccar/devices/'),
+          fetch('/api/traccar/entity/groups/'),
           fetch('/api/traccar/positions/'),
           fetch('/api/dashboard-v2/'),
           fetch('/api/asaas/overdue-customers/', { headers: asaasToken ? headers : {} })
         ]);
 
         const devicesData = await devicesRes.json();
+        const groupsData = groupsRes.ok ? await groupsRes.json() : [];
         const positionsData = await positionsRes.json();
         const summaryData = await summaryRes.json();
 
         setDevices(devicesData);
+        setGroups(Array.isArray(groupsData) ? groupsData : []);
         setPositions(positionsData);
         setFinancial(summaryData?.faturamento || { receber: 0, a_pagar: 0 });
         
@@ -56,19 +60,40 @@ const Dashboard = () => {
     return map;
   }, [positions]);
 
+  const groupById = useMemo(() => {
+    const map = {};
+    groups.forEach((group) => {
+      map[group.id] = group;
+    });
+    return map;
+  }, [groups]);
+
   const enrichedDevices = useMemo(() => {
     return devices.map((device) => {
       const position = positionByDeviceId[device.id];
-      const attrs = position?.attributes || {};
+      const attrs = {
+        ...(position?.attributes || {}),
+        ...(device.attributes || {}),
+      };
+      const groupName = groupById[device.groupId]?.name || '';
       return {
         ...device,
         position,
+        attributes: attrs,
         speedKmh: Math.round((position?.speed || 0) * 1.852),
         ignition: attrs.ignition === true || attrs.motion === true,
         lastContact: device.lastUpdate || position?.serverTime || position?.deviceTime,
+        customerName:
+          attrs.customerName ||
+          attrs.customer ||
+          attrs.clienteNome ||
+          attrs.cliente ||
+          groupName ||
+          'Sem cliente',
+        photo: attrs.foto || attrs.iconUrl || '',
       };
     });
-  }, [devices, positionByDeviceId]);
+  }, [devices, groupById, positionByDeviceId]);
 
   const kpis = useMemo(() => {
     const total = enrichedDevices.length;
@@ -170,11 +195,78 @@ const Dashboard = () => {
     .sort((a, b) => new Date(b.lastContact || 0) - new Date(a.lastContact || 0))
     .slice(0, 6);
 
+  const offlineHighlights = useMemo(() => {
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+    const twoDays = 48 * 60 * 60 * 1000;
+
+    const offlineDevices = enrichedDevices
+      .filter((device) => device.status !== 'online')
+      .map((device) => {
+        const lastContactTs = device.lastContact ? new Date(device.lastContact).getTime() : NaN;
+        const offlineDurationMs = Number.isNaN(lastContactTs) ? Number.POSITIVE_INFINITY : Math.max(now - lastContactTs, 0);
+
+        return {
+          ...device,
+          offlineDurationMs,
+        };
+      })
+      .sort((a, b) => b.offlineDurationMs - a.offlineDurationMs);
+
+    return {
+      over24h: offlineDevices.filter(
+        (device) => device.offlineDurationMs > oneDay && device.offlineDurationMs <= twoDays
+      ),
+      over48h: offlineDevices.filter((device) => device.offlineDurationMs > twoDays),
+    };
+  }, [enrichedDevices]);
+
   const formatLastContact = (dateValue) => {
     if (!dateValue) return 'Sem comunicação';
     const date = new Date(dateValue);
     if (Number.isNaN(date.getTime())) return 'Sem comunicação';
     return date.toLocaleString('pt-BR');
+  };
+
+  const formatOfflineDuration = (durationMs) => {
+    if (!Number.isFinite(durationMs)) return 'Sem registro de comunicação';
+
+    const totalHours = Math.floor(durationMs / (60 * 60 * 1000));
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+
+    if (days > 0) {
+      return `${days}d ${hours}h offline`;
+    }
+
+    return `${totalHours}h offline`;
+  };
+
+  const renderOfflineList = (devicesList, emptyText) => {
+    if (!devicesList.length) {
+      return <div className="empty-state-overdue">{emptyText}</div>;
+    }
+
+    return devicesList.slice(0, 8).map((device) => (
+      <div className="offline-device-item" key={`${device.id}-${device.lastContact || 'sem-contato'}`}>
+        <div className="offline-device-photo">
+          {device.photo ? (
+            <img src={device.photo} alt={device.name} />
+          ) : (
+            <Car size={18} />
+          )}
+        </div>
+        <div className="offline-device-info">
+          <strong>{device.name}</strong>
+          <span>{device.customerName}</span>
+          <small>{formatOfflineDuration(device.offlineDurationMs)}</small>
+        </div>
+        <div className="offline-device-meta">
+          <span>Última comunicação</span>
+          <strong>{formatLastContact(device.lastContact)}</strong>
+        </div>
+      </div>
+    ));
   };
 
   return (
@@ -311,6 +403,32 @@ const Dashboard = () => {
                 ) : (
                   <div className="empty-state-overdue">Nenhum cliente inadimplente.</div>
                 )}
+              </div>
+            </div>
+
+            <div className="card-box offline-watch-card">
+              <div className="devices-overview-head">
+                <h3 className="box-title flat">Off há mais de 24h</h3>
+                <div className="devices-total-pill offline-watch-pill">
+                  <span>Veículos</span>
+                  <strong>{offlineHighlights.over24h.length}</strong>
+                </div>
+              </div>
+              <div className="offline-watch-list">
+                {renderOfflineList(offlineHighlights.over24h, 'Nenhum veículo offline há mais de 24 horas.')}
+              </div>
+            </div>
+
+            <div className="card-box offline-watch-card">
+              <div className="devices-overview-head">
+                <h3 className="box-title flat">Off há mais de 48h</h3>
+                <div className="devices-total-pill offline-watch-pill offline-watch-pill-critical">
+                  <span>Veículos</span>
+                  <strong>{offlineHighlights.over48h.length}</strong>
+                </div>
+              </div>
+              <div className="offline-watch-list">
+                {renderOfflineList(offlineHighlights.over48h, 'Nenhum veículo offline há mais de 48 horas.')}
               </div>
             </div>
           </div>

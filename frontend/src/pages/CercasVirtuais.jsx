@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
     MapContainer, TileLayer, FeatureGroup, useMap, 
-    Polygon, Circle, Popup, LayersControl 
+    Polygon, Circle as CircleLayer, Popup, LayersControl 
 } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet-draw'; 
@@ -10,77 +10,136 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import './CercasVirtuais.css';
 import { 
     Search, Map as MapIcon, Plus, Trash2, Edit, 
-    Save, X, Car, Crosshair, MapPin, ZoomIn, ZoomOut, Layers, Check
+    Car, Crosshair, MapPin, ZoomIn, ZoomOut, Layers, Check, 
+    ShieldCheck, ShieldAlert, ShieldBan, Shield,
+    Pentagon, Circle
 } from 'lucide-react';
 import Modal from '../components/Modal';
 
 const { BaseLayer } = LayersControl;
 
-// Botão Flutuante de Localização
-const LocateButton = () => {
-    const map = useMap();
-    
+// Controles Extras do Mapa (Localização, Satélite e Ferramentas de Desenho)
+// Renderizado FORA do MapContainer para evitar conflitos com eventos do Leaflet
+const MapExtraControls = ({ mapLayer, setMapLayer, mapInstance }) => {
+    const [isLayerSelectorOpen, setIsLayerSelectorOpen] = useState(false);
+    const [activeDrawTool, setActiveDrawTool] = useState(null);
+    const activeHandlerRef = useRef(null);
+
     const handleLocate = () => {
-        map.locate({ setView: true, maxZoom: 16 });
+        if (mapInstance) mapInstance.locate({ setView: true, maxZoom: 16 });
     };
 
+    const startDraw = (type) => {
+        if (!mapInstance) return;
+        // If same tool clicked again, stop it
+        if (activeHandlerRef.current) {
+            activeHandlerRef.current.disable();
+            activeHandlerRef.current = null;
+            setActiveDrawTool(null);
+            if (activeDrawTool === type) return;
+        }
+        const opts = { shapeOptions: { color: '#3b82f6', weight: 3 } };
+        const handler = type === 'polygon'
+            ? new L.Draw.Polygon(mapInstance, { ...opts, allowIntersection: false })
+            : new L.Draw.Circle(mapInstance, opts);
+        handler.enable();
+        activeHandlerRef.current = handler;
+        setActiveDrawTool(type);
+    };
+
+    const mapTypes = [
+        { id: 'streets', name: 'Normal', bg: 'https://mt1.google.com/vt/lyrs=m&x=1&y=1&z=2' },
+        { id: 'hybrid', name: 'Híbrido', bg: 'https://mt1.google.com/vt/lyrs=y&x=1&y=1&z=2' },
+        { id: 'satellite', name: 'Satélite', bg: 'https://mt1.google.com/vt/lyrs=s&x=1&y=1&z=2' },
+        { id: 'terrain', name: 'Terreno', bg: 'https://mt1.google.com/vt/lyrs=p&x=1&y=1&z=2' },
+    ];
+
     return (
-        <div className="leaflet-top leaflet-right" style={{ marginTop: '70px', marginRight: '10px' }}>
-            <div className="leaflet-control leaflet-bar">
-                <button 
-                    onClick={handleLocate}
-                    title="Minha Localização"
-                    style={{ 
-                        backgroundColor: 'white', 
-                        border: 'none', 
-                        width: '34px', 
-                        height: '34px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        borderRadius: '4px'
-                    }}
+        <div className="map-extra-controls">
+            {/* Botão Polígono */}
+            <button
+                type="button"
+                className={`map-ctrl-btn ${activeDrawTool === 'polygon' ? 'active' : ''}`}
+                title="Desenhar Polígono"
+                onClick={() => startDraw('polygon')}
+            >
+                <Pentagon size={20} />
+            </button>
+
+            {/* Botão Círculo */}
+            <button
+                type="button"
+                className={`map-ctrl-btn ${activeDrawTool === 'circle' ? 'active' : ''}`}
+                title="Desenhar Círculo"
+                onClick={() => startDraw('circle')}
+            >
+                <Circle size={20} />
+            </button>
+
+            {/* Divisor */}
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.15)', margin: '2px 0' }} />
+
+            {/* Botão Localização */}
+            <button
+                type="button"
+                className="map-ctrl-btn"
+                title="Minha Localização"
+                onClick={handleLocate}
+            >
+                <Crosshair size={20} />
+            </button>
+
+            {/* Botão Tipos de Mapa */}
+            <div style={{ position: 'relative' }}>
+                <button
+                    type="button"
+                    className={`map-ctrl-btn ${isLayerSelectorOpen ? 'active' : ''}`}
+                    title="Tipos de Mapa"
+                    onClick={() => setIsLayerSelectorOpen(!isLayerSelectorOpen)}
                 >
-                    <Crosshair size={18} color="#4B5563" />
+                    <Layers size={20} />
                 </button>
+
+                {isLayerSelectorOpen && (
+                    <div className="layer-selector-card">
+                        <span>TIPOS DE MAPA</span>
+                        <div className="layer-selector-options">
+                            {mapTypes.map(type => (
+                                <button
+                                    key={type.id}
+                                    type="button"
+                                    className={`layer-selector-item ${mapLayer === type.id ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setMapLayer(type.id);
+                                        setIsLayerSelectorOpen(false);
+                                    }}
+                                >
+                                    <div
+                                        className="layer-selector-thumb"
+                                        style={{ backgroundImage: `url(${type.bg})` }}
+                                    />
+                                    <span className="layer-selector-label">{type.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
-// Componente Custom para o Toolbar de Desenho
-const DrawingToolbar = ({ onCreated }) => {
-    const map = useMap();
-    
+
+// DrawingToolbar - only registers the CREATED event, no visual toolbar
+const DrawingToolbar = ({ onCreated, mapInstance }) => {
     useEffect(() => {
-        const drawControl = new L.Control.Draw({
-            position: 'topleft',
-            draw: {
-                rectangle: false,
-                polyline: false,
-                marker: false,
-                circlemarker: false,
-                polygon: {
-                    allowIntersection: false,
-                    shapeOptions: { color: '#3b82f6' }
-                },
-                circle: { shapeOptions: { color: '#3b82f6' } }
-            }
-        });
-
-        map.addControl(drawControl);
-
-        map.on(L.Draw.Event.CREATED, (e) => {
-            onCreated(e);
-        });
-
+        if (!mapInstance) return;
+        const handler = (e) => onCreated(e);
+        mapInstance.on(L.Draw.Event.CREATED, handler);
         return () => {
-            map.removeControl(drawControl);
-            map.off(L.Draw.Event.CREATED);
+            mapInstance.off(L.Draw.Event.CREATED, handler);
         };
-    }, [map, onCreated]);
-
+    }, [mapInstance, onCreated]);
     return null;
 };
 
@@ -231,7 +290,9 @@ const CercasVirtuais = () => {
     const [geofences, setGeofences] = useState([]);
     const [devices, setDevices] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('todas');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isMapEditorOpen, setIsMapEditorOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedGeofence, setSelectedGeofence] = useState(null);
     const [mapCenter, setMapCenter] = useState([-2.4552, -54.7085]); // Santarém/Brasil default
@@ -400,9 +461,67 @@ const CercasVirtuais = () => {
         setSelectedDevices([]);
     };
 
-    const filteredGeofences = geofences.filter(g => 
-        g.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const getGeofenceFlags = (geofence) => {
+        const attrs = geofence.attributes || {};
+        const searchableText = [
+            geofence.name,
+            geofence.description,
+            attrs.type,
+            attrs.status,
+            attrs.action,
+            attrs.alarm,
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        const isBlocked = /bloque|block|immobili|corte|desliga/.test(searchableText);
+        const isInactive =
+            attrs.disabled === true ||
+            attrs.enabled === false ||
+            attrs.active === false ||
+            attrs.status === 'inactive' ||
+            attrs.state === 'inactive';
+
+        return {
+            isBlocked,
+            isInactive,
+            isActive: !isInactive,
+        };
+    };
+
+    const geofenceStats = geofences.reduce((acc, geofence) => {
+        const flags = getGeofenceFlags(geofence);
+        acc.total += 1;
+        if (flags.isActive) acc.active += 1;
+        if (flags.isBlocked) acc.blocked += 1;
+        if (flags.isInactive) acc.inactive += 1;
+        return acc;
+    }, { total: 0, active: 0, blocked: 0, inactive: 0 });
+
+    const filteredGeofences = geofences.filter((g) => {
+        const matchesSearch = g.name.toLowerCase().includes(searchTerm.toLowerCase());
+        if (!matchesSearch) return false;
+
+        const flags = getGeofenceFlags(g);
+        if (statusFilter === 'bloqueio') return flags.isBlocked;
+        if (statusFilter === 'ativas') return flags.isActive;
+        if (statusFilter === 'inativas') return flags.isInactive;
+        return true;
+    });
+
+    const statCards = [
+        { id: 'ativas', label: 'ATIVAS', value: geofenceStats.active, colorClass: 'is-active' },
+        { id: 'bloqueio', label: 'COM BLOQUEIO', value: geofenceStats.blocked, colorClass: 'is-blocked' },
+        { id: 'inativas', label: 'INATIVAS', value: geofenceStats.inactive, colorClass: 'is-inactive' },
+    ];
+
+    const filterTabs = [
+        { id: 'todas', label: 'Todas' },
+        { id: 'bloqueio', label: 'Com bloqueio' },
+        { id: 'ativas', label: 'Ativas' },
+        { id: 'inativas', label: 'Inativas' },
+    ];
 
     const MapUpdater = ({ center, zoom }) => {
         const map = useMap();
@@ -412,11 +531,111 @@ const CercasVirtuais = () => {
         return null;
     };
 
+    if (isMapEditorOpen) {
+        return (
+            <div className="geofence-fullscreen-editor">
+                <MapContainer center={mapCenter} zoom={zoom} className="geofence-fullscreen-map" zoomControl={false}>
+                    {mapLayer === 'streets' && <TileLayer url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
+                    {mapLayer === 'satellite' && <TileLayer url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
+                    {mapLayer === 'hybrid' && <TileLayer url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
+                    {mapLayer === 'terrain' && <TileLayer url="https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
+                    
+                    <MapUpdater center={mapCenter} zoom={zoom} />
+                    <MapInstanceCapture setMap={setMapInstance} />
+                    
+                    <FeatureGroup />
+                </MapContainer>
+                
+                <DrawingToolbar onCreated={handleCreated} mapInstance={mapInstance} />
+                <MapExtraControls mapLayer={mapLayer} setMapLayer={setMapLayer} mapInstance={mapInstance} />
+
+                <div className="geofence-overlay-card">
+                    <div className="geofence-overlay-card__header">
+                        <div>
+                            <h2>Cercas e Perímetros</h2>
+                            <p>Seja avisado quando o veículo entrar ou sair</p>
+                        </div>
+                    </div>
+
+                    <div className="geofence-form-group">
+                        <label>Veículos</label>
+                        <p className="geofence-help-text">Escolha um veículo para vê-lo no mapa e desenhar a cerca ao redor dele.</p>
+                        <div className="devices-dropdown-mock">
+                            <span>Toque para escolher um ou mais</span>
+                        </div>
+                    </div>
+
+                    <div className="geofence-form-group">
+                        <label>Localização da área</label>
+                        <p className="geofence-help-text">Pesquise um endereço ou delimite a área diretamente no mapa.</p>
+                        <div className="geofence-search-mock">
+                            <Search size={18} color="#94a3b8" />
+                            <input type="text" placeholder="Endereço, cidade ou ponto (lat, lng)" />
+                        </div>
+                        <div className="geofence-draw-tools">
+                            <button className="geofence-draw-btn">Lápis</button>
+                            <button className="geofence-draw-btn">Apagar</button>
+                            <button className="geofence-draw-btn">Formas</button>
+                        </div>
+                    </div>
+
+                    <div className="geofence-form-group">
+                        <label>Nome da área <span>(obrigatório)</span></label>
+                        <input 
+                            type="text" 
+                            className="geofence-input-mock"
+                            placeholder="Ex.: Casa, Sítio, Trabalho..." 
+                            value={formData.name}
+                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        />
+                    </div>
+
+                    <div className="geofence-form-group">
+                        <label>Cor da área no mapa</label>
+                        <div className="geofence-color-picker">
+                            {['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899'].map(c => (
+                                <button
+                                    type="button"
+                                    key={c}
+                                    className={`geofence-color-swatch ${formData.attributes.color === c ? 'is-active' : ''}`}
+                                    style={{ backgroundColor: c }}
+                                    onClick={() => setFormData({...formData, attributes: {...formData.attributes, color: c}})}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="geofence-overlay-actions">
+                        <button className="geofence-btn-cancel" onClick={() => { setIsMapEditorOpen(false); resetForm(); }}>
+                            Cancelar
+                        </button>
+                        <button className="geofence-btn-save" onClick={() => { handleSave(); setIsMapEditorOpen(false); }}>
+                            Salvar área
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="cercas-page">
-            <div className="cercas-sidebar">
-                <div className="cercas-sidebar-header">
-                    <h2><MapIcon size={20} /> Cercas Virtuais</h2>
+            <div className="cercas-top-header">
+                <div className="cercas-stats-grid">
+                    {statCards.map((card) => {
+                        return (
+                            <div key={card.id} className={`cercas-stat-card ${card.colorClass}`}>
+                                <div className="cercas-stat-card__top">
+                                    <div className="cercas-stat-card__icon" />
+                                    <strong>{card.value}</strong>
+                                </div>
+                                <span>{card.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="cercas-toolbar-actions">
                     <div className="cercas-search">
                         <Search size={16} className="cercas-search-icon" />
                         <input 
@@ -425,6 +644,38 @@ const CercasVirtuais = () => {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
+                    </div>
+                    <button
+                        type="button"
+                        className="btn-new-cerca"
+                        onClick={() => {
+                            setSelectedGeofence(null);
+                            setIsEditing(false);
+                            setEditedWkt(null);
+                            setMapCenter([-2.4552, -54.7085]);
+                            setZoom(13);
+                            setIsMapEditorOpen(true);
+                        }}
+                    >
+                        <Plus size={16} />
+                        Nova cerca
+                    </button>
+                </div>
+            </div>
+
+            <div className="cercas-list-shell">
+                <div className="cercas-list-toolbar">
+                    <div className="cercas-filter-tabs">
+                        {filterTabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                className={`cercas-filter-tab cercas-filter-tab--${tab.id} ${statusFilter === tab.id ? 'active' : ''}`}
+                                onClick={() => setStatusFilter(tab.id)}
+                            >
+                                {tab.icon && <span>{tab.icon}</span>}{tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -445,6 +696,7 @@ const CercasVirtuais = () => {
                             }}
                         >
                             <div className="cerca-info">
+                                <span className="cerca-color-dot" style={{ backgroundColor: g.attributes?.color || '#3b82f6' }} />
                                 <span className="cerca-name">{g.name}</span>
                                 <span className="cerca-meta">{g.area.startsWith('POLYGON') ? 'Polígono' : 'Círculo'}</span>
                             </div>
@@ -458,182 +710,16 @@ const CercasVirtuais = () => {
                             </div>
                         </div>
                     ))}
-                    {filteredGeofences.length === 0 && <p style={{textAlign: 'center', padding: '20px', color: '#9CA3AF'}}>Nenhuma cerca encontrada</p>}
+                    {filteredGeofences.length === 0 && (
+                        <div className="cercas-empty-state">
+                            <span>Nenhuma cerca criada ainda.</span>
+                        </div>
+                    )}
                 </div>
             </div>
-
-            <div className="cercas-map-container">
-                <CustomMapControls 
-                    map={mapInstance}
-                    currentLayer={mapLayer} 
-                    setLayer={setMapLayer} 
-                    onLocate={() => {
-                            if (navigator.geolocation) {
-                                navigator.geolocation.getCurrentPosition((pos) => {
-                                    if (mapInstance) {
-                                        mapInstance.setView([pos.coords.latitude, pos.coords.longitude], 16);
-                                    }
-                                });
-                            }
-                    }}
-                />
-
-                <MapContainer center={mapCenter} zoom={zoom} className="cercas-map" zoomControl={false}>
-                    {mapLayer === 'streets' && <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />}
-                    {mapLayer === 'satellite' && <TileLayer url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
-                    {mapLayer === 'hybrid' && <TileLayer url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
-                    
-                    <MapUpdater center={mapCenter} zoom={zoom} />
-                    <MapInstanceCapture setMap={setMapInstance} />
-                    
-                    <FeatureGroup ref={featureGroupRef}>
-                        {!isEditing && <DrawingToolbar onCreated={handleCreated} />}
-                        
-                        {geofences.map(g => {
-                            const isSelected = selectedGeofence?.id === g.id;
-                            if (isSelected && isEditing) return (
-                                <EditableLayer 
-                                    key={`edit-${g.id}`} 
-                                    geofence={g} 
-                                    onEditComplete={setEditedWkt} 
-                                />
-                            );
-                            
-                            const parsed = parseArea(g.area);
-                            if (!parsed) return null;
-                            const cercaColor = g.attributes?.color || '#3b82f6';
-                            
-                            return parsed.type === 'polygon' ? (
-                                <Polygon 
-                                    key={g.id} 
-                                    positions={parsed.points} 
-                                    pathOptions={{ 
-                                        color: isSelected ? '#DC2626' : cercaColor, 
-                                        fillColor: cercaColor,
-                                        fillOpacity: 0.2,
-                                        weight: isSelected ? 3 : 2
-                                    }}
-                                    eventHandlers={{
-                                        click: () => { setSelectedGeofence(g); setIsEditing(false); }
-                                    }}
-                                >
-                                    <Popup>{g.name}</Popup>
-                                </Polygon>
-                            ) : (
-                                <Circle 
-                                    key={g.id} 
-                                    center={parsed.center} 
-                                    radius={parsed.radius}
-                                    pathOptions={{ 
-                                        color: isSelected ? '#DC2626' : cercaColor, 
-                                        fillColor: cercaColor,
-                                        fillOpacity: 0.2,
-                                        weight: isSelected ? 3 : 2
-                                    }}
-                                    eventHandlers={{
-                                        click: () => { setSelectedGeofence(g); setIsEditing(false); }
-                                    }}
-                                >
-                                    <Popup>{g.name}</Popup>
-                                </Circle>
-                            );
-                        })}
-                    </FeatureGroup>
-                </MapContainer>
-
-                {isEditing && (
-                    <div className="edit-actions-bar">
-                        <span className="edit-msg">Modo Edição: Arraste a cerca ou as bordas para ajustar</span>
-                        <button className="btn-save-edit" onClick={handleUpdateGeofence}>
-                            <Check size={16} /> CONFIRMAR ALTERAÇÕES
-                        </button>
-                        <button className="btn-cancel-edit" onClick={() => { setIsEditing(false); setEditedWkt(null); }}>
-                            Cancelar
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            <Modal
-                isOpen={isModalOpen}
-                onClose={() => { setIsModalOpen(false); resetForm(); }}
-                title="Configurar Cerca Virtual"
-            >
-                <div className="geofence-form">
-                    <div className="geofence-form-group">
-                        <label>Nome da Cerca</label>
-                        <input 
-                            type="text" 
-                            placeholder="Ex: Garagem Principal" 
-                            value={formData.name}
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        />
-                    </div>
-                    <div className="geofence-form-group">
-                        <label>Descrição</label>
-                        <input 
-                            type="text" 
-                            placeholder="Opcional..."
-                            value={formData.description}
-                            onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        />
-                    </div>
-
-                    <div className="geofence-form-group">
-                        <label>Cor da Cerca</label>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                            {['#3b82f6', '#DC2626', '#10b981', '#f59e0b', '#8b5cf6', '#000000'].map(c => (
-                                <div 
-                                    key={c}
-                                    onClick={() => setFormData({...formData, attributes: {...formData.attributes, color: c}})}
-                                    style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        backgroundColor: c,
-                                        borderRadius: '50%',
-                                        cursor: 'pointer',
-                                        border: formData.attributes.color === c ? '3px solid #111827' : '1px solid #e5e7eb',
-                                        boxShadow: formData.attributes.color === c ? '0 0 0 2px white' : 'none'
-                                    }}
-                                />
-                            ))}
-                            <input 
-                                type="color" 
-                                value={formData.attributes.color}
-                                onChange={(e) => setFormData({...formData, attributes: {...formData.attributes, color: e.target.value}})}
-                                style={{ width: '32px', height: '32px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="geofence-form-group">
-                        <label>Vincular Veículos (Quem será monitorado por esta cerca?)</label>
-                        <div className="devices-selection">
-                            {devices.map(d => (
-                                <label key={d.id} className="device-check-item">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={selectedDevices.includes(d.id)}
-                                        onChange={(e) => {
-                                            if (e.target.checked) setSelectedDevices([...selectedDevices, d.id]);
-                                            else setSelectedDevices(selectedDevices.filter(id => id !== d.id));
-                                        }}
-                                    />
-                                    <Car size={14} />
-                                    <span>{d.name} ({d.uniqueId})</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="modal-actions-v2">
-                        <button className="btn-confirm-v2" onClick={handleSave}>SALVAR CERCA NO MOTOR</button>
-                        <button className="btn-cancel-v2" onClick={() => { setIsModalOpen(false); resetForm(); }}>Cancelar</button>
-                    </div>
-                </div>
-            </Modal>
         </div>
     );
+
 };
 
 export default CercasVirtuais;

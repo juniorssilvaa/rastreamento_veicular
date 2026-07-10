@@ -18,12 +18,12 @@ import {
 
 const Sidebar = ({ activeItem, setActiveItem }) => {
   const menuItemsMonitoramento = [
-    { name: 'Alertas', icon: <Bell size={20} /> },
+    { name: 'Mapa', icon: <MapPin size={20} /> },
     { name: 'Cercas Virtuais', icon: <Map size={20} /> },
+    { name: 'Alertas', icon: <Bell size={20} /> },
     { name: 'Comando', icon: <SendHorizontal size={20} /> },
     { name: 'Gestão de alertas', icon: <ShieldAlert size={20} /> },
     { name: 'Manutenção', icon: <Wrench size={20} /> },
-    { name: 'Mapa', icon: <MapPin size={20} /> },
     { name: 'Relatórios', icon: <FileText size={20} /> },
     { name: 'SmartCam', icon: <Video size={20} /> },
   ];

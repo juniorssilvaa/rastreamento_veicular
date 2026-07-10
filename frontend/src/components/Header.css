@@ -10,7 +10,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 200; /* Acima do sidebar inclusive */
+  z-index: 5000; /* Mantem o header acima dos controles e panes do mapa */
   box-shadow: var(--shadow-sm);
 }
 

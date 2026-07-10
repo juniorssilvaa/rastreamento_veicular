@@ -2,11 +2,19 @@ import React, { useState } from 'react';
 import './Gerenciar.css';
 import { Search, Link as LinkIcon, Package, Box, Car, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare, Image as ImageIcon, Trash2 } from 'lucide-react';
 
+const normalizeMapDeviceLabelMode = (value) => {
+  if (value === 'cliente') return 'nome';
+  if (value === 'placa') return 'placa';
+  if (value === 'nome' || value === 'nome_placa') return value;
+  return 'nome_placa';
+};
+
 const Gerenciar = ({ onNavigate }) => {
   const [currentView, setCurrentView] = useState('main'); // main, integracoes, asaas, gmaps
   
   // States for forms
   const [gmapsKey, setGmapsKey] = useState(() => localStorage.getItem('gmapsKey') || '');
+  const [mapDeviceLabelMode, setMapDeviceLabelMode] = useState(() => normalizeMapDeviceLabelMode(localStorage.getItem('mapDeviceLabelMode')));
   const [asaasToken, setAsaasToken] = useState(() => localStorage.getItem('asaasToken') || '');
   const [asaasEnv, setAsaasEnv] = useState(() => localStorage.getItem('asaasEnv') || 'sandbox'); // sandbox or production
   
@@ -72,6 +80,7 @@ const Gerenciar = ({ onNavigate }) => {
       return;
     }
     localStorage.setItem('gmapsKey', gmapsKey);
+    localStorage.setItem('mapDeviceLabelMode', mapDeviceLabelMode);
     alert('Chave de API do Google Maps salva com sucesso!');
   };
 
@@ -245,6 +254,44 @@ const Gerenciar = ({ onNavigate }) => {
                   placeholder="AIzaSyA..." 
                   style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
                 />
+              </div>
+
+              <div style={{ marginBottom: '24px', padding: '16px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E5E7EB' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+                  Visualização dos carros no mapa
+                </label>
+                <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: '#4B5563' }}>
+                    <input
+                      type="radio"
+                      value="nome_placa"
+                      checked={mapDeviceLabelMode === 'nome_placa'}
+                      onChange={() => setMapDeviceLabelMode('nome_placa')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    Nome + placa
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: '#4B5563' }}>
+                    <input
+                      type="radio"
+                      value="nome"
+                      checked={mapDeviceLabelMode === 'nome'}
+                      onChange={() => setMapDeviceLabelMode('nome')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    Apenas nome
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: '#4B5563' }}>
+                    <input
+                      type="radio"
+                      value="placa"
+                      checked={mapDeviceLabelMode === 'placa'}
+                      onChange={() => setMapDeviceLabelMode('placa')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    Apenas placa
+                  </label>
+                </div>
               </div>
 
               <button 
