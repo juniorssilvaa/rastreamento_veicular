@@ -1098,25 +1098,51 @@
 }
 
 :root.dark .map-view-config__desc {
-  color: #cbd5e1;
+  color: #a1a1aa;
 }
 
 :root.dark .map-view-option {
-  background: rgba(15, 23, 42, 0.55);
-  border-color: rgba(148, 163, 184, 0.2);
+  background: #26262b;
+  border-color: #3a3a40;
+}
+
+:root.dark .map-view-option:hover {
+  background: #2c2c32;
+  border-color: #45454c;
+}
+
+:root.dark .map-view-option:has(input:checked) {
+  background: #2c2c32;
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
 }
 
 :root.dark .map-view-option strong {
-  color: #f8fafc;
+  color: #f4f4f5;
 }
 
 :root.dark .map-view-option span {
-  color: #cbd5e1;
+  color: #a1a1aa;
+}
+
+:root.dark .map-view-option input {
+  accent-color: #f59e0b;
 }
 
 :root.dark .map-view-config__btn--ghost {
-  background: rgba(148, 163, 184, 0.16);
-  color: #e2e8f0;
+  background: #2a2a2a;
+  color: #e4e4e7;
+  border: 1px solid #3a3a3a;
+}
+
+:root.dark .map-view-config__btn--ghost:hover {
+  background: #333338;
+  color: #ffffff;
+}
+
+:root.dark .map-view-config__btn--primary {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1a1a1d;
 }
 
 /* Vehicle Card V2 Layout */

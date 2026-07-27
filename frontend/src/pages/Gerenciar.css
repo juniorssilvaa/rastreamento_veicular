@@ -114,3 +114,23 @@
 .action-icon {
   color: #1F2937;
 }
+
+:root.dark .gerenciar-page .section-block h2 {
+  color: var(--text-primary);
+}
+
+:root.dark .gerenciar-page .action-card span {
+  color: var(--text-gray);
+}
+
+:root.dark .gerenciar-page .action-icon {
+  color: #ffffff;
+}
+
+:root.dark .gerenciar-page .search-icon {
+  color: #ffffff;
+}
+
+:root.dark .gerenciar-page .btn-arrow {
+  color: #ffffff;
+}

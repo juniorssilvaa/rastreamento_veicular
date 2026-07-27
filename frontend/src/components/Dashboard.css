@@ -22,84 +22,150 @@
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .kpi-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 18px;
+  background: #202024;
+  border: 1px solid #2e2e33;
+  border-radius: 14px;
+  padding: 22px 20px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #94a3b8, #64748b);
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: none !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  min-height: 118px;
 }
 
 .kpi-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -5px rgba(0, 0, 0, 0.04);
+  background: #26262b;
+  border-color: #3a3a40;
 }
 
-.kpi-card.online::before {
-  background: linear-gradient(90deg, #34d399, #10b981);
-}
-.kpi-card.online .kpi-label svg {
-  color: #10b981;
-}
-
-.kpi-card.offline::before {
-  background: linear-gradient(90deg, #f87171, #ef4444);
-}
-.kpi-card.offline .kpi-label svg {
-  color: #ef4444;
-}
-
-.kpi-card.moving::before {
-  background: linear-gradient(90deg, #60a5fa, #3b82f6);
-}
-.kpi-card.moving .kpi-label svg {
-  color: #3b82f6;
-}
-
-.kpi-card.gps::before {
-  background: linear-gradient(90deg, #a78bfa, #8b5cf6);
-}
-.kpi-card.gps .kpi-label svg {
-  color: #8b5cf6;
+.kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
 .kpi-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a8a8b3;
+  line-height: 1.25;
+}
+
+.kpi-value {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  display: inline-flex;
+  align-items: baseline;
   gap: 6px;
 }
 
-.kpi-card strong {
-  font-size: 30px;
-  line-height: 1;
-  color: var(--text-primary);
+.kpi-unit {
+  font-size: 16px;
+  font-weight: 600;
+  color: #a8a8b3;
+  letter-spacing: 0;
 }
 
-.kpi-card span {
+.kpi-trend {
   font-size: 12px;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: #8b8b96;
+  line-height: 1.3;
+}
+
+.kpi-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #33333a 0%, #1c1c20 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 6px 14px rgba(0, 0, 0, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffffff;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.kpi-card:hover .kpi-icon {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 10px 20px rgba(0, 0, 0, 0.45);
+}
+
+.kpi-icon svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+:root:not(.dark) .kpi-card {
+  background: #ffffff;
+  border-color: #e5e7eb;
+}
+
+:root:not(.dark) .kpi-card:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+:root:not(.dark) .kpi-label,
+:root:not(.dark) .kpi-trend {
+  color: #6b7280;
+}
+
+:root:not(.dark) .kpi-value {
+  color: #111827;
+}
+
+:root:not(.dark) .kpi-icon {
+  background: linear-gradient(145deg, #ffffff 0%, #eef0f4 100%);
+  border-color: #e5e7eb;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 6px 14px rgba(15, 23, 42, 0.08);
+  color: #111827;
+}
+
+:root:not(.dark) .kpi-icon svg {
+  color: #111827 !important;
+  stroke: #111827 !important;
+  filter: none;
+}
+
+:root.dark .kpi-label {
+  color: #a8a8b3 !important;
+}
+
+:root.dark .kpi-value {
+  color: #ffffff !important;
+}
+
+:root.dark .kpi-unit {
+  color: #a8a8b3 !important;
+}
+
+:root.dark .kpi-trend {
+  color: #8b8b96 !important;
 }
 
 .devices-overview-section {
@@ -506,7 +572,7 @@
 
 @media (max-width: 1200px) {
   .kpi-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .devices-overview-card {

@@ -115,13 +115,29 @@
   transition: all 0.2s;
 }
 
+.btn-header-action svg {
+  color: var(--icon-color);
+}
+
 .btn-header-action:hover {
   background-color: var(--border-color);
   color: var(--text-primary);
 }
 
+.btn-header-action:hover svg {
+  color: var(--icon-color);
+}
+
 .btn-theme:hover {
-  color: var(--accent-gold);
+  color: var(--text-primary);
+}
+
+:root.dark .btn-header-action:not(.btn-logout) {
+  color: #e5e5e5;
+}
+
+:root.dark .btn-header-action:not(.btn-logout) svg {
+  color: #ffffff;
 }
 
 .btn-logout {

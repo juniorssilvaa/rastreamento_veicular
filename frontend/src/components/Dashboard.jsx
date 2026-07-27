@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import './Dashboard.css';
-import { Activity, Car, Gauge, MapPin, Wifi, WifiOff } from 'lucide-react';
+import { Car, CarFront, Fence, Gauge, LocateFixed, Navigation, Signal, TriangleAlert, WifiOff } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const Dashboard = () => {
@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [lastSync, setLastSync] = useState(null);
   const [financial, setFinancial] = useState({ receber: 0, a_pagar: 0 });
   const [overdueData, setOverdueData] = useState({ total_in_debt: 0, total_value: 0, customers: [] });
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -18,12 +19,13 @@ const Dashboard = () => {
         const asaasEnv = localStorage.getItem('asaasEnv') || 'sandbox';
         const headers = { 'X-Asaas-Token': asaasToken, 'X-Asaas-Env': asaasEnv };
 
-        const [devicesRes, groupsRes, positionsRes, summaryRes, overdueRes] = await Promise.all([
+        const [devicesRes, groupsRes, positionsRes, summaryRes, overdueRes, notifRes] = await Promise.all([
           fetch('/api/traccar/devices/'),
           fetch('/api/traccar/entity/groups/'),
           fetch('/api/traccar/positions/'),
           fetch('/api/dashboard-v2/'),
-          fetch('/api/asaas/overdue-customers/', { headers: asaasToken ? headers : {} })
+          fetch('/api/asaas/overdue-customers/', { headers: asaasToken ? headers : {} }),
+          fetch('/api/traccar/notifications/')
         ]);
 
         const devicesData = await devicesRes.json();
@@ -35,6 +37,7 @@ const Dashboard = () => {
         setGroups(Array.isArray(groupsData) ? groupsData : []);
         setPositions(positionsData);
         setFinancial(summaryData?.faturamento || { receber: 0, a_pagar: 0 });
+        setNotifications(notifRes.ok ? await notifRes.json() : []);
         
         if (overdueRes && overdueRes.ok) {
             const overdueJson = await overdueRes.json();
@@ -99,10 +102,36 @@ const Dashboard = () => {
     const total = enrichedDevices.length;
     const online = enrichedDevices.filter((d) => d.status === 'online').length;
     const offline = total - online;
-    const moving = enrichedDevices.filter((d) => d.speedKmh > 0).length;
+    const movingDevices = enrichedDevices.filter((d) => d.speedKmh > 0);
+    const moving = movingDevices.length;
     const withGps = enrichedDevices.filter((d) => Boolean(d.position?.latitude && d.position?.longitude)).length;
-    return { total, online, offline, moving, withGps };
-  }, [enrichedDevices]);
+    const avgSpeed = moving
+      ? Math.round(movingDevices.reduce((sum, d) => sum + d.speedKmh, 0) / moving)
+      : 0;
+
+    const criticalTypes = new Set(['alarm', 'deviceOverspeed', 'deviceFuelDrop', 'geofenceExit']);
+    const alertsActive = Array.isArray(notifications) ? notifications.length : 0;
+    const alertsCritical = Array.isArray(notifications)
+      ? notifications.filter((n) => criticalTypes.has(n.type)).length
+      : 0;
+
+    const geofenceExitRules = Array.isArray(notifications)
+      ? notifications.filter((n) => n.type === 'geofenceEnter' || n.type === 'geofenceExit').length
+      : 0;
+    const geofenceViolations = geofenceExitRules;
+
+    return {
+      total,
+      online,
+      offline,
+      moving,
+      withGps,
+      avgSpeed,
+      alertsActive,
+      alertsCritical,
+      geofenceViolations,
+    };
+  }, [enrichedDevices, notifications]);
 
   const devicePortfolio = useMemo(() => {
     const total = enrichedDevices.length;
@@ -275,29 +304,84 @@ const Dashboard = () => {
 
       <section className="kpi-grid">
         <div className="kpi-card">
-          <div className="kpi-label"><Activity size={16} /> Equipamentos</div>
-          <strong>{kpis.total}</strong>
-          <span>Total cadastrados</span>
+          <div className="kpi-body">
+            <p className="kpi-label">Equipamentos</p>
+            <strong className="kpi-value">{kpis.total}</strong>
+            <span className="kpi-trend">Total cadastrados</span>
+          </div>
+          <div className="kpi-icon" aria-hidden>
+            <CarFront size={22} strokeWidth={2} />
+          </div>
         </div>
-        <div className="kpi-card online">
-          <div className="kpi-label"><Wifi size={16} /> Online</div>
-          <strong>{kpis.online}</strong>
-          <span>Conectados agora</span>
+        <div className="kpi-card">
+          <div className="kpi-body">
+            <p className="kpi-label">Online</p>
+            <strong className="kpi-value">{kpis.online}</strong>
+            <span className="kpi-trend">Conectados agora</span>
+          </div>
+          <div className="kpi-icon" aria-hidden>
+            <Signal size={22} strokeWidth={2} />
+          </div>
         </div>
-        <div className="kpi-card offline">
-          <div className="kpi-label"><WifiOff size={16} /> Offline</div>
-          <strong>{kpis.offline}</strong>
-          <span>Sem comunicação</span>
+        <div className="kpi-card">
+          <div className="kpi-body">
+            <p className="kpi-label">Offline</p>
+            <strong className="kpi-value">{kpis.offline}</strong>
+            <span className="kpi-trend">Sem comunicação</span>
+          </div>
+          <div className="kpi-icon" aria-hidden>
+            <WifiOff size={22} strokeWidth={2} />
+          </div>
         </div>
-        <div className="kpi-card moving">
-          <div className="kpi-label"><Gauge size={16} /> Em movimento</div>
-          <strong>{kpis.moving}</strong>
-          <span>Velocidade maior que zero</span>
+        <div className="kpi-card">
+          <div className="kpi-body">
+            <p className="kpi-label">Em movimento</p>
+            <strong className="kpi-value">{kpis.moving}</strong>
+            <span className="kpi-trend">Velocidade maior que 0</span>
+          </div>
+          <div className="kpi-icon" aria-hidden>
+            <Navigation size={22} strokeWidth={2} />
+          </div>
         </div>
-        <div className="kpi-card gps">
-          <div className="kpi-label"><MapPin size={16} /> Com GPS</div>
-          <strong>{kpis.withGps}</strong>
-          <span>Com posição válida</span>
+        <div className="kpi-card">
+          <div className="kpi-body">
+            <p className="kpi-label">Com GPS</p>
+            <strong className="kpi-value">{kpis.withGps}</strong>
+            <span className="kpi-trend">Posição válida</span>
+          </div>
+          <div className="kpi-icon" aria-hidden>
+            <LocateFixed size={22} strokeWidth={2} />
+          </div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-body">
+            <p className="kpi-label">Velocidade média</p>
+            <strong className="kpi-value">{kpis.avgSpeed} <span className="kpi-unit">km/h</span></strong>
+            <span className="kpi-trend">Frota em movimento</span>
+          </div>
+          <div className="kpi-icon" aria-hidden>
+            <Gauge size={22} strokeWidth={2} />
+          </div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-body">
+            <p className="kpi-label">Alertas ativos</p>
+            <strong className="kpi-value">{kpis.alertsActive}</strong>
+            <span className="kpi-trend">{kpis.alertsCritical} críticos</span>
+          </div>
+          <div className="kpi-icon" aria-hidden>
+            <TriangleAlert size={22} strokeWidth={2} />
+          </div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-body">
+            <p className="kpi-label">Cercas violadas</p>
+            <strong className="kpi-value">{kpis.geofenceViolations}</strong>
+            <span className="kpi-trend">Últimas 24 horas</span>
+          </div>
+          <div className="kpi-icon" aria-hidden>
+            <Fence size={22} strokeWidth={2} />
+          </div>
         </div>
       </section>
 

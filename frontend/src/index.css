@@ -5,6 +5,8 @@
   --text-primary: #2B3674;
   --text-secondary: #A3AED0;
   --text-gray: #707EAE;
+  --icon-color: #2B3674;
+  --icon-muted: #707EAE;
   --accent-purple: #6F42C1;
   --accent-blue-light: #4318FF;
   --accent-cyan: #00B8E2;
@@ -18,15 +20,17 @@
 }
 
 :root.dark {
-  --bg-main: #202124;       /* Fundo cinza escuro */
-  --bg-sidebar: #292a2d;    /* Sidebar em cinza */
-  --bg-card: #292a2d;       /* Cards em cinza */
-  --text-primary: #f4f4f5;  /* Texto principal claro (Zinc 100) */
-  --text-secondary: #a1a1aa;/* Texto secundário cinza (Zinc 400) */
-  --text-gray: #cbd5e1;     /* Texto geral cinza claro */
-  --border-color: #3c4043;  /* Borda escura zincada */
-  --shadow-sm: 0px 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-card: 0px 18px 40px rgba(0, 0, 0, 0.7);
+  --bg-main: #1e1e1e;       /* Fundo cinza escuro */
+  --bg-sidebar: #2a2a2a;    /* Sidebar em cinza */
+  --bg-card: #2a2a2a;       /* Cards em cinza */
+  --text-primary: #ffffff;  /* Texto principal branco */
+  --text-secondary: #a1a1aa;/* Texto secundário cinza */
+  --text-gray: #d4d4d8;     /* Texto geral cinza claro */
+  --icon-color: #ffffff;    /* Ícones brancos */
+  --icon-muted: #e4e4e7;    /* Ícones secundários claros */
+  --border-color: #3a3a3a;  /* Borda cinza suave */
+  --shadow-sm: 0px 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0px 18px 40px rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -111,11 +115,18 @@ a {
   box-shadow: var(--shadow-card) !important;
 }
 
-:root.dark .action-icon {
-  color: var(--text-primary) !important;
+:root.dark .action-icon,
+:root.dark .search-icon,
+:root.dark .nav-item svg,
+:root.dark .kpi-label svg,
+:root.dark .metric-icon,
+:root.dark .icon-btn svg,
+:root.dark .btn-header-action:not(.btn-logout) svg {
+  color: #ffffff !important;
+  stroke: #ffffff;
 }
 
-:root.dark input:not(.login-container input),
+:root.dark input:not(.login-container input):not(.geofence-search-field input),
 :root.dark select:not(.login-container select),
 :root.dark textarea:not(.login-container textarea) {
   background-color: var(--bg-main) !important;
@@ -125,10 +136,12 @@ a {
 
 :root.dark .search-box input,
 :root.dark .search-widget input,
-:root.dark .input-group input {
+:root.dark .input-group input,
+:root.dark .geofence-search-field input {
   background-color: transparent !important;
   background: transparent !important;
   border: none !important;
+  border-radius: 999px !important;
   box-shadow: none !important;
 }
 

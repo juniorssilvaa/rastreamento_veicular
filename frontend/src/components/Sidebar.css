@@ -61,7 +61,7 @@
   gap: 16px;
   padding: 12px 12px 12px 0;
   cursor: pointer;
-  color: var(--text-primary); /* Cinza bem escuro para o texto e ícones */
+  color: var(--text-primary);
   font-weight: 400;
   font-size: 15px;
   transition: all 0.2s ease;
@@ -69,27 +69,47 @@
 }
 
 .nav-item svg {
-  color: var(--text-primary);
-  stroke-width: 1.5px; /* Ícones mais finos na imagem */
+  color: var(--icon-color);
+  stroke-width: 1.5px;
+  flex-shrink: 0;
 }
 
 .nav-item:hover {
-  color: var(--accent-gold);
+  color: var(--text-primary);
+  opacity: 0.85;
 }
 
 .nav-item:hover svg {
-  color: var(--accent-gold);
+  color: var(--icon-color);
 }
 
 .nav-item.active {
   font-weight: 600;
-  color: var(--accent-gold);
+  color: var(--text-primary);
   background: transparent;
   box-shadow: none;
 }
 
 .nav-item.active svg {
-  color: var(--accent-gold);
+  color: var(--icon-color);
+}
+
+:root.dark .nav-item {
+  color: #e5e5e5;
+}
+
+:root.dark .nav-item svg {
+  color: #ffffff;
+}
+
+:root.dark .nav-item:hover,
+:root.dark .nav-item.active {
+  color: #ffffff;
+}
+
+:root.dark .nav-item:hover svg,
+:root.dark .nav-item.active svg {
+  color: #ffffff;
 }
 
 .top-item {

@@ -330,6 +330,14 @@ class TraccarEntityView(APIView):
         return Response({"error": f"Falha ao salvar em {endpoint}"}, status=status.HTTP_400_BAD_REQUEST)
 
 class TraccarEntityDetailView(APIView):
+    def put(self, request, endpoint, pk):
+        data = request.data
+        data['id'] = pk
+        result = client.update_entity(endpoint, pk, data)
+        if result:
+            return Response(result, status=status.HTTP_200_OK)
+        return Response({"error": f"Falha ao atualizar {endpoint}"}, status=status.HTTP_400_BAD_REQUEST)
+
     def delete(self, request, endpoint, pk):
         success = client.delete_entity(endpoint, pk)
         if success:

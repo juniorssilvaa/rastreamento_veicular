@@ -755,10 +755,10 @@ const Mapa = () => {
           <CarFront size={22} strokeWidth={2.2} aria-hidden />
         </button>
 
-        <Modal isOpen={isViewConfigOpen} onClose={closeViewConfig} title="Visualização dos Veiculos noa Mapa">
+        <Modal isOpen={isViewConfigOpen} onClose={closeViewConfig} title="Visualização dos Veículos no Mapa">
           <div className="map-view-config">
             <p className="map-view-config__desc">
-              Escolha como os vaiclos devem ser identificados na visualização do mapa
+              Escolha como os veículos devem ser identificados na visualização do mapa
             </p>
 
             <label className="map-view-option">
