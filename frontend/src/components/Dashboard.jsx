@@ -10,7 +10,7 @@ const Dashboard = () => {
   const [lastSync, setLastSync] = useState(null);
   const [financial, setFinancial] = useState({ receber: 0, a_pagar: 0 });
   const [overdueData, setOverdueData] = useState({ total_in_debt: 0, total_value: 0, customers: [] });
-  const [notifications, setNotifications] = useState([]);
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -19,13 +19,13 @@ const Dashboard = () => {
         const asaasEnv = localStorage.getItem('asaasEnv') || 'sandbox';
         const headers = { 'X-Asaas-Token': asaasToken, 'X-Asaas-Env': asaasEnv };
 
-        const [devicesRes, groupsRes, positionsRes, summaryRes, overdueRes, notifRes] = await Promise.all([
+        const [devicesRes, groupsRes, positionsRes, summaryRes, overdueRes, eventsRes] = await Promise.all([
           fetch('/api/traccar/devices/'),
           fetch('/api/traccar/entity/groups/'),
           fetch('/api/traccar/positions/'),
           fetch('/api/dashboard-v2/'),
           fetch('/api/asaas/overdue-customers/', { headers: asaasToken ? headers : {} }),
-          fetch('/api/traccar/notifications/')
+          fetch('/api/traccar/events/')
         ]);
 
         const devicesData = await devicesRes.json();
@@ -37,7 +37,7 @@ const Dashboard = () => {
         setGroups(Array.isArray(groupsData) ? groupsData : []);
         setPositions(positionsData);
         setFinancial(summaryData?.faturamento || { receber: 0, a_pagar: 0 });
-        setNotifications(notifRes.ok ? await notifRes.json() : []);
+        setEvents(eventsRes.ok ? await eventsRes.json() : []);
         
         if (overdueRes && overdueRes.ok) {
             const overdueJson = await overdueRes.json();
@@ -110,15 +110,12 @@ const Dashboard = () => {
       : 0;
 
     const criticalTypes = new Set(['alarm', 'deviceOverspeed', 'deviceFuelDrop', 'geofenceExit']);
-    const alertsActive = Array.isArray(notifications) ? notifications.length : 0;
-    const alertsCritical = Array.isArray(notifications)
-      ? notifications.filter((n) => criticalTypes.has(n.type)).length
-      : 0;
-
-    const geofenceExitRules = Array.isArray(notifications)
-      ? notifications.filter((n) => n.type === 'geofenceEnter' || n.type === 'geofenceExit').length
-      : 0;
-    const geofenceViolations = geofenceExitRules;
+    const realEvents = Array.isArray(events) ? events : [];
+    const alertsActive = realEvents.length;
+    const alertsCritical = realEvents.filter((e) => criticalTypes.has(e.type)).length;
+    const geofenceViolations = realEvents.filter(
+      (e) => e.type === 'geofenceEnter' || e.type === 'geofenceExit'
+    ).length;
 
     return {
       total,
@@ -131,7 +128,7 @@ const Dashboard = () => {
       alertsCritical,
       geofenceViolations,
     };
-  }, [enrichedDevices, notifications]);
+  }, [enrichedDevices, events]);
 
   const devicePortfolio = useMemo(() => {
     const total = enrichedDevices.length;

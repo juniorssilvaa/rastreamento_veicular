@@ -127,6 +127,21 @@ class TraccarPositionsView(APIView):
         positions = client.get_positions()
         return Response(positions, status=status.HTTP_200_OK)
 
+class TraccarEventsView(APIView):
+    def get(self, request):
+        """Eventos reais do Traccar nas últimas 24h (ou período informado)."""
+        from_time = request.query_params.get('from')
+        to_time = request.query_params.get('to')
+        event_types = request.query_params.getlist('type') or None
+        device_ids = request.query_params.getlist('deviceId') or None
+        events = client.get_events(
+            from_time=from_time,
+            to_time=to_time,
+            event_types=event_types,
+            device_ids=device_ids,
+        )
+        return Response(events, status=status.HTTP_200_OK)
+
 class TraccarCommandView(APIView):
     def post(self, request):
         device_id = request.data.get('deviceId')
@@ -309,13 +324,21 @@ class TraccarPermissionView(APIView):
         devices_ids = request.data.get('devicesIds', [])
         
         results = []
+
+        # Vincula notificação diretamente a uma cerca (entrada/saída)
+        if notification_id and geofence_id and not devices_ids:
+            results.append(client.link_permission({
+                "notificationId": notification_id,
+                "geofenceId": geofence_id,
+            }))
+
         for dev_id in devices_ids:
             if notification_id:
                 results.append(client.link_notification_to_device(notification_id, dev_id))
             if geofence_id:
                 results.append(client.link_geofence_to_device(geofence_id, dev_id))
             
-        return Response({"success": all(results)}, status=status.HTTP_200_OK)
+        return Response({"success": all(results) if results else True}, status=status.HTTP_200_OK)
 
 class TraccarEntityView(APIView):
     """View genérica para CRUD de entidades (drivers, groups, maintenance, etc)"""

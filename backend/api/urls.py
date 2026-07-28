@@ -5,6 +5,7 @@ from .views import (
     DashboardV2StatsView,
     TraccarDevicesView,
     TraccarPositionsView,
+    TraccarEventsView,
     TraccarCommandView,
     CreateTestDeviceView,
     TraccarNotificationsView,
@@ -76,6 +77,7 @@ urlpatterns = [
     path('traccar/upload-photo/', VehiclePhotoUploadView.as_view(), name='traccar_upload_photo'),
     path('photos/<uuid:pk>/', VehiclePhotoServeView.as_view(), name='serve_vehicle_photo'),
     path('traccar/positions/', TraccarPositionsView.as_view(), name='traccar_positions'),
+    path('traccar/events/', TraccarEventsView.as_view(), name='traccar_events'),
     path('traccar/commands/', TraccarCommandView.as_view(), name='traccar_commands'),
     path('traccar/init-test/', CreateTestDeviceView.as_view(), name='traccar_init_test'),
     

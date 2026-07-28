@@ -155,28 +155,30 @@ class TraccarClient:
 
     def link_notification_to_device(self, notification_id, device_id):
         """Vincula uma notificação a um dispositivo específico"""
-        payload = {
+        return self.link_permission({
             "notificationId": notification_id,
             "deviceId": device_id
-        }
-        try:
-            response = requests.post(f"{self.base_url}/permissions", auth=self.auth, headers=self.headers, json=payload)
-            return response.status_code == 204
-        except Exception as e:
-            print(f"Erro ao vincular permissão: {e}")
-            return False
+        })
 
     def link_geofence_to_device(self, geofence_id, device_id):
         """Vincula uma cerca virtual a um dispositivo específico"""
-        payload = {
+        return self.link_permission({
             "geofenceId": geofence_id,
             "deviceId": device_id
-        }
+        })
+
+    def link_permission(self, payload):
+        """Cria vínculo genérico no Traccar (/permissions)"""
         try:
-            response = requests.post(f"{self.base_url}/permissions", auth=self.auth, headers=self.headers, json=payload)
-            return response.status_code == 204
+            response = requests.post(
+                f"{self.base_url}/permissions",
+                auth=self.auth,
+                headers=self.headers,
+                json=payload,
+            )
+            return response.status_code in (200, 204)
         except Exception as e:
-            print(f"Erro ao vincular permissão de cerca: {e}")
+            print(f"Erro ao vincular permissão: {e}")
             return False
 
     def get_command_types(self, device_id):
@@ -240,6 +242,54 @@ class TraccarClient:
         except Exception as e:
             print(f"Erro ao excluir entidade {endpoint}: {e}")
             return False
+
+    def get_events(self, from_time=None, to_time=None, event_types=None, device_ids=None):
+        """Busca eventos reais do Traccar (relatório) no período informado."""
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc)
+        if to_time is None:
+            to_time = now.isoformat().replace('+00:00', 'Z')
+        if from_time is None:
+            from_time = (now - timedelta(hours=24)).isoformat().replace('+00:00', 'Z')
+
+        params = [('from', from_time), ('to', to_time)]
+
+        if device_ids:
+            for device_id in device_ids:
+                params.append(('deviceId', device_id))
+        else:
+            # Sem deviceId o relatório exige ao menos um alvo; busca todos os devices
+            try:
+                devices = self.get_devices()
+                for device in devices or []:
+                    if device.get('id') is not None:
+                        params.append(('deviceId', device['id']))
+            except Exception:
+                pass
+
+        if event_types:
+            for event_type in event_types:
+                params.append(('type', event_type))
+
+        # Sem dispositivos, não há eventos para consultar
+        if not any(key == 'deviceId' for key, _ in params):
+            return []
+
+        try:
+            response = requests.get(
+                f"{self.base_url}/reports/events",
+                auth=self.auth,
+                headers={**self.headers, 'Accept': 'application/json'},
+                params=params,
+                timeout=30,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data if isinstance(data, list) else []
+        except Exception as e:
+            print(f"Erro ao buscar eventos no Traccar: {e}")
+            return []
 
     def get_server_info(self):
         """Busca informações globais do servidor (incluindo versões e capacidades)"""

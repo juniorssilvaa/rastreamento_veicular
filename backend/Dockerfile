@@ -23,8 +23,11 @@ COPY . /app/
 # Pasta para armazenar o banco de dados sqlite para persistencia via volume (fallback)
 RUN mkdir -p /app/data
 
+# Script de inicializacao (espera Postgres, migra e sobe o Gunicorn)
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Configura as portas
 EXPOSE 8000
 
-# Script de inicializacao inline (Migrações, Superuser e Servidor)
-CMD ["sh", "-c", "python manage.py migrate && python manage.py createsuperuser --noinput --username $DJANGO_SUPERUSER_USERNAME --email $DJANGO_SUPERUSER_EMAIL || true && gunicorn core.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["/app/entrypoint.sh"]

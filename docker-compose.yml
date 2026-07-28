@@ -13,12 +13,16 @@ services:
     volumes:
       - blrastreamento-postgres-data:/var/lib/postgresql/data
     networks:
-      - internal
+      internal:
+        aliases:
+          - postgres
+          - blrastreamento-postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d blrastreamento"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-admin} -d $${POSTGRES_DB:-blrastreamento}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
     deploy:
       resources:
         limits:
