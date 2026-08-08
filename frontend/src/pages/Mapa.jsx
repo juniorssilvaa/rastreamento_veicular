@@ -23,9 +23,9 @@ import {
   Power,
   KeyRound,
   Activity,
-  CarFront,
   MoreHorizontal,
 } from 'lucide-react';
+import CarIcon from '../components/CarIcon';
 
 const addressCache = new Map();
 
@@ -104,9 +104,9 @@ const createDeviceDivIcon = (device) => {
     return L.divIcon({
       className: 'device-custom-icon-root',
       html: `<div class="device-map-icon" role="img" aria-label="${safeLabel}"><img src="${iconUrl}" alt="${safeLabel}" /></div>`,
-      iconSize: [48, 48],
-      iconAnchor: [24, 24],
-      popupAnchor: [0, -24],
+      iconSize: [44, 44],
+      iconAnchor: [22, 22],
+      popupAnchor: [0, -22],
     });
   }
 
@@ -268,7 +268,11 @@ const Mapa = () => {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [lastSync, setLastSync] = useState(null);
   const [search, setSearch] = useState('');
-  const [mapTheme, setMapTheme] = useState('clean');
+  const [mapTheme, setMapTheme] = useState(() => {
+    const saved = localStorage.getItem('mapTheme');
+    const allowed = ['clean', 'google', 'dark', 'street', 'satellite', 'hybrid'];
+    return allowed.includes(saved) ? saved : 'clean';
+  });
   const [resolvedAddress, setResolvedAddress] = useState(null);
   const [addressError, setAddressError] = useState(false);
   const [devicesPanelOpen, setDevicesPanelOpen] = useState(false);
@@ -643,7 +647,10 @@ const Mapa = () => {
                 key={key}
                 type="button"
                 className={mapTheme === key ? 'active' : ''}
-                onClick={() => setMapTheme(key)}
+                onClick={() => {
+                  setMapTheme(key);
+                  localStorage.setItem('mapTheme', key);
+                }}
               >
                 {tile.label}
               </button>
@@ -806,7 +813,7 @@ const Mapa = () => {
           aria-expanded={devicesPanelOpen}
           aria-controls={devicesPanelOpen ? 'mapa-devices-panel' : undefined}
         >
-          <CarFront size={22} strokeWidth={2.2} aria-hidden />
+          <CarIcon size={22} aria-hidden />
         </button>
 
         <Modal isOpen={isViewConfigOpen} onClose={closeViewConfig} title="Visualização dos Veículos no Mapa">

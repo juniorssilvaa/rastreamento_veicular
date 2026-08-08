@@ -35,7 +35,7 @@ const ClienteApp = ({ onLogout, theme, toggleTheme }) => {
 
   return (
     <>
-      <Header onLogout={onLogout} theme={theme} toggleTheme={toggleTheme} hideSearch={true} />
+      <Header onLogout={onLogout} theme={theme} toggleTheme={toggleTheme} />
       <div className="app-body">
         <ClienteSidebar activeItem={activeItem} setActiveItem={handlePageChange} />
         <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''}`}>

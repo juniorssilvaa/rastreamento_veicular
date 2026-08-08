@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Comando.css';
 import { 
-  Wifi, Calendar, Clock, Car, Users, Settings, Globe, 
+  Wifi, Calendar, Clock, Users, Settings, Globe, 
   Search, Lock, Unlock, PenTool, Zap, Send, CheckSquare, Square,
   MessageSquare, List
 } from 'lucide-react';
+import CarIcon from '../components/CarIcon';
 
 const Comando = () => {
   // State for devices and selection
@@ -589,7 +590,7 @@ const Comando = () => {
             <span className="cmd-section-title">ESCOPO</span>
             <div className="cmd-scope-grid">
               <button className={`scope-btn scope-veiculo ${scope === 'veiculo' ? 'active' : ''}`} onClick={() => setScope('veiculo')}>
-                <Car size={20} className="scope-icon"/>
+                <CarIcon size={20} className="scope-icon"/>
                 <span>Veículo</span>
               </button>
               <button className={`scope-btn scope-grupo ${scope === 'grupo' ? 'active' : ''}`} onClick={() => setScope('grupo')}>
@@ -797,12 +798,12 @@ const Comando = () => {
               {/* LAYOUT SMS */}
               <div className="cmd-sms-layout">
                 <div className="sms-section-title">
-                  <Car size={16} /> Veículos:
+                  <CarIcon size={16} /> Veículos:
                 </div>
                 
                 <div className="sms-selected-card">
                   <div className="sms-selected-icon">
-                    {selectedDevices.size > 1 ? `+${selectedDevices.size}` : <Car size={24} color="#fff" />}
+                    {selectedDevices.size > 1 ? `+${selectedDevices.size}` : <CarIcon size={24} />}
                   </div>
                   <div className="sms-selected-info">
                     {selectedDevices.size > 1 && <span className="sms-badge">Multiple</span>}

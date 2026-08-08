@@ -15,6 +15,7 @@
   --accent-gold: #D4AF37;
   --border-color: #E0E5F2;
   --sidebar-width: 260px;
+  --sidebar-collapsed-width: 78px;
   --shadow-sm: 0px 4px 12px rgba(112, 144, 176, 0.08);
   --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
 }

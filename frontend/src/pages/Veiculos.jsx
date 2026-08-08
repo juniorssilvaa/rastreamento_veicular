@@ -3,8 +3,9 @@ import './Veiculos.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Car, Plus, Trash2, Edit, Settings, ChevronDown, MapPin, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Edit, Settings, ChevronDown, MapPin, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import CarIcon from '../components/CarIcon';
 
 const RecenterMap = ({ lat, lon }) => {
   const map = useMap();
@@ -267,7 +268,7 @@ const Veiculos = ({ onCreate, onEdit }) => {
                         <td>
                           <div className="cell-name">
                             <div className="mini-thumb" style={{ borderRadius: '50%' }}>
-                              {v.attributes?.foto ? <img src={v.attributes.foto} alt="" /> : <Car size={14} />}
+                              {v.attributes?.foto ? <img src={v.attributes.foto} alt="" /> : <CarIcon size={14} />}
                             </div>
                             <div>
                               <span>{v.name}</span>

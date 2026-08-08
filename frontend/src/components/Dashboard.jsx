@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import './Dashboard.css';
-import { Car, CarFront, Fence, Gauge, LocateFixed, Navigation, Signal, TriangleAlert, WifiOff } from 'lucide-react';
+import { Fence, Gauge, LocateFixed, Navigation, Signal, TriangleAlert, WifiOff } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import CarIcon from './CarIcon';
 
 const Dashboard = () => {
   const [devices, setDevices] = useState([]);
@@ -279,7 +280,7 @@ const Dashboard = () => {
           {device.photo ? (
             <img src={device.photo} alt={device.name} />
           ) : (
-            <Car size={18} />
+            <CarIcon size={18} />
           )}
         </div>
         <div className="offline-device-info">
@@ -307,7 +308,7 @@ const Dashboard = () => {
             <span className="kpi-trend">Total cadastrados</span>
           </div>
           <div className="kpi-icon" aria-hidden>
-            <CarFront size={22} strokeWidth={2} />
+            <CarIcon size={22} />
           </div>
         </div>
         <div className="kpi-card">

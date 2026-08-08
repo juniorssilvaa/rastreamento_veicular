@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './VeiculoForm.css';
 import {
-  Car, Edit, Search, ChevronDown, RefreshCw, BadgeCheck, Box,
+  Edit, Search, ChevronDown, RefreshCw, Box,
   IdCard, X, Cpu, Copy, Link2, MapPin, List, Check, CircleDot,
-  LayoutDashboard, CarFront, HardHat, Warehouse, Activity, Wrench,
+  LayoutDashboard, HardHat, Warehouse, Activity, Wrench,
   Bell, Trash2, Battery, Timer, Lock, Zap, Satellite,
-  Wifi, Plug, KeyRound, RadioTower, Gauge, Power, Cog, Smartphone,
-  HelpCircle, FolderOpen, BellOff, Plus, Building2, CalendarDays
+  Wifi, Plug, KeyRound, RadioTower, Gauge, Power, Smartphone,
+  FolderOpen, BellOff, Plus, Building2, CalendarDays
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SensorIcon from '../components/SensorIcon';
+import EngineIcon from '../components/EngineIcon';
+import CarIcon from '../components/CarIcon';
 
 const CATEGORIES = [
   { id: 'default', name: 'Padrão' },
@@ -82,7 +85,7 @@ const IDENTIFIED_SENSORS = [
   { id: 'odometro', name: 'Odômetro', icon: Gauge, value: '—' },
   { id: 'energia', name: 'Energia', icon: Power, value: '—' },
   { id: 'rede', name: 'Rede', icon: Wifi, value: '—' },
-  { id: 'motor', name: 'Motor', icon: Cog, value: '—' },
+  { id: 'motor', name: 'Motor', icon: EngineIcon, value: '—' },
   { id: 'operadoraSensor', name: 'Operadora', icon: Smartphone, value: '—' },
   { id: 'voltmetro', name: 'Voltímetro', icon: Activity, value: '—' },
 ];
@@ -468,7 +471,7 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
     <div className="dcp">
       <header className="dcp-head">
         <div className="dcp-head__left">
-          <span className="dcp-head__icon" aria-hidden><Car size={20} /></span>
+          <span className="dcp-head__icon" aria-hidden><CarIcon size={20} /></span>
           <div>
             <h1>{isEdit ? 'Editar Dispositivo' : 'Criar Dispositivo'}</h1>
             <p>Dados do veículo, dispositivo, chip e configurações</p>
@@ -487,7 +490,7 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
           <Cpu size={15} /> Hardware e Simcard
         </button>
         <button type="button" className={`dcp-tab ${formTab === 'sensores' ? 'active' : ''}`} onClick={() => setFormTab('sensores')}>
-          <Zap size={15} /> Sensores
+          <SensorIcon size={15} /> Sensores
         </button>
         <button type="button" className={`dcp-tab ${formTab === 'alertas' ? 'active' : ''}`} onClick={() => setFormTab('alertas')}>
           <Bell size={15} /> Alertas
@@ -504,7 +507,7 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
             <div className="dcp-photo__circle">
               {formData.attributes.foto
                 ? <img src={formData.attributes.foto} alt="Foto do veículo" />
-                : <Car size={46} strokeWidth={1.5} />}
+                : <CarIcon size={46} />}
               <label className="dcp-photo__edit" title="Alterar foto">
                 <Edit size={13} />
                 <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={(e) => handleFileUpload(e, 'foto')} hidden />
@@ -601,7 +604,7 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
                 <div className="dcp-section-title"><Activity size={16} /> Selecione o Status do Equipamento</div>
                 <div className="dcp-status">
                   <button type="button" className={`dcp-status-card ${formData.attributes.equipStatus === 'instalado' ? 'active' : ''}`} onClick={() => updateAttr({ equipStatus: 'instalado' })}>
-                    <span className="dcp-status-icon"><CarFront size={20} /></span>
+                    <span className="dcp-status-icon"><CarIcon size={20} /></span>
                     <div className="dcp-status-copy"><strong>Instalado</strong><span>No veículo do cliente.</span></div>
                   </button>
                   <button type="button" className={`dcp-status-card ${formData.attributes.equipStatus === 'tecnico' ? 'active' : ''}`} onClick={() => updateAttr({ equipStatus: 'tecnico' })}>
@@ -613,9 +616,6 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
                     <div className="dcp-status-copy"><strong>Em Estoque</strong><span>Parado no estoque.</span></div>
                   </button>
                 </div>
-                {formData.attributes.equipStatus === 'instalado' && (
-                  <div className="dcp-alert"><BadgeCheck size={16} /> Instalado no veículo do cliente. Vincule os usuários que terão acesso.</div>
-                )}
                 <div className="dcp-users">
                   <span className="dcp-users__caption">Usuários</span>
                   <div className="dcp-users__search">
@@ -873,7 +873,7 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
           {formTab === 'sensores' && (
             <section className="dcp-card">
               <div className="dcp-card__row">
-                <div className="dcp-section-title" style={{ marginBottom: 0 }}><Zap size={16} /> Sensores</div>
+                <div className="dcp-section-title" style={{ marginBottom: 0 }}><SensorIcon size={16} /> Sensores</div>
                 <div className="dcp-pills">
                   <button type="button" className={`dcp-pill ${sensorView === 'meus' ? 'active' : ''}`} onClick={() => setSensorView('meus')}>Meus sensores</button>
                   <button type="button" className={`dcp-pill ${sensorView === 'grupos' ? 'active' : ''}`} onClick={() => setSensorView('grupos')}>Grupos</button>
@@ -888,12 +888,14 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
                       const Icon = sensor.icon;
                       return (
                         <button type="button" key={sensor.id} className="dcp-sensor-card" onClick={() => toast('Edição de sensor em breve.')}>
-                          <span className="dcp-status-icon"><Icon size={18} /></span>
-                          <div className="dcp-status-copy">
+                          <span className="dcp-sensor-icon" aria-hidden>
+                            <Icon size={24} strokeWidth={1.8} absoluteStrokeWidth={false} />
+                          </span>
+                          <div className="dcp-sensor-copy">
                             <strong>{sensor.name}</strong>
                             <span>{formData.attributes[`sensor_${sensor.id}`] || sensor.value}</span>
                           </div>
-                          <Edit size={15} />
+                          <Edit size={16} className="dcp-sensor-edit" />
                         </button>
                       );
                     })}
@@ -901,7 +903,7 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
 
                   <h4 className="dcp-subhead">Não identificados</h4>
                   <div className="dcp-sensor-unknown">
-                    <HelpCircle size={18} />
+                    <SensorIcon size={18} />
                     <div>
                       <strong>Sensor extra</strong>
                       <span>Nenhum sinal extra identificado neste dispositivo.</span>
@@ -913,7 +915,7 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
                 </>
               ) : (
                 <div className="dcp-empty">
-                  <Box size={28} />
+                  <SensorIcon size={28} />
                   <strong>Nenhum grupo de sensores</strong>
                   <span>Os grupos aparecerão aqui quando forem configurados.</span>
                 </div>

@@ -67,6 +67,10 @@ function App() {
     return localStorage.getItem('theme') || 'dark';
   });
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebarCollapsed') === 'true';
+  });
+
   const [vehicleView, setVehicleView] = useState(() => parsePathname(window.location.pathname).vehicleView);
 
   useEffect(() => {
@@ -80,6 +84,14 @@ function App() {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('sidebarCollapsed', String(next));
+      return next;
+    });
   };
 
   const handleLogin = (role = 'admin') => {
@@ -172,11 +184,16 @@ function App() {
 
   // Senão, continua sendo a árvore normal do Admin
   return (
-    <div className="app-container">
+    <div className={`app-container${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
       <Toaster position="top-right" />
       <Header onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />
       <div className="app-body">
-        <Sidebar activeItem={activeItem} setActiveItem={handlePageChange} />
+        <Sidebar
+          activeItem={activeItem}
+          setActiveItem={handlePageChange}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+        />
         <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''} ${vehicleView ? 'main-content--veiculo-form' : ''}`}>
           {activeItem === 'Dashboard' && <Dashboard />}
           {activeItem === 'Gerenciar' && <Gerenciar onNavigate={handlePageChange} />}

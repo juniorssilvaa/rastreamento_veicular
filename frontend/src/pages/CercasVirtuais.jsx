@@ -10,11 +10,12 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import './CercasVirtuais.css';
 import { 
     Search, Map as MapIcon, Plus, Trash2, Edit, 
-    Car, Crosshair, MapPin, ZoomIn, ZoomOut, Layers, Check, 
+    Crosshair, MapPin, ZoomIn, ZoomOut, Layers, Check, 
     ShieldCheck, ShieldAlert, ShieldBan, Shield,
     Pentagon, Circle, Pencil, Eraser, X, ChevronDown, ArrowRight
 } from 'lucide-react';
 import Modal from '../components/Modal';
+import CarIcon from '../components/CarIcon';
 
 const { BaseLayer } = LayersControl;
 
@@ -831,7 +832,7 @@ const CercasVirtuais = () => {
                                 style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                             >
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Car size={16} />
+                                    <CarIcon size={16} />
                                     {selectedDevices.length === 0 
                                         ? 'Toque para escolher um ou mais' 
                                         : `${selectedDevices.length} veículo(s) selecionado(s)`}

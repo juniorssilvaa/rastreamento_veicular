@@ -17,6 +17,11 @@
   overflow-y: auto;
   margin-left: var(--sidebar-width);
   min-height: calc(100vh - 64px);
+  transition: margin-left 0.2s ease;
+}
+
+.app-container.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
 }
 
 .main-content--mapa,
@@ -25,6 +30,6 @@
 }
 
 .main-content--veiculo-form {
-  padding: 16px 20px 20px;
+  padding: 10px 12px 14px;
   background: #1e1e1e;
 }

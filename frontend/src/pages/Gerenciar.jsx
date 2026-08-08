@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Gerenciar.css';
-import { Search, Link as LinkIcon, Package, Box, Car, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare, Image as ImageIcon, Trash2, IdCard } from 'lucide-react';
+import { Search, Link as LinkIcon, Package, Box, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare, Image as ImageIcon, Trash2, IdCard } from 'lucide-react';
+import CarIcon from '../components/CarIcon';
 
 const normalizeMapDeviceLabelMode = (value) => {
   if (value === 'cliente') return 'nome';
@@ -201,7 +202,7 @@ const Gerenciar = ({ onNavigate }) => {
               </div>
 
               <div className="action-card">
-                <Car size={32} className="action-icon" />
+                <CarIcon size={32} className="action-icon" />
                 <span>Pronta Resposta</span>
               </div>
 

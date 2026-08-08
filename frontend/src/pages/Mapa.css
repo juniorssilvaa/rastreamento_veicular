@@ -864,22 +864,25 @@
 }
 
 .device-map-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, 0.88);
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  border: 2px solid #f59e0b;
-  overflow: hidden;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  pointer-events: none;
 }
 
 .device-map-icon img {
-  width: 78%;
-  height: 78%;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
+  background: transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
   image-rendering: auto;
 }
 

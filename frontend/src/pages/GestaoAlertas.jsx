@@ -3,7 +3,6 @@ import './GestaoAlertas.css';
 import {
   ArrowLeft,
   Bell,
-  Car,
   Edit3,
   Fence,
   Info,
@@ -13,6 +12,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import CarIcon from '../components/CarIcon';
 
 const EVENT_LABELS = {
   commandResult: 'Resultado de comando',
@@ -416,7 +416,7 @@ const GestaoAlertas = ({ onNavigate }) => {
                         checked={checked}
                         onChange={() => toggleDevice(device.id)}
                       />
-                      <span className="ai-vehicle-icon"><Car size={16} /></span>
+                      <span className="ai-vehicle-icon"><CarIcon size={16} /></span>
                       <span className="ai-vehicle-copy">
                         <strong>
                           {device.name}
@@ -636,7 +636,7 @@ const GestaoAlertas = ({ onNavigate }) => {
 
       <section className="ai-panel">
         <div className="ai-panel__head">
-          <Car size={18} className="ai-panel__car" />
+          <CarIcon size={18} className="ai-panel__car" />
           <div>
             <h2>Ver alertas por veículo</h2>
             <p>Selecione um veículo para ver e gerenciar os alertas dele — inclusive de clientes, sem precisar entrar no login deles.</p>
