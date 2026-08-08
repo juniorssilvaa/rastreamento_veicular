@@ -858,6 +858,31 @@
   border: none !important;
 }
 
+.device-custom-icon-root {
+  background: transparent !important;
+  border: none !important;
+}
+
+.device-map-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.88);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  border: 2px solid #f59e0b;
+  overflow: hidden;
+}
+
+.device-map-icon img {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
 .device-marker-pin {
   width: 36px;
   height: 36px;

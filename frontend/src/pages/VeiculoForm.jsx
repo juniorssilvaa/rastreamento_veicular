@@ -112,30 +112,44 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
   useEffect(() => {
     const load = async () => {
       try {
+        const safeJson = async (res) => {
+          if (!res || !res.ok) return null;
+          try {
+            return await res.json();
+          } catch {
+            return null;
+          }
+        };
+
         const [groupRes, calRes, iconsRes, usersRes, mapIconsRes] = await Promise.all([
-          fetch('/api/traccar/entity/groups/'),
-          fetch('/api/traccar/entity/calendars/'),
-          fetch('/api/vehicle-icons/'),
-          fetch('/api/auth/users/'),
-          fetch('/incon/manifest.json')
+          fetch('/api/traccar/entity/groups/').catch(() => null),
+          fetch('/api/traccar/entity/calendars/').catch(() => null),
+          fetch('/api/vehicle-icons/').catch(() => null),
+          fetch('/api/auth/users/').catch(() => null),
+          fetch('/incon/manifest.json').catch(() => null),
         ]);
 
-        setGroups(groupRes.ok ? await groupRes.json() : []);
-        setCalendars(calRes.ok ? await calRes.json() : []);
-        setVehicleIcons(iconsRes.ok ? await iconsRes.json() : []);
-        setUsers(usersRes.ok ? await usersRes.json() : []);
-        const mapFiles = mapIconsRes.ok ? await mapIconsRes.json() : [];
+        const groupsData = await safeJson(groupRes);
+        const calendarsData = await safeJson(calRes);
+        const vehicleIconsData = await safeJson(iconsRes);
+        const usersData = await safeJson(usersRes);
+        const mapFiles = await safeJson(mapIconsRes);
+
+        setGroups(Array.isArray(groupsData) ? groupsData : []);
+        setCalendars(Array.isArray(calendarsData) ? calendarsData : []);
+        setVehicleIcons(Array.isArray(vehicleIconsData) ? vehicleIconsData : []);
+        setUsers(Array.isArray(usersData) ? usersData : []);
         setMapIcons(
           (Array.isArray(mapFiles) ? mapFiles : []).map((file) => ({
             id: file,
             name: String(file).replace(/\.[^.]+$/, ''),
-            url: `/incon/${encodeURIComponent(file)}`
+            url: `/incon/${encodeURIComponent(file)}`,
           }))
         );
 
         if (isEdit && deviceId) {
-          const devRes = await fetch('/api/traccar/devices/?all=true');
-          const devices = devRes.ok ? await devRes.json() : [];
+          const devRes = await fetch('/api/traccar/devices/?all=true').catch(() => null);
+          const devices = await safeJson(devRes);
           const v = (Array.isArray(devices) ? devices : []).find((d) => String(d.id) === String(deviceId));
           if (!v) {
             toast.error('Veículo não encontrado.');
@@ -177,9 +191,13 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
           });
           if (v.attributes?.customerName) setUserQuery(v.attributes.customerName);
 
-          const alertRes = await fetch('/api/traccar/notifications/');
-          const alertsData = alertRes.ok ? await alertRes.json() : [];
+          const alertRes = await fetch('/api/traccar/notifications/').catch(() => null);
+          const alertsData = await safeJson(alertRes);
           setDeviceAlerts(Array.isArray(alertsData) ? alertsData : []);
+        }
+
+        if (!Array.isArray(mapFiles) || mapFiles.length === 0) {
+          console.warn('Manifest de ícones /incon/manifest.json indisponível neste ambiente.');
         }
       } catch (err) {
         console.error(err);
@@ -190,7 +208,7 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
     };
 
     load();
-  }, [isEdit, deviceId]);
+  }, [isEdit, deviceId, onBack]);
 
   const filteredUsers = useMemo(() => {
     const q = userQuery.trim().toLowerCase();
@@ -991,17 +1009,17 @@ const VeiculoForm = ({ mode = 'create', deviceId = null, onBack }) => {
               <button type="button" onClick={() => setShowIconPicker(false)}><X size={16} /></button>
             </div>
             <div className="dcp-icon-grid">
-              <button type="button" className={`dcp-icon-opt ${!formData.attributes.iconUrl ? 'active' : ''}`} onClick={() => { updateAttr({ iconUrl: '' }); setShowIconPicker(false); }} title="Padrão">
+              <button type="button" className={`dcp-icon-opt ${!formData.attributes.iconUrl ? 'active' : ''}`} onClick={() => { updateAttr({ iconUrl: '' }); setShowIconPicker(false); toast.success('Ícone padrão selecionado. Salve o veículo para aplicar.'); }} title="Padrão">
                 <MapPin size={22} />
               </button>
               {mapIcons.map((icon) => (
-                <button type="button" key={icon.id} className={`dcp-icon-opt ${formData.attributes.iconUrl === icon.url ? 'active' : ''}`} onClick={() => { updateAttr({ iconUrl: icon.url }); setShowIconPicker(false); }} title={icon.name}>
-                  <img src={icon.url} alt="" />
+                <button type="button" key={icon.id} className={`dcp-icon-opt ${formData.attributes.iconUrl === icon.url ? 'active' : ''}`} onClick={() => { updateAttr({ iconUrl: icon.url }); setShowIconPicker(false); toast.success('Ícone selecionado. Salve o veículo para aplicar no mapa.'); }} title={icon.name}>
+                  <img src={icon.url} alt="" loading="lazy" />
                 </button>
               ))}
               {vehicleIcons.map((icon) => (
-                <button type="button" key={`api-${icon.id}`} className={`dcp-icon-opt ${formData.attributes.iconUrl === icon.image_url ? 'active' : ''}`} onClick={() => { updateAttr({ iconUrl: icon.image_url }); setShowIconPicker(false); }} title={icon.name}>
-                  <img src={icon.image_url} alt="" />
+                <button type="button" key={`api-${icon.id}`} className={`dcp-icon-opt ${formData.attributes.iconUrl === icon.image_url ? 'active' : ''}`} onClick={() => { updateAttr({ iconUrl: icon.image_url }); setShowIconPicker(false); toast.success('Ícone selecionado. Salve o veículo para aplicar no mapa.'); }} title={icon.name}>
+                  <img src={icon.image_url} alt="" loading="lazy" />
                 </button>
               ))}
             </div>

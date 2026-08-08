@@ -97,12 +97,13 @@ const escapeAttr = (s) =>
 
 const createDeviceDivIcon = (device) => {
   const safeLabel = escapeAttr(device.name || 'Veículo');
-  
-  if (device.attributes && device.attributes.iconUrl) {
-    const iconUrl = escapeAttr(device.attributes.iconUrl);
+  const rawIcon = device.attributes?.iconUrl || device.iconUrl || '';
+
+  if (rawIcon) {
+    const iconUrl = escapeAttr(rawIcon);
     return L.divIcon({
       className: 'device-custom-icon-root',
-      html: `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid var(--accent-gold, #D4AF37); overflow: hidden;" role="img" aria-label="${safeLabel}"><img src="${iconUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="${safeLabel}" /></div>`,
+      html: `<div class="device-map-icon" role="img" aria-label="${safeLabel}"><img src="${iconUrl}" alt="${safeLabel}" /></div>`,
       iconSize: [48, 48],
       iconAnchor: [24, 24],
       popupAnchor: [0, -24],
@@ -781,7 +782,7 @@ const Mapa = () => {
             .filter((device) => Boolean(device.position))
             .map((device) => (
               <Marker
-                key={device.id}
+                key={`${device.id}-${device.attributes?.iconUrl || 'default'}`}
                 position={[device.position.latitude, device.position.longitude]}
                 icon={createDeviceDivIcon(device)}
                 eventHandlers={{ click: () => handleSelectDevice(device) }}

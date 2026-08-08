@@ -12,9 +12,8 @@ dist
 dist-ssr
 *.local
 
-# Atalho e pasta de ícones do mapa (arquivos binários locais)
+# Atalho local (junction) para public/incon — os arquivos reais ficam em public/incon e vão no build
 /incon
-/public/incon
 
 # Editor directories and files
 .vscode/*
