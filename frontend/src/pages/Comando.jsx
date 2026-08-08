@@ -44,6 +44,68 @@ const Comando = () => {
   // SMS Chat state
   const [smsChatMessages, setSmsChatMessages] = useState([]);
   const [smsChatInput, setSmsChatInput] = useState('');
+
+  const getSmsCredentials = () => ({
+    login: (localStorage.getItem('smsmarketLogin') || '').trim(),
+    token: (localStorage.getItem('smsmarketToken') || '').trim(),
+  });
+
+  const refreshSmsBalance = async () => {
+    const { login, token } = getSmsCredentials();
+    if (!login || !token) {
+      setSmsBalance('—');
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/sms/balance/?user=${encodeURIComponent(login)}&token=${encodeURIComponent(token)}`
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.configured === false) {
+        setSmsBalance('—');
+        return;
+      }
+      if (json.total !== undefined) setSmsBalance(json.total);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const isDeviceOnline = (deviceId) => {
+    const device = devices.find((d) => d.id === deviceId);
+    if (!device) return false;
+    const status = String(device.status || '').toLowerCase();
+    if (status === 'online') return true;
+    if (!device.lastUpdate) return false;
+    const ageMs = Date.now() - new Date(device.lastUpdate).getTime();
+    return Number.isFinite(ageMs) && ageMs < 15 * 60 * 1000;
+  };
+
+  const buildCommandPayload = (deviceId, cmdText, viaSms) => {
+    const payload = {
+      deviceId,
+      textChannel: Boolean(viaSms),
+      type: 'custom',
+      attributes: { data: cmdText },
+    };
+    if (viaSms) {
+      const { login, token } = getSmsCredentials();
+      payload.smsGateway = 'smsmarket';
+      payload.smsLogin = login;
+      payload.smsToken = token;
+    }
+    return payload;
+  };
+
+  const postCommand = async (payload) => {
+    const response = await fetch('/api/traccar/commands/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+    return { ok: response.ok, status: response.status, data };
+  };
   
   const smsFabricantesList = [
     { name: "Coban TK303 - TK311", id: 7 },
@@ -203,39 +265,37 @@ const Comando = () => {
 
   const handleSendSmsChat = async () => {
     if (!smsChatInput.trim() || selectedDevices.size === 0) return;
-    
+
+    const { login, token } = getSmsCredentials();
+    if (!login || !token) {
+      alert('Configure a integração SMS Market em Gerenciar antes de enviar SMS.');
+      return;
+    }
+
     const devId = Array.from(selectedDevices)[0];
     const messageText = smsChatInput;
     setSmsChatInput('');
-    
-    // Otimisticamente adiciona na UI
-    setSmsChatMessages(prev => [...prev, {
-      id: Date.now(),
-      device_id: devId,
-      phone_number: '', // backend resolve
-      content: messageText,
-      status_code: -1,
-      direction: 'outbound',
-      created_at: new Date().toISOString()
-    }]);
+
+    setSmsChatMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        device_id: devId,
+        phone_number: '',
+        content: messageText,
+        status_code: -1,
+        direction: 'outbound',
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
     try {
-      const payload = {
-        deviceId: devId,
-        textChannel: true,
-        type: 'custom',
-        attributes: { data: messageText },
-        smsGateway: 'smsmarket',
-        smsLogin: localStorage.getItem('smsmarketLogin') || '',
-        smsToken: localStorage.getItem('smsmarketToken') || ''
-      };
-
-      await fetch('/api/traccar/commands/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      // Polling vai atualizar o status
+      const result = await postCommand(buildCommandPayload(devId, messageText, true));
+      if (!result.ok) {
+        alert(result.data?.error || 'Falha ao enviar SMS.');
+        return;
+      }
+      await refreshSmsBalance();
     } catch (e) {
       console.error(e);
     }
@@ -243,100 +303,101 @@ const Comando = () => {
 
   const executeTemplateSequence = async () => {
     if (selectedDevices.size === 0) {
-      alert("Por favor, selecione pelo menos um veículo para o template.");
-      return;
-    }
-    
-    if (!smsTemplateSelecionado) {
-      alert("Selecione um template (combo) na lista.");
+      alert('Por favor, selecione pelo menos um veículo para o template.');
       return;
     }
 
-    const selectedCombo = commandCombos.find(c => c.id.toString() === smsTemplateSelecionado);
+    if (!smsTemplateSelecionado) {
+      alert('Selecione um template (combo) na lista.');
+      return;
+    }
+
+    const { login, token } = getSmsCredentials();
+    if (!login || !token) {
+      alert('Configure a integração SMS Market em Gerenciar antes de enviar SMS.');
+      return;
+    }
+
+    const selectedCombo = commandCombos.find((c) => c.id.toString() === smsTemplateSelecionado);
     if (!selectedCombo || !selectedCombo.comandos || selectedCombo.comandos.length === 0) {
-      alert("Template selecionado é inválido ou não possui comandos.");
+      alert('Template selecionado é inválido ou não possui comandos.');
       return;
     }
 
     setIsExecutingTemplate(true);
     setTemplateLogs([]);
 
-    const devId = Array.from(selectedDevices)[0]; // Executing for first selected
+    const devId = Array.from(selectedDevices)[0];
     const cmdsToRun = selectedCombo.comandos;
-    
+
     for (let i = 0; i < cmdsToRun.length; i++) {
       let cmdText = cmdsToRun[i];
-      // Limpa os delimitadores { } se vierem assim do backend
       if (cmdText.startsWith('{') && cmdText.endsWith('}')) {
         cmdText = cmdText.slice(1, -1);
       }
-      
+
       const timeStr = new Date().toLocaleString('pt-BR');
-      
-      setTemplateLogs(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'pending',
-        title: `Enviando comando ${i + 1}/${cmdsToRun.length}...`,
-        text: cmdText,
-        time: timeStr
-      }]);
+
+      setTemplateLogs((prev) => [
+        ...prev,
+        {
+          id: Date.now() + Math.random(),
+          type: 'pending',
+          title: `Enviando comando ${i + 1}/${cmdsToRun.length}...`,
+          text: cmdText,
+          time: timeStr,
+        },
+      ]);
 
       try {
-        const payload = {
-          deviceId: devId,
-          textChannel: true, // we are in SMS template mode
-          type: 'custom',
-          attributes: { data: cmdText },
-          smsGateway: 'smsmarket',
-          smsLogin: localStorage.getItem('smsmarketLogin') || '',
-          smsToken: localStorage.getItem('smsmarketToken') || ''
-        };
+        const result = await postCommand(buildCommandPayload(devId, cmdText, true));
 
-        const postRes = await fetch('/api/traccar/commands/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        let smsMarketId = null;
-        if (postRes.ok) {
-           const postData = await postRes.json();
-           // Attempt to parse smsmarket_response for the queued ID if available
-           try {
-               const rawResp = JSON.parse(postData.smsmarket_response);
-               if (rawResp && rawResp.id) smsMarketId = rawResp.id;
-           } catch(e){
-               console.error("Erro no parse do smsmarket_response", e);
-           }
+        if (!result.ok) {
+          setTemplateLogs((prev) => [
+            ...prev,
+            {
+              id: Date.now() + Math.random(),
+              type: 'error',
+              title: `Falha no envio ${i + 1}/${cmdsToRun.length}:`,
+              text: result.data?.error || cmdText,
+              time: new Date().toLocaleString('pt-BR'),
+            },
+          ]);
+          continue;
         }
 
-        // Polling loop for this command (Wait up to 60s)
+        await refreshSmsBalance();
+
+        let smsMarketId = null;
+        try {
+          const rawResp = JSON.parse(result.data.smsmarket_response);
+          if (rawResp && rawResp.id) smsMarketId = rawResp.id;
+        } catch (e) {
+          // resposta pode não ser JSON
+        }
+
         let confirmed = false;
         let finalStatus = -1;
-        for (let poll = 0; poll < 12; poll++) { // 12 * 5s = 60s
-          await new Promise(r => setTimeout(r, 5000));
+        for (let poll = 0; poll < 12; poll++) {
+          await new Promise((r) => setTimeout(r, 5000));
           try {
             const res = await fetch(`/api/sms/history/${devId}/`);
             if (res.ok) {
-              const data = await res.json();
-              // Look for our outbound message or any inbound response
-              // If we have an smsMarketId, check if its status changed to delivered (1 or >3)
-              // Or if we received a new inbound message recently
-              
-              if (smsMarketId) {
-                 const ourMsg = data.find(m => m.direction === 'outbound' && String(m.id) === String(smsMarketId) || m.sms_market_id == smsMarketId);
-                 if (ourMsg && (ourMsg.status_code === 1 || ourMsg.status_code > 3)) {
-                    confirmed = true;
-                    finalStatus = ourMsg.status_code;
-                    break;
-                 }
-              }
-              
-              // Fallback: check if there's any recent inbound message in the last 60 seconds
-              const recentInbounds = data.filter(m => m.direction === 'inbound' && (new Date() - new Date(m.created_at)) < 60000);
-              if (recentInbounds.length > 0) {
-                 confirmed = true;
-                 break;
+              const history = await res.json();
+              const match = Array.isArray(history)
+                ? history.find(
+                    (h) =>
+                      (smsMarketId && String(h.sms_market_id) === String(smsMarketId)) ||
+                      (h.content === cmdText && h.status_code >= 0)
+                  )
+                : null;
+              if (match) {
+                finalStatus = match.status_code;
+                if (finalStatus === 1 || finalStatus === 0) {
+                  confirmed = true;
+                  break;
+                }
+                if (finalStatus < -1) break;
               }
             }
           } catch (e) {
@@ -345,131 +406,149 @@ const Comando = () => {
         }
 
         const confirmTime = new Date().toLocaleString('pt-BR');
-        
-        if (confirmed) {
-           setTemplateLogs(prev => [...prev, {
-             id: Date.now() + Math.random(),
-             type: 'success',
-             title: `Comando confirmado (Sucesso):`,
-             text: cmdText,
-             time: confirmTime
-           }]);
-        } else {
-           setTemplateLogs(prev => [...prev, {
-             id: Date.now() + Math.random(),
-             type: 'error',
-             title: `Aviso: Tempo limite excedido (O veículo não respondeu). Sequência interrompida.`,
-             text: cmdText,
-             time: confirmTime
-           }]);
-           break; // Stop sequence on error
-        }
-
+        setTemplateLogs((prev) => [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            type: confirmed ? 'success' : 'error',
+            title: confirmed
+              ? `Comando confirmado ${i + 1}/${cmdsToRun.length}:`
+              : `Aviso (sem confirmação) ${i + 1}/${cmdsToRun.length}:`,
+            text: `${cmdText}${finalStatus !== -1 ? ` [${getSmsStatusText(finalStatus)}]` : ''}`,
+            time: confirmTime,
+          },
+        ]);
       } catch (err) {
         console.error(err);
-        setTemplateLogs(prev => [...prev, {
-             id: Date.now() + Math.random(),
-             type: 'error',
-             title: `Erro interno ao enviar. Sequência interrompida.`,
-             text: cmdText,
-             time: new Date().toLocaleString('pt-BR')
-        }]);
-        break;
+        setTemplateLogs((prev) => [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            type: 'error',
+            title: `Erro no comando ${i + 1}/${cmdsToRun.length}:`,
+            text: cmdText,
+            time: new Date().toLocaleString('pt-BR'),
+          },
+        ]);
       }
     }
-    
+
     setIsExecutingTemplate(false);
+    await refreshSmsBalance();
   };
 
   const executeComboSequence = async (combo) => {
     if (selectedDevices.size === 0) {
-      alert("Por favor, selecione pelo menos um veículo para enviar o combo.");
+      alert('Por favor, selecione pelo menos um veículo para enviar o combo.');
       return;
     }
-    
-    // Switch to GPRS view if needed, or handle in the active channel? Let's assume GPRS for now, or use selected channel.
+
+    const { login, token } = getSmsCredentials();
+    const firstId = Array.from(selectedDevices)[0];
+    let viaSms = channel === 'sms';
+
+    if (!viaSms && !isDeviceOnline(firstId)) {
+      const useSms = window.confirm(
+        'O veículo está offline. GPRS provavelmente não entrega.\n\nDeseja enviar este combo via SMS?'
+      );
+      if (useSms) {
+        viaSms = true;
+        setChannel('sms');
+        setSmsAction('template');
+      }
+    } else if (viaSms) {
+      setSmsAction('template');
+    }
+
+    if (viaSms && (!login || !token)) {
+      alert('Configure a integração SMS Market em Gerenciar antes de enviar SMS.');
+      return;
+    }
+
     setIsExecutingTemplate(true);
     setTemplateLogs([]);
-    setSmsAction('template'); // Use the template view to show logs
+    if (viaSms) {
+      setChannel('sms');
+      setSmsAction('template');
+    }
 
-    const devId = Array.from(selectedDevices)[0];
-    const cmds = combo.comandos.map(c => c.replace('{', '').replace('}', '')); // Clean up { }
-    
+    const cmds = combo.comandos.map((c) => c.replace('{', '').replace('}', ''));
+
     for (let i = 0; i < cmds.length; i++) {
       const cmdText = cmds[i];
       const timeStr = new Date().toLocaleString('pt-BR');
-      
-      setTemplateLogs(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'pending',
-        title: `Enviando comando ${i + 1}/${cmds.length}:`,
-        text: cmdText,
-        time: timeStr
-      }]);
+
+      setTemplateLogs((prev) => [
+        ...prev,
+        {
+          id: Date.now() + Math.random(),
+          type: 'pending',
+          title: `Enviando comando ${i + 1}/${cmds.length}:`,
+          text: cmdText,
+          time: timeStr,
+        },
+      ]);
 
       try {
-        const payload = {
-          deviceId: devId,
-          textChannel: channel === 'sms',
-          type: 'custom',
-          attributes: { data: cmdText }
-        };
+        const result = await postCommand(buildCommandPayload(firstId, cmdText, viaSms));
 
-        if (channel === 'sms') {
-          payload.smsGateway = 'smsmarket';
-          payload.smsLogin = localStorage.getItem('smsmarketLogin') || '';
-          payload.smsToken = localStorage.getItem('smsmarketToken') || '';
+        if (!result.ok) {
+          setTemplateLogs((prev) => [
+            ...prev,
+            {
+              id: Date.now() + Math.random(),
+              type: 'error',
+              title: `Falha no envio ${i + 1}/${cmds.length}:`,
+              text: result.data?.error || cmdText,
+              time: new Date().toLocaleString('pt-BR'),
+            },
+          ]);
+          continue;
         }
 
-        await fetch('/api/traccar/commands/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        if (viaSms) await refreshSmsBalance();
 
-        // Polling loop for response
         let confirmed = false;
-        for (let poll = 0; poll < 12; poll++) {
-          await new Promise(r => setTimeout(r, 5000));
-          try {
-            const res = await fetch(`/api/sms/inbound/?flag=unread`);
-            if (res.ok) {
-              const data = await res.json();
-              if (Array.isArray(data) && data.length > 0) {
-                confirmed = true;
-                break;
+        if (viaSms) {
+          for (let poll = 0; poll < 12; poll++) {
+            await new Promise((r) => setTimeout(r, 5000));
+            try {
+              const res = await fetch(`/api/sms/inbound/?flag=unread`);
+              if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                  confirmed = true;
+                  break;
+                }
               }
+            } catch (e) {
+              console.error('Polling error:', e);
             }
-          } catch (e) {
-            console.error('Polling error:', e);
           }
+        } else {
+          // GPRS: Traccar aceita na fila; sem confirmação SMS
+          confirmed = true;
+          await new Promise((r) => setTimeout(r, 1500));
         }
 
         const confirmTime = new Date().toLocaleString('pt-BR');
-        
-        if (confirmed) {
-           setTemplateLogs(prev => [...prev, {
-             id: Date.now() + Math.random(),
-             type: 'success',
-             title: `Comando confirmado:`,
-             text: cmdText,
-             time: confirmTime
-           }]);
-        } else {
-           setTemplateLogs(prev => [...prev, {
-             id: Date.now() + Math.random(),
-             type: 'error',
-             title: `Aviso (Tempo limite excedido):`,
-             text: cmdText,
-             time: confirmTime
-           }]);
-        }
+        setTemplateLogs((prev) => [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            type: confirmed ? 'success' : 'error',
+            title: confirmed ? 'Comando enviado:' : 'Aviso (tempo limite excedido):',
+            text: cmdText,
+            time: confirmTime,
+          },
+        ]);
       } catch (err) {
         console.error(err);
       }
     }
-    
+
     setIsExecutingTemplate(false);
+    if (viaSms) await refreshSmsBalance();
   };
 
   useEffect(() => {
@@ -483,17 +562,7 @@ const Comando = () => {
       .then(json => setCommandCombos(json))
       .catch(err => console.error(err));
 
-    const smsUser = localStorage.getItem('smsmarketLogin') || '';
-    const smsToken = localStorage.getItem('smsmarketToken') || '';
-    
-    fetch(`/api/sms/balance/?user=${encodeURIComponent(smsUser)}&token=${encodeURIComponent(smsToken)}`)
-      .then(res => res.json())
-      .then(json => {
-         if (json && json.total !== undefined) {
-             setSmsBalance(json.total);
-         }
-      })
-      .catch(err => console.error(err));
+    refreshSmsBalance();
   }, []);
 
   const handleToggleSelectAll = () => {
@@ -521,51 +590,69 @@ const Comando = () => {
 
   const handleSend = async () => {
     if (selectedDevices.size === 0) {
-      alert("Por favor, selecione pelo menos um veículo.");
+      alert('Por favor, selecione pelo menos um veículo.');
       return;
     }
-    
-    // Convert generic commands to what we expect
+
     let cmdData = '';
     if (commandType === '1-BLOQUEAR') cmdData = 'engineStop';
     else if (commandType === '2-DESBLOQUEAR') cmdData = 'engineResume';
     else if (commandType === 'custom') cmdData = customCommandText;
-    else cmdData = commandType; // For templates, though we don't have real logic here yet
+    else cmdData = commandType;
 
     if (!cmdData && commandType === 'custom') {
-      alert("Defina o comando a ser enviado.");
+      alert('Defina o comando a ser enviado.');
       return;
     }
 
-    const payloadTemplate = {
-      textChannel: channel === 'sms',
-      type: 'custom',
-      attributes: { data: cmdData }
-    };
+    let viaSms = channel === 'sms';
+    const firstId = Array.from(selectedDevices)[0];
 
-    if (channel === 'sms') {
-      payloadTemplate.smsGateway = 'smsmarket';
-      payloadTemplate.smsLogin = localStorage.getItem('smsmarketLogin') || '';
-      payloadTemplate.smsToken = localStorage.getItem('smsmarketToken') || '';
-    }
-
-    let successCount = 0;
-    
-    for (const devId of selectedDevices) {
-      try {
-        const payload = { ...payloadTemplate, deviceId: devId };
-        const response = await fetch('/api/traccar/commands/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (response.ok) successCount++;
-      } catch (err) {
-        console.error(err);
+    if (!viaSms && !isDeviceOnline(firstId)) {
+      const useSms = window.confirm(
+        'O veículo está offline. GPRS provavelmente não entrega.\n\nDeseja enviar via SMS?'
+      );
+      if (useSms) {
+        viaSms = true;
+        setChannel('sms');
       }
     }
 
-    alert(`Comando enviado para ${successCount} de ${selectedDevices.size} veículos selecionados.`);
+    if (viaSms) {
+      const { login, token } = getSmsCredentials();
+      if (!login || !token) {
+        alert('Configure a integração SMS Market em Gerenciar antes de enviar SMS.');
+        return;
+      }
+    }
+
+    let successCount = 0;
+    let lastError = '';
+
+    for (const devId of selectedDevices) {
+      try {
+        const result = await postCommand(buildCommandPayload(devId, cmdData, viaSms));
+        if (result.ok) successCount++;
+        else lastError = result.data?.error || `HTTP ${result.status}`;
+      } catch (err) {
+        console.error(err);
+        lastError = err.message || 'Erro de rede';
+      }
+    }
+
+    if (viaSms && successCount > 0) await refreshSmsBalance();
+
+    if (successCount === selectedDevices.size) {
+      alert(
+        viaSms
+          ? `SMS enviado para ${successCount} veículo(s). Saldo atualizado.`
+          : `Comando GPRS enfileirado para ${successCount} veículo(s).`
+      );
+    } else {
+      alert(
+        `Enviado para ${successCount} de ${selectedDevices.size}. ${lastError ? `Erro: ${lastError}` : ''}`
+      );
+    }
   };
 
   return (

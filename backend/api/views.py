@@ -150,6 +150,8 @@ class TraccarCommandView(APIView):
         command_type = request.data.get('type')  # ex: engineStop, engineResume
         attributes = request.data.get('attributes', {})
         text_channel = request.data.get('textChannel', False)
+        if isinstance(text_channel, str):
+            text_channel = text_channel.strip().lower() in ('1', 'true', 'yes', 'on')
 
         sms_gateway = request.data.get('smsGateway')
         sms_login = request.data.get('smsLogin')
@@ -200,18 +202,29 @@ class TraccarCommandView(APIView):
             token = sms_token
 
             if not provider or not login or not token:
-                import xml.etree.ElementTree as ET, re as re_lib
-                traccar_conf_path = r'e:\blrastreamento\Traccar\conf\traccar.xml'
+                import xml.etree.ElementTree as ET, re as re_lib, os as os_lib
+                candidate_paths = [
+                    os_lib.environ.get('TRACCAR_CONFIG_PATH'),
+                    '/opt/traccar/conf/traccar.xml',
+                    '/app/Traccar/conf/traccar.xml',
+                    r'e:\blrastreamento\Traccar\conf\traccar.xml',
+                ]
                 sms_url = ''
-                try:
-                    tree = ET.parse(traccar_conf_path)
-                    root = tree.getroot()
-                    for entry in root.findall('entry'):
-                        key = entry.get('key', '')
-                        if key == 'sms.http.url':
-                            sms_url = entry.text or ''
-                except Exception as e:
-                    logger.warning("[SMS] falha lendo traccar.xml: %s", e)
+                for traccar_conf_path in candidate_paths:
+                    if not traccar_conf_path or not os_lib.path.isfile(traccar_conf_path):
+                        continue
+                    try:
+                        tree = ET.parse(traccar_conf_path)
+                        root = tree.getroot()
+                        for entry in root.findall('entry'):
+                            key = entry.get('key', '')
+                            if key == 'sms.http.url':
+                                sms_url = entry.text or ''
+                        if sms_url:
+                            logger.info("[SMS] credenciais lidas de %s", traccar_conf_path)
+                            break
+                    except Exception as e:
+                        logger.warning("[SMS] falha lendo %s: %s", traccar_conf_path, e)
 
                 if not sms_url:
                     logger.error("[SMS] gateway não informado e traccar.xml sem sms.http.url")
@@ -1061,6 +1074,7 @@ class CommandComboDetailView(APIView):
             return Response({"error": "Combo não encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
 import urllib.request
+import urllib.error
 import json
 import base64
 
@@ -1068,21 +1082,27 @@ class SmsMarketBalanceView(APIView):
     def get(self, request):
         url = 'https://api.smsmarket.com.br/webservice-rest/balance'
         try:
-            # Pega do front-end ou usa fallback
-            user = request.GET.get('user', 'niohubtec')
-            password = request.GET.get('token', 'Semfim01@')
+            user = (request.GET.get('user') or '').strip()
+            password = (request.GET.get('token') or '').strip()
+            if not user or not password:
+                logger.info("[SMS] saldo não consultado: credenciais SMS Market ausentes")
+                return Response(
+                    {"total": 0, "configured": False, "error": "SMS Market não configurado"},
+                    status=status.HTTP_200_OK,
+                )
+
             logger.info("[SMS] consultando saldo user=%s", user)
             credentials = f"{user}:{password}"
             encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
-            
+
             req = urllib.request.Request(url, headers={
                 'User-Agent': 'Mozilla/5.0',
                 'Authorization': f'Basic {encoded_credentials}'
             })
-            
+
             with urllib.request.urlopen(req) as response:
                 data = json.loads(response.read().decode('utf-8'))
-                
+
                 if 'sms' in data:
                     total_sms = int(data.get('sms', 0))
                 elif 'balance_1' in data:
@@ -1090,11 +1110,28 @@ class SmsMarketBalanceView(APIView):
                 else:
                     total_sms = 0
 
-                logger.info("[SMS] saldo total=%s raw_keys=%s", total_sms, list(data.keys()) if isinstance(data, dict) else type(data))
-                return Response({"total": total_sms, "raw": data}, status=status.HTTP_200_OK)
+                logger.info(
+                    "[SMS] saldo total=%s raw_keys=%s",
+                    total_sms,
+                    list(data.keys()) if isinstance(data, dict) else type(data),
+                )
+                return Response(
+                    {"total": total_sms, "configured": True, "raw": data},
+                    status=status.HTTP_200_OK,
+                )
+        except urllib.error.HTTPError as e:
+            logger.warning("[SMS] falha ao consultar saldo: HTTP %s %s", e.code, e.reason)
+            status_code = status.HTTP_401_UNAUTHORIZED if e.code == 401 else status.HTTP_502_BAD_GATEWAY
+            return Response(
+                {"error": f"SMS Market retornou HTTP {e.code}", "total": 0, "configured": True},
+                status=status_code,
+            )
         except Exception as e:
             logger.exception("[SMS] erro ao consultar saldo: %s", e)
-            return Response({"error": str(e), "total": 0}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": str(e), "total": 0, "configured": True},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
 class VehicleIconView(APIView):
     def get(self, request):
