@@ -59,7 +59,7 @@ const RecenterOnDeviceChange = ({ deviceId, lat, lon }) => {
     }
     if (prevIdRef.current === deviceId) return;
     prevIdRef.current = deviceId;
-    map.flyTo([lat, lon], 15, { duration: 0.55 });
+    map.flyTo([lat, lon], 18, { duration: 0.55 });
   }, [deviceId, lat, lon, map]);
 
   return null;
@@ -125,12 +125,30 @@ const MapActionMenu = ({ selectedDevice, onOpenViewConfig }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const handleLocateMe = () => {
-    map.locate({ setView: true, maxZoom: 16 });
+    map.locate({ setView: true, maxZoom: 19 });
   };
 
   const handleCenterOnVehicle = () => {
     if (!selectedDevice?.position) return;
-    map.flyTo([selectedDevice.position.latitude, selectedDevice.position.longitude], 16, { duration: 0.8 });
+    map.flyTo([selectedDevice.position.latitude, selectedDevice.position.longitude], 19, { duration: 0.8 });
+  };
+
+  const handleZoomIn = () => {
+    map.setZoom(Math.min((map.getZoom() || 0) + 1, map.getMaxZoom()));
+  };
+
+  const handleZoomOut = () => {
+    map.setZoom(Math.max((map.getZoom() || 0) - 1, map.getMinZoom()));
+  };
+
+  const handleStreetView = () => {
+    const lat = selectedDevice?.position?.latitude ?? map.getCenter().lat;
+    const lon = selectedDevice?.position?.longitude ?? map.getCenter().lng;
+    window.open(
+      `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
   };
 
   const toggleFullscreen = async () => {
@@ -148,6 +166,15 @@ const MapActionMenu = ({ selectedDevice, onOpenViewConfig }) => {
 
   return (
     <div className="map-action-menu">
+      <button type="button" onClick={handleZoomIn} title="Aproximar">
+        <Plus size={16} />
+      </button>
+      <button type="button" onClick={handleZoomOut} title="Afastar">
+        <Minus size={16} />
+      </button>
+      <button type="button" onClick={handleStreetView} title="Ver a rua (Street View)">
+        <Crosshair size={16} />
+      </button>
       <button type="button" onClick={toggleFullscreen} title="Tela cheia">
         {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
       </button>
@@ -436,30 +463,48 @@ const Mapa = () => {
       url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
       attribution: '&copy; OpenStreetMap &copy; CARTO',
       subdomains: ['a', 'b', 'c', 'd'],
+      maxNativeZoom: 20,
+      maxZoom: 21,
     },
     google: {
       label: 'Google',
       url: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
       attribution: '&copy; Google',
       subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      maxNativeZoom: 21,
+      maxZoom: 21,
     },
     dark: {
       label: 'Escuro',
       url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
       attribution: '&copy; OpenStreetMap &copy; CARTO',
       subdomains: ['a', 'b', 'c', 'd'],
+      maxNativeZoom: 20,
+      maxZoom: 21,
     },
     street: {
       label: 'OSM',
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '&copy; OpenStreetMap contributors',
       subdomains: ['a', 'b', 'c'],
+      maxNativeZoom: 19,
+      maxZoom: 21,
     },
     satellite: {
       label: 'Satélite',
       url: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
       attribution: '&copy; Google',
       subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      maxNativeZoom: 21,
+      maxZoom: 21,
+    },
+    hybrid: {
+      label: 'Híbrido',
+      url: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      attribution: '&copy; Google',
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      maxNativeZoom: 21,
+      maxZoom: 21,
     },
   };
 
@@ -714,7 +759,13 @@ const Mapa = () => {
           </div>
         )}
 
-        <MapContainer center={[-23.5505, -46.6333]} zoom={5} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+        <MapContainer
+          center={[-23.5505, -46.6333]}
+          zoom={5}
+          maxZoom={21}
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={false}
+        >
           <ScaleControl position="bottomright" imperial={false} />
           <FitBoundsWhenIdle devices={enrichedDevices} selectedId={selectedDevice?.id ?? null} />
           <MapActionMenu selectedDevice={selectedDevice} onOpenViewConfig={openViewConfig} />
@@ -723,6 +774,8 @@ const Mapa = () => {
             attribution={activeTile.attribution}
             url={activeTile.url}
             subdomains={activeTile.subdomains}
+            maxNativeZoom={activeTile.maxNativeZoom}
+            maxZoom={activeTile.maxZoom}
           />
           {enrichedDevices
             .filter((device) => Boolean(device.position))

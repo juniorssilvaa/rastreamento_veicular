@@ -33,6 +33,7 @@ from .views import (
     SmsMarketBalanceView,
     VehicleIconView,
     VehicleIconDetailView,
+    PlacaFipeLookupView,
     SmsHistoryView,
     SmsCallbackView,
 )
@@ -108,6 +109,7 @@ urlpatterns = [
     # Vehicle Icons
     path('vehicle-icons/', VehicleIconView.as_view(), name='vehicle_icons'),
     path('vehicle-icons/<int:pk>/', VehicleIconDetailView.as_view(), name='vehicle_icon_detail'),
+    path('placafipe/lookup/', PlacaFipeLookupView.as_view(), name='placafipe_lookup'),
 
     # SMS History & Callback
     path('sms/history/<int:device_id>/', SmsHistoryView.as_view(), name='sms_history'),

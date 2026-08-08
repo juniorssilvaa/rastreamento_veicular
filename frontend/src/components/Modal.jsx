@@ -2,12 +2,12 @@ import React from 'react';
 import './Modal.css';
 import { X } from 'lucide-react';
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, size = 'default' }) => {
   if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className={`modal-content modal-${size}`} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-wrap">
             {title}

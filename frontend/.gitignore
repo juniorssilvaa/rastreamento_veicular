@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Atalho e pasta de ícones do mapa (arquivos binários locais)
+/incon
+/public/incon
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

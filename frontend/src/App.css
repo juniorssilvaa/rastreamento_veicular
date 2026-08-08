@@ -19,6 +19,12 @@
   min-height: calc(100vh - 64px);
 }
 
-.main-content--mapa {
+.main-content--mapa,
+.main-content--veiculo-form {
   padding: 8px;
+}
+
+.main-content--veiculo-form {
+  padding: 16px 20px 20px;
+  background: #1e1e1e;
 }

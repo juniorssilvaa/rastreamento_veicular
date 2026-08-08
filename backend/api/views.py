@@ -1161,3 +1161,90 @@ class SmsCallbackView(APIView):
             )
             
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+
+class PlacaFipeLookupView(APIView):
+    def post(self, request):
+        placa = str(request.data.get('placa') or '').replace('-', '').replace(' ', '').upper()
+        token = (request.data.get('token') or '').strip().strip('"').strip("'")
+        if token.lower().startswith('bearer '):
+            token = token[7:].strip()
+        token = ''.join(token.split())
+
+        if not placa or len(placa) < 7:
+            return Response({"error": "Informe uma placa válida."}, status=status.HTTP_400_BAD_REQUEST)
+        if not token:
+            return Response({"error": "Configure o token da consulta de placa em Integrações."}, status=status.HTTP_400_BAD_REQUEST)
+
+        def parse_body(response):
+            try:
+                return response.json() if response.content else {}
+            except Exception:
+                return {}
+
+        url = 'https://placas.app.br/api/v1/placas/numero'
+        payload = {'placa': placa}
+        common_headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'BLRastreamento/1.0',
+        }
+
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                headers={**common_headers, 'Authorization': f'Bearer {token}'},
+                timeout=(8, 30),
+            )
+            data = parse_body(response)
+            if response.status_code in (401, 403):
+                response = requests.post(
+                    url,
+                    json=payload,
+                    headers={**common_headers, 'Authorization': token},
+                    timeout=(8, 30),
+                )
+                data = parse_body(response)
+        except requests.Timeout:
+            return Response(
+                {"error": "A consulta de placa demorou para responder. Tente novamente em instantes."},
+                status=status.HTTP_504_GATEWAY_TIMEOUT,
+            )
+        except requests.RequestException:
+            return Response(
+                {"error": "Não foi possível conectar à API de placas. Verifique a internet e tente novamente."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        if response.status_code in (401, 403):
+            return Response(
+                {"error": data.get('message') or data.get('error') or data.get('msg') or 'Token inválido ou expirado. Gere um novo token em placas.app.br.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if response.status_code >= 400 or not isinstance(data, dict) or not (data.get('marca') or data.get('modelo') or data.get('chassi')):
+            return Response(
+                {"error": data.get('message') or data.get('error') or data.get('msg') or 'Placa não encontrada.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response({
+            "placa": data.get('placa_modelo_novo') or data.get('placa_modelo_antigo') or data.get('placa') or placa,
+            "marca": data.get('marca') or '',
+            "modelo": data.get('modelo') or '',
+            "ano": data.get('ano_modelo') or data.get('ano_fabricacao') or '',
+            "ano_modelo": data.get('ano_modelo') or '',
+            "ano_fabricacao": data.get('ano_fabricacao') or '',
+            "cor": data.get('cor') or '',
+            "chassi": data.get('chassi') or '',
+            "combustivel": data.get('combustivel') or '',
+            "motor": data.get('motor') or '',
+            "municipio": data.get('municipio') or '',
+            "uf": data.get('uf') or data.get('uf_placa') or '',
+            "segmento": data.get('segmento') or data.get('tipo_veiculo') or '',
+            "sub_segmento": data.get('sub_segmento') or '',
+            "cilindradas": data.get('cilindradas') or '',
+            "tipo_veiculo": data.get('tipo_veiculo') or '',
+            "msg": 'Veículo encontrado',
+        }, status=status.HTTP_200_OK)

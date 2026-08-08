@@ -126,9 +126,9 @@ a {
   stroke: #ffffff;
 }
 
-:root.dark input:not(.login-container input):not(.geofence-search-field input),
-:root.dark select:not(.login-container select),
-:root.dark textarea:not(.login-container textarea) {
+:root.dark input:not(.login-container input):not(.geofence-search-field input):not(.dcp input),
+:root.dark select:not(.login-container select):not(.dcp select),
+:root.dark textarea:not(.login-container textarea):not(.dcp textarea) {
   background-color: var(--bg-main) !important;
   color: var(--text-primary) !important;
   border-color: var(--border-color) !important;
@@ -145,28 +145,28 @@ a {
   box-shadow: none !important;
 }
 
-:root.dark input::placeholder,
-:root.dark textarea::placeholder {
+:root.dark input:not(.dcp input)::placeholder,
+:root.dark textarea:not(.dcp textarea)::placeholder {
   color: var(--text-secondary) !important;
 }
 
-:root.dark h1,
-:root.dark h2,
-:root.dark h3,
-:root.dark h4,
-:root.dark h5,
-:root.dark h6,
-:root.dark strong,
-:root.dark b,
+:root.dark h1:not(.dcp h1):not(.dcp *),
+:root.dark h2:not(.dcp *),
+:root.dark h3:not(.dcp *),
+:root.dark h4:not(.dcp *),
+:root.dark h5:not(.dcp *),
+:root.dark h6:not(.dcp *),
+:root.dark strong:not(.dcp *),
+:root.dark b:not(.dcp *),
 :root.dark .clientes-header h1,
 :root.dark .header-left h1 {
   color: var(--text-primary) !important;
 }
 
-:root.dark p,
-:root.dark span,
-:root.dark label,
-:root.dark small {
+:root.dark p:not(.dcp *),
+:root.dark span:not(.dcp *),
+:root.dark label:not(.dcp *),
+:root.dark small:not(.dcp *) {
   color: var(--text-gray) !important;
 }
 

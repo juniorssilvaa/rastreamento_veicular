@@ -7,7 +7,9 @@ import Gerenciar from './pages/Gerenciar';
 import Mapa from './pages/Mapa';
 import Comando from './pages/Comando';
 import Alertas from './pages/Alertas';
+import GestaoAlertas from './pages/GestaoAlertas';
 import Veiculos from './pages/Veiculos';
+import VeiculoForm from './pages/VeiculoForm';
 import CercasVirtuais from './pages/CercasVirtuais';
 import Login from './pages/Login';
 import Clientes from './pages/Clientes';
@@ -16,10 +18,42 @@ import Tecnicos from './pages/Tecnicos';
 import ClienteApp from './pages/cliente/ClienteApp';
 import { Toaster } from 'react-hot-toast';
 
+const parsePathname = (pathname) => {
+  const path = (pathname || '/').replace(/\/+$/, '') || '/';
+  const editMatch = path.match(/^\/veiculos\/editar\/(\d+)$/);
+  if (path === '/veiculos/novo') {
+    return { activeItem: 'Veículos', vehicleView: { mode: 'create' } };
+  }
+  if (editMatch) {
+    return { activeItem: 'Veículos', vehicleView: { mode: 'edit', id: Number(editMatch[1]) } };
+  }
+
+  const routeMap = {
+    '/dashboard': 'Dashboard',
+    '/gerenciar': 'Gerenciar',
+    '/mapa': 'Mapa',
+    '/comando': 'Comando',
+    '/alertas': 'Alertas',
+    '/gestao-de-alertas': 'Gestão de alertas',
+    '/veiculos': 'Veículos',
+    '/cercas-virtuais': 'Cercas Virtuais',
+    '/clientes': 'Clientes',
+    '/criar-comandos': 'Criar Comandos',
+    '/tecnicos': 'Técnicos',
+  };
+
+  return {
+    activeItem: routeMap[path] || null,
+    vehicleView: null,
+  };
+};
+
 function App() {
   const [activeItem, setActiveItem] = useState(() => {
-    return localStorage.getItem('activeItem') || 'Gerenciar';
-  }); 
+    return parsePathname(window.location.pathname).activeItem
+      || localStorage.getItem('activeItem')
+      || 'Gerenciar';
+  });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isAuthenticated') === 'true';
@@ -32,6 +66,8 @@ function App() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
+
+  const [vehicleView, setVehicleView] = useState(() => parsePathname(window.location.pathname).vehicleView);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -65,15 +101,59 @@ function App() {
   };
 
   useEffect(() => {
-    if (isAuthenticated && userRole === 'admin') {
-      window.history.replaceState(null, '', formatRoute(activeItem));
+    const syncFromUrl = () => {
+      const parsed = parsePathname(window.location.pathname);
+      if (parsed.activeItem) {
+        setActiveItem(parsed.activeItem);
+        localStorage.setItem('activeItem', parsed.activeItem);
+      }
+      setVehicleView(parsed.vehicleView);
+    };
+
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || userRole !== 'admin') return;
+    if (vehicleView?.mode === 'create') {
+      window.history.replaceState(null, '', '/veiculos/novo');
+      return;
     }
-  }, [activeItem, isAuthenticated, userRole]);
+    if (vehicleView?.mode === 'edit') {
+      window.history.replaceState(null, '', `/veiculos/editar/${vehicleView.id}`);
+      return;
+    }
+    window.history.replaceState(null, '', formatRoute(activeItem));
+  }, [activeItem, vehicleView, isAuthenticated, userRole]);
 
   const handlePageChange = (page) => {
     localStorage.setItem('activeItem', page);
     setActiveItem(page);
+    setVehicleView(null);
     window.history.pushState(null, '', formatRoute(page));
+  };
+
+  const openVehicleCreate = () => {
+    localStorage.setItem('activeItem', 'Veículos');
+    setActiveItem('Veículos');
+    setVehicleView({ mode: 'create' });
+    window.history.pushState(null, '', '/veiculos/novo');
+  };
+
+  const openVehicleEdit = (id) => {
+    localStorage.setItem('activeItem', 'Veículos');
+    setActiveItem('Veículos');
+    setVehicleView({ mode: 'edit', id });
+    window.history.pushState(null, '', `/veiculos/editar/${id}`);
+  };
+
+  const closeVehicleForm = () => {
+    localStorage.setItem('activeItem', 'Veículos');
+    setActiveItem('Veículos');
+    setVehicleView(null);
+    window.history.pushState(null, '', '/veiculos');
   };
 
   if (!isAuthenticated) {
@@ -97,13 +177,22 @@ function App() {
       <Header onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />
       <div className="app-body">
         <Sidebar activeItem={activeItem} setActiveItem={handlePageChange} />
-        <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''}`}>
+        <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''} ${vehicleView ? 'main-content--veiculo-form' : ''}`}>
           {activeItem === 'Dashboard' && <Dashboard />}
           {activeItem === 'Gerenciar' && <Gerenciar onNavigate={handlePageChange} />}
           {activeItem === 'Mapa' && <Mapa />}
           {activeItem === 'Comando' && <Comando />}
           {activeItem === 'Alertas' && <Alertas />}
-          {activeItem === 'Veículos' && <Veiculos />}
+          {activeItem === 'Gestão de alertas' && <GestaoAlertas onNavigate={handlePageChange} />}
+          {activeItem === 'Veículos' && vehicleView?.mode === 'create' && (
+            <VeiculoForm mode="create" onBack={closeVehicleForm} />
+          )}
+          {activeItem === 'Veículos' && vehicleView?.mode === 'edit' && (
+            <VeiculoForm mode="edit" deviceId={vehicleView.id} onBack={closeVehicleForm} />
+          )}
+          {activeItem === 'Veículos' && !vehicleView && (
+            <Veiculos onCreate={openVehicleCreate} onEdit={openVehicleEdit} />
+          )}
           {activeItem === 'Cercas Virtuais' && <CercasVirtuais />}
           {activeItem === 'Clientes' && <Clientes />}
           {activeItem === 'Criar Comandos' && <CriarComandos />}
@@ -113,6 +202,7 @@ function App() {
            activeItem !== 'Mapa' && 
            activeItem !== 'Comando' &&
            activeItem !== 'Alertas' && 
+           activeItem !== 'Gestão de alertas' &&
            activeItem !== 'Veículos' &&
            activeItem !== 'Cercas Virtuais' &&
            activeItem !== 'Clientes' && 

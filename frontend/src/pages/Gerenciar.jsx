@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './Gerenciar.css';
-import { Search, Link as LinkIcon, Package, Box, Car, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Search, Link as LinkIcon, Package, Box, Car, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare, Image as ImageIcon, Trash2, IdCard } from 'lucide-react';
 
 const normalizeMapDeviceLabelMode = (value) => {
   if (value === 'cliente') return 'nome';
@@ -22,6 +22,10 @@ const Gerenciar = ({ onNavigate }) => {
 
   const [smsmarketLogin, setSmsmarketLogin] = useState(() => localStorage.getItem('smsmarketLogin') || '');
   const [smsmarketToken, setSmsmarketToken] = useState(() => localStorage.getItem('smsmarketToken') || '');
+  const [placaFipeToken, setPlacaFipeToken] = useState(() => localStorage.getItem('placaFipeToken') || '');
+  const [placaFipeTest, setPlacaFipeTest] = useState('');
+  const [placaFipeResult, setPlacaFipeResult] = useState(null);
+  const [placaFipeLoading, setPlacaFipeLoading] = useState(false);
   
   // States for icons
   const [vehicleIcons, setVehicleIcons] = useState([]);
@@ -116,6 +120,48 @@ const Gerenciar = ({ onNavigate }) => {
     } catch (err) {
       console.error(err);
       alert('Configuração salva localmente. Sem conexão com o backend.');
+    }
+  };
+
+  const handleSavePlacaFipe = () => {
+    if (!placaFipeToken.trim()) {
+      alert('Por favor, insira o token da consulta de placa.');
+      return;
+    }
+    localStorage.setItem('placaFipeToken', placaFipeToken.trim().replace(/^["']|["']$/g, '').replace(/\s+/g, ''));
+    alert('Token da consulta de placa salvo com sucesso!');
+  };
+
+  const handleTestPlacaFipe = async () => {
+    const placa = placaFipeTest.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const token = (placaFipeToken.trim() || localStorage.getItem('placaFipeToken') || '').replace(/^["']|["']$/g, '').replace(/\s+/g, '');
+    if (!token) {
+      alert('Salve o token da consulta de placa antes de consultar.');
+      return;
+    }
+    if (placa.length < 7) {
+      alert('Informe uma placa válida para testar.');
+      return;
+    }
+    setPlacaFipeLoading(true);
+    setPlacaFipeResult(null);
+    try {
+      const res = await fetch('/api/placafipe/lookup/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placa, token })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Não foi possível consultar a placa.');
+        return;
+      }
+      setPlacaFipeResult(data);
+    } catch (err) {
+      console.error(err);
+      alert('Erro de conexão ao consultar a placa.');
+    } finally {
+      setPlacaFipeLoading(false);
     }
   };
 
@@ -221,6 +267,11 @@ const Gerenciar = ({ onNavigate }) => {
               <div className="action-card" onClick={() => setCurrentView('smsmarket')}>
                 <MessageSquare size={32} className="action-icon" />
                 <span>SMS Market</span>
+              </div>
+
+              <div className="action-card" onClick={() => setCurrentView('placafipe')}>
+                <IdCard size={32} className="action-icon" />
+                <span>Consulta de Placa</span>
               </div>
             </div>
           </div>
@@ -429,6 +480,74 @@ const Gerenciar = ({ onNavigate }) => {
               >
                 <Save size={18} /> Salvar Integração SMS Market
               </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {currentView === 'placafipe' && (
+        <>
+          <div className="section-block">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+              <button
+                onClick={() => setCurrentView('integracoes')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
+              >
+                <ArrowLeft size={24} />
+              </button>
+              <h2 style={{ margin: 0 }}>Integração Consulta de Placa</h2>
+            </div>
+
+            <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '600px' }}>
+              <p style={{ color: '#4B5563', fontSize: '14px', marginBottom: '20px' }}>
+                Informe o token JWT da API placas.app.br. Com ele, a tela de veículo consulta a placa e preenche marca, modelo, ano, cor e demais dados automaticamente.
+              </p>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Token</label>
+                <input
+                  type="password"
+                  value={placaFipeToken}
+                  onChange={(e) => setPlacaFipeToken(e.target.value)}
+                  placeholder="Cole o token JWT de placas.app.br"
+                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
+                />
+              </div>
+
+              <button
+                onClick={handleSavePlacaFipe}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#3B82F6', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', marginBottom: '24px' }}
+              >
+                <Save size={18} /> Salvar token
+              </button>
+
+              <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '20px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Testar consulta por placa</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={placaFipeTest}
+                    onChange={(e) => setPlacaFipeTest(e.target.value.toUpperCase())}
+                    placeholder="ABC1D23"
+                    maxLength={8}
+                    style={{ flex: 1, padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
+                  />
+                  <button
+                    onClick={handleTestPlacaFipe}
+                    disabled={placaFipeLoading}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#111827', color: '#fff', padding: '10px 16px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+                  >
+                    <Search size={16} /> {placaFipeLoading ? 'Consultando...' : 'Pesquisar'}
+                  </button>
+                </div>
+                {placaFipeResult && (
+                  <div style={{ marginTop: '16px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#374151' }}>
+                    <div><strong>{placaFipeResult.marca}</strong> {placaFipeResult.modelo}</div>
+                    <div>Ano: {placaFipeResult.ano} · Cor: {placaFipeResult.cor}</div>
+                    <div>Combustível: {placaFipeResult.combustivel}</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </>
