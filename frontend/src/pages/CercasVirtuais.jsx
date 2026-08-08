@@ -19,6 +19,46 @@ import CarIcon from '../components/CarIcon';
 
 const { BaseLayer } = LayersControl;
 
+const GEOFENCE_MAP_TYPES = [
+    { id: 'streets', name: 'Normal', bg: 'https://mt1.google.com/vt/lyrs=m&x=58&y=94&z=8' },
+    { id: 'hybrid', name: 'Híbrido', bg: 'https://mt1.google.com/vt/lyrs=y&x=58&y=94&z=8' },
+    { id: 'satellite', name: 'Satélite', bg: 'https://mt1.google.com/vt/lyrs=s&x=58&y=94&z=8' },
+    // Preview montanhoso para Terreno não parecer igual ao Normal
+    { id: 'terrain', name: 'Terreno', bg: 'https://mt1.google.com/vt/lyrs=p&x=78&y=120&z=8' },
+];
+
+const GEOFENCE_MAP_TILES = {
+    streets: {
+        url: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        maxNativeZoom: 21,
+        maxZoom: 21,
+    },
+    hybrid: {
+        url: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        maxNativeZoom: 21,
+        maxZoom: 21,
+    },
+    satellite: {
+        url: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        maxNativeZoom: 21,
+        maxZoom: 21,
+    },
+    terrain: {
+        // Google Terrain (relevo + vias)
+        url: 'https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        maxNativeZoom: 15,
+        maxZoom: 21,
+    },
+};
+
+const normalizeGeofenceMapLayer = (value) => (
+    GEOFENCE_MAP_TILES[value] ? value : 'streets'
+);
+
 // Controles Extras do Mapa (Localização, Satélite e Ferramentas de Desenho)
 // Renderizado FORA do MapContainer para evitar conflitos com eventos do Leaflet
 const MapExtraControls = ({
@@ -36,12 +76,7 @@ const MapExtraControls = ({
         if (mapInstance) mapInstance.locate({ setView: true, maxZoom: 16 });
     };
 
-    const mapTypes = [
-        { id: 'streets', name: 'Normal', bg: 'https://mt1.google.com/vt/lyrs=m&x=1&y=1&z=2' },
-        { id: 'hybrid', name: 'Híbrido', bg: 'https://mt1.google.com/vt/lyrs=y&x=1&y=1&z=2' },
-        { id: 'satellite', name: 'Satélite', bg: 'https://mt1.google.com/vt/lyrs=s&x=1&y=1&z=2' },
-        { id: 'terrain', name: 'Terreno', bg: 'https://mt1.google.com/vt/lyrs=p&x=1&y=1&z=2' },
-    ];
+    const mapTypes = GEOFENCE_MAP_TYPES;
 
     return (
         <div className="map-extra-controls">
@@ -95,6 +130,7 @@ const MapExtraControls = ({
                                     className={`layer-selector-item ${mapLayer === type.id ? 'active' : ''}`}
                                     onClick={() => {
                                         setMapLayer(type.id);
+                                        localStorage.setItem('geofenceMapLayer', type.id);
                                         setIsLayerSelectorOpen(false);
                                     }}
                                 >
@@ -135,7 +171,8 @@ const CustomMapControls = ({ map, currentLayer, setLayer, onLocate }) => {
     const layers = [
         { id: 'streets', name: 'Ruas', icon: <MapIcon size={18} /> },
         { id: 'satellite', name: 'Satélite', icon: <Layers size={18} /> },
-        { id: 'hybrid', name: 'Híbrido', icon: <MapPin size={18} /> }
+        { id: 'hybrid', name: 'Híbrido', icon: <MapPin size={18} /> },
+        { id: 'terrain', name: 'Terreno', icon: <MapPin size={18} /> },
     ];
 
     return (
@@ -279,10 +316,42 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]
 ));
 
+const escapeAttr = (s) =>
+    String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+
+const getDevicePhoto = (device) =>
+    device?.attributes?.foto || device?.attributes?.iconUrl || device?.iconUrl || '';
+
+const getDeviceMapIcon = (device) =>
+    device?.attributes?.iconUrl || device?.iconUrl || '';
+
 const createVehicleIcon = (device, position) => {
     const speed = Math.round((position.speed || 0) * 1.852);
     const isMoving = speed > 0;
     const label = escapeHtml(device.name || 'Veículo');
+    const iconUrl = getDeviceMapIcon(device);
+
+    if (iconUrl) {
+        const safeUrl = escapeAttr(iconUrl);
+        return L.divIcon({
+            className: 'geofence-vehicle-marker-root',
+            html: `
+                <div class="geofence-vehicle-marker geofence-vehicle-marker--icon ${isMoving ? 'is-moving' : ''}">
+                    <div class="geofence-vehicle-marker__icon">
+                        <img src="${safeUrl}" alt="${label}" />
+                    </div>
+                    <span class="geofence-vehicle-marker__label">${label} · ${speed} km/h</span>
+                </div>
+            `,
+            iconSize: [44, 44],
+            iconAnchor: [22, 22],
+            popupAnchor: [0, -22],
+        });
+    }
+
     return L.divIcon({
         className: 'geofence-vehicle-marker-root',
         html: `
@@ -316,7 +385,9 @@ const CercasVirtuais = () => {
     const [selectedGeofence, setSelectedGeofence] = useState(null);
     const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER);
     const [zoom, setZoom] = useState(13);
-    const [mapLayer, setMapLayer] = useState('streets');
+    const [mapLayer, setMapLayer] = useState(() =>
+        normalizeGeofenceMapLayer(localStorage.getItem('geofenceMapLayer'))
+    );
     const [mapInstance, setMapInstance] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const [followDeviceId, setFollowDeviceId] = useState(null);
@@ -748,11 +819,20 @@ const CercasVirtuais = () => {
     if (isMapEditorOpen) {
         return (
             <div className="geofence-fullscreen-editor">
-                <MapContainer center={mapCenter} zoom={zoom} className="geofence-fullscreen-map" zoomControl={false}>
-                    {mapLayer === 'streets' && <TileLayer url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
-                    {mapLayer === 'satellite' && <TileLayer url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
-                    {mapLayer === 'hybrid' && <TileLayer url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
-                    {mapLayer === 'terrain' && <TileLayer url="https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}" subdomains={['mt0', 'mt1', 'mt2', 'mt3']} />}
+                <MapContainer center={mapCenter} zoom={zoom} className="geofence-fullscreen-map" zoomControl={false} maxZoom={21}>
+                    {(() => {
+                        const tile = GEOFENCE_MAP_TILES[mapLayer] || GEOFENCE_MAP_TILES.streets;
+                        return (
+                            <TileLayer
+                                key={mapLayer}
+                                url={tile.url}
+                                subdomains={tile.subdomains}
+                                maxNativeZoom={tile.maxNativeZoom}
+                                maxZoom={tile.maxZoom}
+                                attribution="&copy; Google"
+                            />
+                        );
+                    })()}
                     
                     <MapUpdater center={mapCenter} zoom={zoom} />
                     <MapInstanceCapture setMap={setMapInstance} />
@@ -779,7 +859,7 @@ const CercasVirtuais = () => {
                         const lastUpdate = pos.deviceTime || pos.serverTime || device.lastUpdate;
                         return (
                             <Marker 
-                                key={deviceId} 
+                                key={`${deviceId}-${getDeviceMapIcon(device) || 'dot'}`} 
                                 position={[pos.latitude, pos.longitude]}
                                 icon={createVehicleIcon(device, pos)}
                                 eventHandlers={{ click: () => setFollowDeviceId(deviceId) }}
@@ -856,18 +936,11 @@ const CercasVirtuais = () => {
                                 }}>
                                     {devices.map(device => {
                                         const isSelected = selectedDevices.includes(device.id);
+                                        const photo = getDevicePhoto(device);
                                         return (
                                             <div 
                                                 key={device.id}
-                                                style={{
-                                                    padding: '10px',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '10px',
-                                                    background: isSelected ? 'rgba(245, 158, 11, 0.18)' : 'transparent',
-                                                    borderBottom: '1px solid rgba(255,255,255,0.06)'
-                                                }}
+                                                className={`geofence-device-option ${isSelected ? 'is-selected' : ''}`}
                                                 onClick={() => {
                                                     let newSelected;
                                                     if (isSelected) {
@@ -896,14 +969,18 @@ const CercasVirtuais = () => {
                                                     type="checkbox" 
                                                     checked={isSelected} 
                                                     readOnly 
-                                                    style={{ cursor: 'pointer' }}
                                                 />
-                                                <span style={{ color: '#ffffff' }}>{device.name}</span>
+                                                <span className="geofence-device-option__photo" aria-hidden>
+                                                    {photo
+                                                        ? <img src={photo} alt="" />
+                                                        : <CarIcon size={18} />}
+                                                </span>
+                                                <span className="geofence-device-option__name">{device.name}</span>
                                             </div>
                                         );
                                     })}
                                     {devices.length === 0 && (
-                                        <div style={{ padding: '10px', color: '#ffffff', textAlign: 'center' }}>
+                                        <div className="geofence-device-option geofence-device-option--empty">
                                             Nenhum veículo encontrado
                                         </div>
                                     )}

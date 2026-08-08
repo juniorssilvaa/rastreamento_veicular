@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, ScaleControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, ScaleControl, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './Mapa.css';
@@ -19,13 +19,25 @@ import {
   Compass,
   MapPin,
   Battery,
-  BatteryCharging,
-  Power,
   KeyRound,
   Activity,
   MoreHorizontal,
+  X,
+  Pencil,
+  Lock,
+  Wallet,
+  UserRound,
+  BarChart3,
+  Bell,
+  Route,
+  Wrench,
+  Fuel,
+  ExternalLink,
+  CircleDot,
 } from 'lucide-react';
 import CarIcon from '../components/CarIcon';
+import toast from 'react-hot-toast';
+import SensorIcon from '../components/SensorIcon';
 
 const addressCache = new Map();
 
@@ -225,6 +237,96 @@ const formatRelativeTime = (dateValue) => {
   return `há ${days} dia(s)`;
 };
 
+const formatShortStamp = (dateValue) => {
+  if (!dateValue) return '—';
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date
+    .toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    .replace('.', '')
+    .replace(' de ', '/');
+};
+
+const getMotionStatus = (device) => {
+  if (!device) return { label: 'Sem dados', tone: 'idle' };
+  if (device.status !== 'online') return { label: 'Offline', tone: 'offline' };
+  if (device.speedKmh > 0) return { label: `Em movimento · ${device.speedKmh} km/h`, tone: 'moving' };
+  const stoppedFor = formatRelativeTime(device.lastContact).replace(/^há /, '');
+  return {
+    label: stoppedFor === 'agora' ? 'Parado agora' : `Parado · ${stoppedFor}`,
+    tone: 'stopped',
+  };
+};
+
+/** Texto de status no estilo da listagem (Parado - 15 min / +14h). */
+const getListStatusLabel = (device) => {
+  if (!device) return 'Sem dados';
+  if (device.status !== 'online') return 'Offline';
+  if ((device.speedKmh || 0) > 0) return `Em movimento · ${device.speedKmh} km/h`;
+
+  if (!device.lastContact) return 'Parado';
+  const date = new Date(device.lastContact);
+  if (Number.isNaN(date.getTime())) return 'Parado';
+
+  const minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
+  if (minutes < 1) return 'Parado - agora';
+  if (minutes < 60) return `Parado - ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Parado - +${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `Parado - +${days}d`;
+};
+
+const DEVICE_LIST_PAGE_SIZE = 30;
+
+const MapClickOpenList = ({ onOpen }) => {
+  useMapEvents({
+    click: () => onOpen(),
+  });
+  return null;
+};
+
+/** Recalcula o tamanho do Leaflet quando o menu lateral abre/fecha ou a janela muda. */
+const InvalidateMapSizeOnLayout = () => {
+  const map = useMap();
+
+  useEffect(() => {
+    const refresh = () => {
+      map.invalidateSize({ animate: false });
+    };
+
+    const delayedRefresh = () => {
+      refresh();
+      window.setTimeout(refresh, 50);
+      window.setTimeout(refresh, 250);
+    };
+
+    delayedRefresh();
+    window.addEventListener('resize', delayedRefresh);
+    window.addEventListener('sidebar-toggle', delayedRefresh);
+
+    const el = map.getContainer()?.parentElement;
+    let observer;
+    if (el && typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => delayedRefresh());
+      observer.observe(el);
+    }
+
+    return () => {
+      window.removeEventListener('resize', delayedRefresh);
+      window.removeEventListener('sidebar-toggle', delayedRefresh);
+      if (observer) observer.disconnect();
+    };
+  }, [map]);
+
+  return null;
+};
+
 const toKmH = (speed) => Math.round((speed || 0) * 1.852);
 
 const toKm = (distanceMeters) => {
@@ -275,7 +377,10 @@ const Mapa = () => {
   });
   const [resolvedAddress, setResolvedAddress] = useState(null);
   const [addressError, setAddressError] = useState(false);
-  const [devicesPanelOpen, setDevicesPanelOpen] = useState(false);
+  const [devicesPanelOpen, setDevicesPanelOpen] = useState(true);
+  const [listLimit, setListLimit] = useState(DEVICE_LIST_PAGE_SIZE);
+  const [detailTab, setDetailTab] = useState('geral');
+  const [blocking, setBlocking] = useState(false);
   const [isViewConfigOpen, setIsViewConfigOpen] = useState(false);
   const [mapDeviceLabelMode, setMapDeviceLabelMode] = useState(() =>
     normalizeMapDeviceLabelMode(localStorage.getItem('mapDeviceLabelMode'))
@@ -285,7 +390,6 @@ const Mapa = () => {
   );
 
   const closeDevicesPanel = () => setDevicesPanelOpen(false);
-  const toggleDevicesPanel = () => setDevicesPanelOpen((open) => !open);
   const openViewConfig = () => {
     setPendingMapDeviceLabelMode(mapDeviceLabelMode);
     setIsViewConfigOpen(true);
@@ -422,9 +526,22 @@ const Mapa = () => {
     return enrichedDevices.filter((device) => {
       const byName = device.name?.toLowerCase().includes(normalizedSearch);
       const byUniqueId = device.uniqueId?.toLowerCase().includes(normalizedSearch);
-      return byName || byUniqueId;
+      const byPlate = device.plate?.toLowerCase().includes(normalizedSearch);
+      const byModel = (device.model || device.attributes?.modelo || '')
+        .toLowerCase()
+        .includes(normalizedSearch);
+      return byName || byUniqueId || byPlate || byModel;
     });
   }, [enrichedDevices, search]);
+
+  useEffect(() => {
+    setListLimit(DEVICE_LIST_PAGE_SIZE);
+  }, [search]);
+
+  const visibleDevices = useMemo(
+    () => filteredDevices.slice(0, listLimit),
+    [filteredDevices, listLimit]
+  );
 
   const metrics = useMemo(() => {
     const online = enrichedDevices.filter((d) => d.status === 'online').length;
@@ -440,8 +557,57 @@ const Mapa = () => {
     };
   }, [enrichedDevices]);
 
-  const handleSelectDevice = (device) => setSelectedDevice(device);
-  const clearSelectedDevice = () => setSelectedDevice(null);
+  // Mantém o veículo selecionado sincronizado com o polling
+  useEffect(() => {
+    if (!selectedDevice?.id) return;
+    const fresh = enrichedDevices.find((d) => d.id === selectedDevice.id);
+    if (fresh) setSelectedDevice(fresh);
+  }, [enrichedDevices, selectedDevice?.id]);
+
+  const handleSelectDevice = (device) => {
+    setSelectedDevice(device);
+    setDetailTab('geral');
+    setDevicesPanelOpen(false);
+  };
+
+  const openDevicesFromMap = () => {
+    setSelectedDevice(null);
+    setDevicesPanelOpen(true);
+  };
+
+  const clearSelectedDevice = () => {
+    setSelectedDevice(null);
+    setDetailTab('geral');
+  };
+
+  const handleBackToDevices = () => {
+    clearSelectedDevice();
+    setDevicesPanelOpen(true);
+  };
+
+  const handleEditDevice = () => {
+    if (!selectedDevice?.id) return;
+    window.history.pushState(null, '', `/veiculos/editar/${selectedDevice.id}`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  const handleBlockDevice = async () => {
+    if (!selectedDevice?.id || blocking) return;
+    setBlocking(true);
+    try {
+      const res = await fetch('/api/traccar/commands/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId: selectedDevice.id, type: 'engineStop' }),
+      });
+      if (!res.ok) throw new Error('command');
+      toast.success('Comando de bloqueio enviado');
+    } catch {
+      toast.error('Não foi possível enviar o bloqueio');
+    } finally {
+      setBlocking(false);
+    }
+  };
 
   const displayAddress = resolvedAddress || (addressError ? 'Endereço indisponível' : 'Buscando endereço…');
   const selectedPrimaryLabel =
@@ -461,6 +627,27 @@ const Mapa = () => {
         ? selectedDevice?.plate || selectedDevice?.customerName || selectedDevice?.uniqueId || 'Sem placa'
         : selectedDevice?.customerName || selectedDevice?.uniqueId || 'Sem cliente';
   const selectedIgnitionText = selectedDevice?.engineOn ? 'ligado' : 'desligado';
+  const motionStatus = getMotionStatus(selectedDevice);
+  const selectedPhoto =
+    selectedDevice?.attributes?.foto || selectedDevice?.attributes?.iconUrl || '';
+  const selectedModel =
+    selectedDevice?.model ||
+    selectedDevice?.attributes?.modelo ||
+    selectedDevice?.attributes?.model ||
+    '';
+  const gmapsKey = (typeof localStorage !== 'undefined' && localStorage.getItem('gmapsKey')) || '';
+  const streetViewImg =
+    selectedDevice?.position && gmapsKey
+      ? `https://maps.googleapis.com/maps/api/streetview?size=640x280&location=${selectedDevice.position.latitude},${selectedDevice.position.longitude}&fov=80&pitch=0&key=${encodeURIComponent(gmapsKey)}`
+      : null;
+  const streetViewLink = selectedDevice?.position
+    ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedDevice.position.latitude},${selectedDevice.position.longitude}`
+    : null;
+  const fuelLevel =
+    selectedDevice?.attributes?.fuel ??
+    selectedDevice?.attributes?.fuelLevel ??
+    selectedDevice?.attributes?.io3 ??
+    null;
 
   const mapTiles = {
     clean: {
@@ -555,10 +742,18 @@ const Mapa = () => {
                 <KeyRound size={12} className="stat-pill__icon" />
               </div>
               <div className="stats-strip-tools">
-                <button type="button" className="icon-btn" title="Configurações">
+                <button type="button" className="icon-btn" title="Configurações" onClick={openViewConfig}>
                   <Settings size={16} />
                 </button>
-                <button type="button" className="add-btn" title="Adicionar">
+                <button
+                  type="button"
+                  className="add-btn"
+                  title="Adicionar"
+                  onClick={() => {
+                    window.history.pushState(null, '', '/veiculos/novo');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }}
+                >
                   <PlusCircle size={18} />
                 </button>
               </div>
@@ -574,7 +769,9 @@ const Mapa = () => {
             </div>
 
             <h4 className="group-title">Grupos</h4>
-            <div className="group-empty">Nenhum grupo criado</div>
+            <div className="group-empty">
+              {groups.length === 0 ? 'Nenhum grupo criado' : `${groups.length} grupo(s)`}
+            </div>
 
             <div className="devices-title-row">
               <h4>Dispositivos</h4>
@@ -584,7 +781,9 @@ const Mapa = () => {
             </div>
 
             <ul className="device-list">
-              {filteredDevices.map((device) => (
+              {visibleDevices.map((device) => {
+                const model = device.model || device.attributes?.modelo || device.attributes?.model || '';
+                return (
                 <li
                   key={device.id}
                   className={selectedDevice?.id === device.id ? 'active' : ''}
@@ -601,42 +800,52 @@ const Mapa = () => {
                       </div>
                       <div className={`v2-status-dot is-${device.status}`} />
                     </div>
-                    
+
                     <div className="v2-info">
                       <div className="v2-title-row">
                         <div className="v2-title-text">
                           <strong>{device.name || 'Sem nome'}</strong>
-                          {device.model && <span className="v2-model">· {device.model}</span>}
+                          {model ? <span className="v2-model">· {model}</span> : null}
                         </div>
-                        <button type="button" className="v2-more-btn">
+                        <button type="button" className="v2-more-btn" onClick={(e) => e.stopPropagation()}>
                           <MoreHorizontal size={16} />
                         </button>
                       </div>
-                      
+
                       <div className="v2-status-row">
                         <span className={`v2-state-text is-${device.status}`}>
-                          {device.status === 'online' ? (device.speedKmh > 0 ? 'Em movimento' : 'Parado') : 'Offline'}
+                          {getListStatusLabel(device)}
                         </span>
                         <span className="v2-separator">·</span>
                         <span className="v2-time">{formatRelativeTime(device.lastContact)}</span>
                         {device.lastContact && (
                           <>
                             <span className="v2-separator">·</span>
-                            <span className="v2-date">{new Date(device.lastContact).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(' de ', '/')}</span>
+                            <span className="v2-date">{formatShortStamp(device.lastContact)}</span>
                           </>
                         )}
                       </div>
 
                       <div className="v2-address-row">
                         <MapPin size={12} className="v2-pin-icon" />
-                        <span>{device.position?.address || 'Endereço não disponível'}</span>
+                        <span>{device.position?.address || device.attributes?.address || 'Endereço não disponível'}</span>
                       </div>
                     </div>
                   </div>
                 </li>
-              ))}
+              );})}
               {filteredDevices.length === 0 && <p className="empty-msg">Nenhum veículo encontrado.</p>}
             </ul>
+            {listLimit < filteredDevices.length && (
+              <button
+                type="button"
+                className="select-btn"
+                style={{ width: '100%', marginTop: 8 }}
+                onClick={() => setListLimit((n) => n + DEVICE_LIST_PAGE_SIZE)}
+              >
+                Mostrar mais ({Math.min(listLimit, filteredDevices.length)} de {filteredDevices.length})
+              </button>
+            )}
             <p className="sync-info">Atualizado: {lastSync ? lastSync.toLocaleTimeString('pt-BR') : '--:--:--'}</p>
           </aside>
         )}
@@ -658,113 +867,241 @@ const Mapa = () => {
           </div>
         </div>
 
-        {selectedDevice?.position && (
-          <div className="vehicle-detail-card">
-            <button type="button" className="close-detail-btn" onClick={clearSelectedDevice} aria-label="Fechar">
-              ×
-            </button>
-            <div className="detail-card-head">
-              <div>
-                <h4>{selectedPrimaryLabel}</h4>
-                <p className="id-line">
-                  <span>{selectedSecondaryLabel}</span>
-                  <span className="dot-sep">·</span>
-                  {formatDateTime(selectedDevice.lastContact)}
+        {selectedDevice && (
+          <aside className="vehicle-detail-panel" aria-label="Detalhes do veículo">
+            <div className="vdp-toolbar">
+              <button type="button" className="vdp-tool-btn" onClick={handleBackToDevices} title="Voltar">
+                <ChevronLeft size={18} />
+                <span>Voltar</span>
+              </button>
+              <div className="vdp-toolbar__actions">
+                <button type="button" className="vdp-icon-btn" onClick={handleEditDevice} title="Editar">
+                  <Pencil size={16} />
+                </button>
+                <button type="button" className="vdp-icon-btn" onClick={clearSelectedDevice} title="Fechar">
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className={`vdp-status vdp-status--${motionStatus.tone}`}>
+              <CircleDot size={14} aria-hidden />
+              <span>{motionStatus.label}</span>
+            </div>
+
+            <div className="vdp-identity">
+              <div className="vdp-photo">
+                {selectedPhoto ? (
+                  <img src={selectedPhoto} alt={selectedPrimaryLabel} />
+                ) : (
+                  <CarIcon size={28} />
+                )}
+              </div>
+              <div className="vdp-identity__copy">
+                <h3>{selectedPrimaryLabel}</h3>
+                {(selectedModel || selectedSecondaryLabel) && (
+                  <p className="vdp-model">{selectedModel || selectedSecondaryLabel}</p>
+                )}
+                {selectedDevice.customerName && (
+                  <p className="vdp-user">
+                    <UserRound size={13} aria-hidden />
+                    <span>Usuário: {selectedDevice.customerName}</span>
+                  </p>
+                )}
+                <p className="vdp-stamps">
+                  Comunicou: {formatShortStamp(selectedDevice.lastContact)}
+                  {selectedDevice.position?.deviceTime || selectedDevice.position?.fixTime ? (
+                    <> · Posicionou: {formatShortStamp(selectedDevice.position.deviceTime || selectedDevice.position.fixTime)}</>
+                  ) : null}
                 </p>
               </div>
-              <span className={`status-chip status-chip--${selectedDevice.engineOn ? 'engine-on' : 'engine-off'}`}>
-                {selectedIgnitionText}
-              </span>
             </div>
 
-            <div className="detail-summary-strip">
-              <div className="summary-chip">
-                <Gauge size={14} className="summary-chip__icon" aria-hidden />
-                <span>{selectedDevice.speedKmh} km/h</span>
-              </div>
-              <div className={`summary-chip summary-chip--ignition ${selectedDevice.engineOn ? 'is-on' : 'is-off'}`}>
-                <KeyRound size={14} className="summary-chip__icon" aria-hidden />
-                <span>{selectedIgnitionText}</span>
-              </div>
+            <div className="vdp-actions">
+              <button type="button" className="vdp-action" onClick={handleBlockDevice} disabled={blocking}>
+                <span className="vdp-action__icon vdp-action__icon--lock">
+                  <Lock size={20} strokeWidth={1.75} />
+                </span>
+                <span>{blocking ? 'Enviando…' : 'Bloquear'}</span>
+              </button>
+              <button
+                type="button"
+                className="vdp-action"
+                onClick={() => toast('Despesas em breve')}
+              >
+                <span className="vdp-action__icon vdp-action__icon--wallet">
+                  <Wallet size={20} strokeWidth={1.75} />
+                </span>
+                <span>Despesas</span>
+              </button>
+              <button
+                type="button"
+                className="vdp-action"
+                onClick={() => toast('Motorista em breve')}
+              >
+                <span className="vdp-action__icon vdp-action__icon--driver">
+                  <UserRound size={20} strokeWidth={1.75} />
+                </span>
+                <span>Motorista</span>
+              </button>
             </div>
 
-            <div className="detail-metrics">
-              <div className="metric">
-                <Gauge size={16} className="metric-icon" aria-hidden />
-                <div>
-                  <span className="metric-label">Velocidade</span>
-                  <span className="metric-value">{selectedDevice.speedKmh} km/h</span>
-                </div>
-              </div>
-              <div className="metric">
-                <Compass size={16} className="metric-icon" aria-hidden />
-                <div>
-                  <span className="metric-label">Direção</span>
-                  <span className="metric-value">{formatCourse(selectedDevice.position.course)}</span>
-                </div>
-              </div>
-              {selectedDevice.position.altitude != null && (
-                <div className="metric">
-                  <Activity size={16} className="metric-icon" aria-hidden />
-                  <div>
-                    <span className="metric-label">Altitude</span>
-                    <span className="metric-value">{Math.round(selectedDevice.position.altitude)} m</span>
-                  </div>
-                </div>
-              )}
-              {selectedDevice.batteryLevel != null && (
-                <div className="metric">
-                  <Battery size={16} className="metric-icon" aria-hidden />
-                  <div>
-                    <span className="metric-label">Bateria</span>
-                    <span className="metric-value">{String(selectedDevice.batteryLevel)}%</span>
-                  </div>
-                </div>
-              )}
-              <div className="metric metric--wide">
-                <MapPin size={16} className="metric-icon" aria-hidden />
-                <div>
-                  <span className="metric-label">Coordenadas</span>
-                  <span className="metric-value mono">
-                    {formatCoordinates(selectedDevice.position.latitude, selectedDevice.position.longitude)}
-                  </span>
-                </div>
-              </div>
-              <div className="metric metric--wide metric--address">
-                <MapPin size={16} className="metric-icon" aria-hidden />
-                <div>
-                  <span className="metric-label">Endereço</span>
-                  <span className="metric-value address-text">{displayAddress}</span>
-                </div>
-              </div>
+            <div className="vdp-tabs" role="tablist" aria-label="Seções do veículo">
+              {[
+                { id: 'geral', label: 'Geral', Icon: BarChart3 },
+                { id: 'alertas', label: 'Alertas', Icon: Bell },
+                { id: 'viagens', label: 'Viagens', Icon: Route },
+                { id: 'sensores', label: 'Sensores', Icon: SensorIcon },
+                { id: 'servicos', label: 'Serviços', Icon: Wrench },
+              ].map(({ id, label, Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={detailTab === id}
+                  className={`vdp-tab ${detailTab === id ? 'is-active' : ''}`}
+                  onClick={() => setDetailTab(id)}
+                >
+                  <span className="vdp-tab__icon"><Icon size={18} strokeWidth={1.8} /></span>
+                  <span>{label}</span>
+                </button>
+              ))}
             </div>
 
-            <p className="detail-extra">
-              Ignição:{' '}
-              {attrs.ignition === true ? 'ligada' : attrs.ignition === false ? 'desligada' : 'sem dado'}
-              {attrs.sat != null && <> · Satélites: {attrs.sat}</>}
-              {selectedDevice.totalDistance && selectedDevice.totalDistance !== '--' && (
+            <div className="vdp-body">
+              {detailTab === 'geral' && (
                 <>
-                  {' '}
-                  · Odômetro: {selectedDevice.totalDistance}
+                  <div className="vdp-metrics">
+                    <div className="vdp-metric">
+                      <Gauge size={15} aria-hidden />
+                      <div>
+                        <span>Velocidade</span>
+                        <strong>{selectedDevice.speedKmh ?? 0} km/h</strong>
+                      </div>
+                    </div>
+                    <div className="vdp-metric">
+                      <KeyRound size={15} aria-hidden />
+                      <div>
+                        <span>Ignição</span>
+                        <strong>{selectedIgnitionText}</strong>
+                      </div>
+                    </div>
+                    {selectedDevice.position?.course != null && (
+                      <div className="vdp-metric">
+                        <Compass size={15} aria-hidden />
+                        <div>
+                          <span>Direção</span>
+                          <strong>{formatCourse(selectedDevice.position.course)}</strong>
+                        </div>
+                      </div>
+                    )}
+                    {selectedDevice.batteryLevel != null && (
+                      <div className="vdp-metric">
+                        <Battery size={15} aria-hidden />
+                        <div>
+                          <span>Bateria</span>
+                          <strong>{String(selectedDevice.batteryLevel)}%</strong>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedDevice.position ? (
+                    <>
+                      <a
+                        className="vdp-address"
+                        href={streetViewLink || `https://www.google.com/maps?q=${selectedDevice.position.latitude},${selectedDevice.position.longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <MapPin size={14} aria-hidden />
+                        <span>{displayAddress}</span>
+                        <ExternalLink size={13} aria-hidden />
+                      </a>
+
+                      <a
+                        className="vdp-streetview"
+                        href={streetViewLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Abrir Street View"
+                      >
+                        {streetViewImg ? (
+                          <img src={streetViewImg} alt="Street View" />
+                        ) : (
+                          <div className="vdp-streetview__fallback">
+                            <Navigation size={18} />
+                            <span>Ver no Street View</span>
+                          </div>
+                        )}
+                      </a>
+
+                      <p className="vdp-coords mono">
+                        {formatCoordinates(selectedDevice.position.latitude, selectedDevice.position.longitude)}
+                        {selectedDevice.totalDistance && selectedDevice.totalDistance !== '--' && (
+                          <> · Odômetro: {selectedDevice.totalDistance}</>
+                        )}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="vdp-empty">Este veículo ainda não enviou posição GPS.</p>
+                  )}
                 </>
               )}
-            </p>
 
-            <div className="detail-actions">
-              <button type="button" className="btn-unfollow" onClick={clearSelectedDevice}>
-                Deixar de seguir
-              </button>
-              <a
-                className="btn-route"
-                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedDevice.position.latitude},${selectedDevice.position.longitude}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Abrir rota
-              </a>
+              {detailTab === 'alertas' && (
+                <p className="vdp-empty">Nenhum alerta recente para este veículo.</p>
+              )}
+              {detailTab === 'viagens' && (
+                <p className="vdp-empty">Histórico de viagens em breve.</p>
+              )}
+              {detailTab === 'sensores' && (
+                <div className="vdp-metrics">
+                  <div className="vdp-metric">
+                    <KeyRound size={15} aria-hidden />
+                    <div>
+                      <span>Ignição</span>
+                      <strong>{selectedIgnitionText}</strong>
+                    </div>
+                  </div>
+                  {selectedDevice.batteryLevel != null && (
+                    <div className="vdp-metric">
+                      <Battery size={15} aria-hidden />
+                      <div>
+                        <span>Bateria</span>
+                        <strong>{String(selectedDevice.batteryLevel)}%</strong>
+                      </div>
+                    </div>
+                  )}
+                  {selectedDevice.attributes?.sat != null && (
+                    <div className="vdp-metric">
+                      <Activity size={15} aria-hidden />
+                      <div>
+                        <span>Satélites</span>
+                        <strong>{selectedDevice.attributes.sat}</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {detailTab === 'servicos' && (
+                <p className="vdp-empty">Nenhum serviço agendado.</p>
+              )}
             </div>
-          </div>
+
+            <div className="vdp-fuel">
+              <div className="vdp-fuel__left">
+                <Fuel size={16} aria-hidden />
+                <div>
+                  <span>Nível do tanque</span>
+                  <strong>{fuelLevel != null && fuelLevel !== '' ? String(fuelLevel) : '—'}</strong>
+                </div>
+              </div>
+              <button type="button" className="vdp-fuel__btn" onClick={() => toast('Calibração em breve')}>
+                Calibrar
+              </button>
+            </div>
+          </aside>
         )}
 
         <MapContainer
@@ -775,7 +1112,9 @@ const Mapa = () => {
           zoomControl={false}
         >
           <ScaleControl position="bottomright" imperial={false} />
+          <InvalidateMapSizeOnLayout />
           <FitBoundsWhenIdle devices={enrichedDevices} selectedId={selectedDevice?.id ?? null} />
+          <MapClickOpenList onOpen={openDevicesFromMap} />
           <MapActionMenu selectedDevice={selectedDevice} onOpenViewConfig={openViewConfig} />
           <TileLayer
             key={mapTheme}
@@ -803,18 +1142,6 @@ const Mapa = () => {
             />
           )}
         </MapContainer>
-
-        <button
-          type="button"
-          className={`map-devices-fab${devicesPanelOpen ? ' map-devices-fab--active' : ''}`}
-          onClick={toggleDevicesPanel}
-          title={devicesPanelOpen ? 'Ocultar dispositivos' : 'Dispositivos'}
-          aria-label={devicesPanelOpen ? 'Ocultar dispositivos' : 'Abrir dispositivos'}
-          aria-expanded={devicesPanelOpen}
-          aria-controls={devicesPanelOpen ? 'mapa-devices-panel' : undefined}
-        >
-          <CarIcon size={22} aria-hidden />
-        </button>
 
         <Modal isOpen={isViewConfigOpen} onClose={closeViewConfig} title="Visualização dos Veículos no Mapa">
           <div className="map-view-config">

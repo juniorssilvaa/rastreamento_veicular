@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .traccar_service import TraccarClient
+from .logutil import logger, mask_secret, log_api_call
 import os
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -146,13 +147,18 @@ class TraccarCommandView(APIView):
     def post(self, request):
         device_id = request.data.get('deviceId')
         command_id = request.data.get('id')
-        command_type = request.data.get('type') # ex: engineStop, engineResume
+        command_type = request.data.get('type')  # ex: engineStop, engineResume
         attributes = request.data.get('attributes', {})
         text_channel = request.data.get('textChannel', False)
-        
+
         sms_gateway = request.data.get('smsGateway')
         sms_login = request.data.get('smsLogin')
         sms_token = request.data.get('smsToken')
+
+        logger.info(
+            "[CMD] recebido deviceId=%s type=%s id=%s textChannel=%s gateway=%s",
+            device_id, command_type, command_id, text_channel, sms_gateway,
+        )
 
         if not device_id:
             return Response({"error": "deviceId é obrigatório"}, status=status.HTTP_400_BAD_REQUEST)
@@ -162,37 +168,38 @@ class TraccarCommandView(APIView):
         # Se for para enviar via SMS, fazemos isso diretamente pelo Django (sem depender do Traccar)
         if text_channel or command_type == 'sendSms':
             import requests as req_lib
-            # Busca o telefone do dispositivo usando o client já configurado com credenciais corretas
             try:
                 devices = client.get_devices()
                 device = next((d for d in devices if str(d.get('id')) == str(device_id)), None)
                 phone = device.get('phone') if device else None
-                print(f" [DEBUG] Dispositivo encontrado: {device}")
+                logger.debug(
+                    "[SMS] device id=%s name=%s phone=%s",
+                    device_id,
+                    (device or {}).get('name'),
+                    phone,
+                )
             except Exception as e:
-                print(f" [DEBUG] Erro ao buscar dispositivo: {e}")
+                logger.exception("[SMS] erro ao buscar dispositivo id=%s: %s", device_id, e)
                 phone = None
 
-            # Determina a mensagem a enviar
             message = attributes.get('data') or attributes.get('message') or command_type or 'cmd'
-
-            print("\n" + "="*50)
-            print(" [DEBUG SMS] ENVIO DIRETO PELO DJANGO")
-            print("="*50)
-            print(f" Dispositivo ID : {device_id}")
-            print(f" Telefone       : {phone}")
-            print(f" Mensagem       : {message}")
-            print("="*50 + "\n")
+            logger.info(
+                "[SMS] ENVIO DIRETO deviceId=%s phone=%s message=%s",
+                device_id, phone, message,
+            )
 
             if not phone:
-                return Response({"error": "Dispositivo não tem número de telefone cadastrado no Traccar"}, status=status.HTTP_400_BAD_REQUEST)
+                logger.warning("[SMS] abortado: dispositivo %s sem telefone", device_id)
+                return Response(
+                    {"error": "Dispositivo não tem número de telefone cadastrado no Traccar"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-            # Define as credenciais: prioriza o que vem do frontend, senao busca no traccar.xml
             provider = sms_gateway
             login = sms_login
             token = sms_token
 
             if not provider or not login or not token:
-                # Fallback para o traccar.xml
                 import xml.etree.ElementTree as ET, re as re_lib
                 traccar_conf_path = r'e:\blrastreamento\Traccar\conf\traccar.xml'
                 sms_url = ''
@@ -203,11 +210,15 @@ class TraccarCommandView(APIView):
                         key = entry.get('key', '')
                         if key == 'sms.http.url':
                             sms_url = entry.text or ''
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("[SMS] falha lendo traccar.xml: %s", e)
 
                 if not sms_url:
-                    return Response({"error": "Gateway SMS não informado e não configurado no traccar.xml"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    logger.error("[SMS] gateway não informado e traccar.xml sem sms.http.url")
+                    return Response(
+                        {"error": "Gateway SMS não informado e não configurado no traccar.xml"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
                 if "smsmarket" in sms_url:
                     provider = "smsmarket"
@@ -217,7 +228,11 @@ class TraccarCommandView(APIView):
                     token = token_m.group(1) if token_m else None
 
             if not provider or not login or not token:
-                return Response({"error": "Credenciais SMS inválidas ou não encontradas"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                logger.error("[SMS] credenciais inválidas provider=%s login=%s", provider, mask_secret(login))
+                return Response(
+                    {"error": "Credenciais SMS inválidas ou não encontradas"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
             try:
                 if provider == "smsmarket":
@@ -225,27 +240,25 @@ class TraccarCommandView(APIView):
                     payload = {
                         "user": login,
                         "password": token,
-                        "type": 2, # SMS Interativo
+                        "type": 2,  # SMS Interativo
                         "country_code": "55",
                         "number": phone,
-                        "content": message
+                        "content": message,
                     }
-                    import requests as req_lib
-                    
-                    print(f" [DEBUG SMS] Credenciais extraidas - User: '{login}' | Token: '{token}'")
-                    print(" Enviando para SMS Market API real...")
-                    
-                    # Enviando credenciais no payload (x-www-form-urlencoded) para suportar caracteres especiais na senha
+
+                    logger.info(
+                        "[SMS] chamando SMS Market user=%s token=%s number=%s",
+                        login, mask_secret(token), phone,
+                    )
                     resp = req_lib.post(smsmarket_api_url, data=payload, timeout=15)
-                    
-                    print(f" Resposta SMS Market (Status {resp.status_code}): {resp.text}")
-                    print("="*50 + "\n")
+                    log_api_call("SMSMARKET", "POST", smsmarket_api_url, resp.status_code, detail=resp.text[:500])
+                    logger.info("[SMS] resposta SMS Market status=%s body=%s", resp.status_code, resp.text[:500])
 
                     sms_market_id = None
                     try:
                         resp_json = resp.json()
                         sms_market_id = str(resp_json.get("id", ""))
-                    except:
+                    except Exception:
                         pass
 
                     from .models import SmsCommandHistory
@@ -253,22 +266,33 @@ class TraccarCommandView(APIView):
                         device_id=device_id,
                         phone_number=phone,
                         content=message,
-                        status_code=-1, # Enfileirada
-                        sms_market_id=sms_market_id
+                        status_code=-1,  # Enfileirada
+                        sms_market_id=sms_market_id,
                     )
 
+                    if resp.status_code >= 400:
+                        logger.error("[SMS] falha no envio status=%s", resp.status_code)
+                        return Response(
+                            {"error": "Falha no envio SMS", "smsmarket_response": resp.text},
+                            status=status.HTTP_502_BAD_GATEWAY,
+                        )
+
+                    logger.info("[SMS] enviado com sucesso deviceId=%s sms_market_id=%s", device_id, sms_market_id)
                     return Response({"success": True, "smsmarket_response": resp.text}, status=status.HTTP_200_OK)
-                else:
-                    return Response({"error": "Provedor SMS desconhecido"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                logger.error("[SMS] provedor desconhecido: %s", provider)
+                return Response({"error": "Provedor SMS desconhecido"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
-                print(f" Erro ao conectar no Gateway SMS: {e}")
+                logger.exception("[SMS] erro ao conectar no Gateway SMS: %s", e)
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Fluxo normal: envia via Traccar (GPRS/TCP)
-        result = client.send_command(device_id, command_type, attributes, command_id)
+        result = client.send_command(device_id, command_type, attributes, command_id, text_channel=text_channel)
         if result and not result.get("error"):
+            logger.info("[CMD] sucesso via Traccar deviceId=%s type=%s", device_id, command_type)
             return Response(result, status=status.HTTP_200_OK)
         error_message = result.get("error") if isinstance(result, dict) else "Falha ao enviar comando"
+        logger.warning("[CMD] falha Traccar deviceId=%s error=%s", device_id, error_message)
         return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
 
 class CreateTestDeviceView(APIView):
@@ -423,6 +447,7 @@ class AsaasCustomerView(APIView):
     def post(self, request):
         asaas_token = request.headers.get('X-Asaas-Token')
         asaas_env = request.headers.get('X-Asaas-Env', 'sandbox')
+        logger.info("[ASAAS] criar cliente env=%s token=%s", asaas_env, mask_secret(asaas_token))
 
         if not asaas_token:
             return Response({"error": "Token do Asaas não fornecido no cabeçalho X-Asaas-Token"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -459,6 +484,7 @@ class AsaasCustomerView(APIView):
             # Chama API do Asaas para Criar Cliente
             response = requests.post(f"{base_url}/customers", json=customer_payload, headers=headers)
             asaas_data = response.json()
+            log_api_call("ASAAS", "POST", f"{base_url}/customers", response.status_code)
             
             if response.status_code >= 400:
                 return Response(asaas_data, status=response.status_code)
@@ -1045,6 +1071,7 @@ class SmsMarketBalanceView(APIView):
             # Pega do front-end ou usa fallback
             user = request.GET.get('user', 'niohubtec')
             password = request.GET.get('token', 'Semfim01@')
+            logger.info("[SMS] consultando saldo user=%s", user)
             credentials = f"{user}:{password}"
             encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
             
@@ -1062,9 +1089,11 @@ class SmsMarketBalanceView(APIView):
                     total_sms = int(data.get('balance_1', 0))
                 else:
                     total_sms = 0
-                
+
+                logger.info("[SMS] saldo total=%s raw_keys=%s", total_sms, list(data.keys()) if isinstance(data, dict) else type(data))
                 return Response({"total": total_sms, "raw": data}, status=status.HTTP_200_OK)
         except Exception as e:
+            logger.exception("[SMS] erro ao consultar saldo: %s", e)
             return Response({"error": str(e), "total": 0}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class VehicleIconView(APIView):
@@ -1131,6 +1160,11 @@ class SmsCallbackView(APIView):
         status_code_str = request.query_params.get('status')
         content = request.query_params.get('content')
         phone = request.query_params.get('number')
+
+        logger.info(
+            "[SMS-CALLBACK] id=%s status=%s number=%s content=%s qs=%s",
+            sms_market_id, status_code_str, phone, content, request.META.get("QUERY_STRING"),
+        )
         
         if not sms_market_id and not content:
             return Response({"error": "Parâmetros insuficientes"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1171,6 +1205,8 @@ class PlacaFipeLookupView(APIView):
             token = token[7:].strip()
         token = ''.join(token.split())
 
+        logger.info("[PLACA] consulta placa=%s token=%s", placa, mask_secret(token))
+
         if not placa or len(placa) < 7:
             return Response({"error": "Informe uma placa válida."}, status=status.HTTP_400_BAD_REQUEST)
         if not token:
@@ -1191,6 +1227,7 @@ class PlacaFipeLookupView(APIView):
         }
 
         try:
+            logger.debug("[PLACA] POST %s payload=%s", url, payload)
             response = requests.post(
                 url,
                 json=payload,
@@ -1198,7 +1235,9 @@ class PlacaFipeLookupView(APIView):
                 timeout=(8, 30),
             )
             data = parse_body(response)
+            log_api_call("PLACA", "POST", url, response.status_code, detail=str(data)[:300])
             if response.status_code in (401, 403):
+                logger.warning("[PLACA] auth falhou com Bearer, tentando token puro")
                 response = requests.post(
                     url,
                     json=payload,
@@ -1206,29 +1245,35 @@ class PlacaFipeLookupView(APIView):
                     timeout=(8, 30),
                 )
                 data = parse_body(response)
+                log_api_call("PLACA", "POST", url, response.status_code, detail="retry_token_puro")
         except requests.Timeout:
+            logger.error("[PLACA] timeout placa=%s", placa)
             return Response(
                 {"error": "A consulta de placa demorou para responder. Tente novamente em instantes."},
                 status=status.HTTP_504_GATEWAY_TIMEOUT,
             )
-        except requests.RequestException:
+        except requests.RequestException as e:
+            logger.exception("[PLACA] erro de conexão: %s", e)
             return Response(
                 {"error": "Não foi possível conectar à API de placas. Verifique a internet e tente novamente."},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
         if response.status_code in (401, 403):
+            logger.warning("[PLACA] não autorizado status=%s", response.status_code)
             return Response(
                 {"error": data.get('message') or data.get('error') or data.get('msg') or 'Token inválido ou expirado. Gere um novo token em placas.app.br.'},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
         if response.status_code >= 400 or not isinstance(data, dict) or not (data.get('marca') or data.get('modelo') or data.get('chassi')):
+            logger.warning("[PLACA] não encontrada placa=%s status=%s", placa, response.status_code)
             return Response(
                 {"error": data.get('message') or data.get('error') or data.get('msg') or 'Placa não encontrada.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        logger.info("[PLACA] ok placa=%s marca=%s modelo=%s", placa, data.get('marca'), data.get('modelo'))
         return Response({
             "placa": data.get('placa_modelo_novo') or data.get('placa_modelo_antigo') or data.get('placa') or placa,
             "marca": data.get('marca') or '',

@@ -45,11 +45,31 @@ echo "Aplicando migracoes..."
 python manage.py migrate --noinput
 
 echo "Garantindo superusuario..."
-python manage.py createsuperuser \
-  --noinput \
-  --username "${DJANGO_SUPERUSER_USERNAME:-admin}" \
-  --email "${DJANGO_SUPERUSER_EMAIL:-admin@admin.com}" \
-  || true
+python <<'PY'
+import os
+import django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+django.setup()
+from django.contrib.auth import get_user_model
+User = get_user_model()
+username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "admin")
+email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "admin@admin.com")
+password = os.environ.get("DJANGO_SUPERUSER_PASSWORD", "admin")
+if User.objects.filter(username=username).exists():
+    print(f"Superusuario '{username}' ja existe.")
+else:
+    User.objects.create_superuser(username=username, email=email, password=password)
+    print(f"Superusuario '{username}' criado.")
+PY
 
-echo "Iniciando Gunicorn..."
-exec gunicorn core.wsgi:application --bind 0.0.0.0:8000
+LOG_LEVEL="${LOG_LEVEL:-DEBUG}"
+echo "Iniciando Gunicorn (log-level=${LOG_LEVEL})..."
+exec gunicorn core.wsgi:application \
+  --bind 0.0.0.0:8000 \
+  --workers "${GUNICORN_WORKERS:-2}" \
+  --timeout "${GUNICORN_TIMEOUT:-120}" \
+  --access-logfile - \
+  --error-logfile - \
+  --capture-output \
+  --enable-stdio-inheritance \
+  --log-level "$(echo "$LOG_LEVEL" | tr '[:upper:]' '[:lower:]')"

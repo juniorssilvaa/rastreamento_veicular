@@ -90,6 +90,11 @@ function App() {
     setSidebarCollapsed((prev) => {
       const next = !prev;
       localStorage.setItem('sidebarCollapsed', String(next));
+      // Aguarda a transição do CSS e avisa o mapa para recalcular o tamanho
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('sidebar-toggle', { detail: { collapsed: next } }));
+        window.dispatchEvent(new Event('resize'));
+      }, 220);
       return next;
     });
   };

@@ -458,6 +458,29 @@
     height: 18px;
 }
 
+.geofence-vehicle-marker--icon {
+    width: 44px;
+    height: 44px;
+}
+
+.geofence-vehicle-marker__icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.geofence-vehicle-marker__icon img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+}
+
 .geofence-vehicle-marker__dot {
     position: absolute;
     inset: 0;
@@ -1168,6 +1191,61 @@
     padding: 0 !important;
     border-radius: 4px !important;
     accent-color: #f59e0b;
+    cursor: pointer;
+}
+
+.geofence-device-option {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.geofence-device-option.is-selected {
+    background: rgba(245, 158, 11, 0.18);
+}
+
+.geofence-device-option--empty {
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.72);
+    cursor: default;
+    border-bottom: none;
+}
+
+.geofence-device-option__photo {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.geofence-device-option__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.geofence-device-option__photo .car-icon {
+    filter: brightness(0) invert(1);
+}
+
+.geofence-device-option__name {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .geofence-overlay-card .devices-dropdown-list > div:last-child {

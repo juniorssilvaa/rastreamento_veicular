@@ -2,7 +2,15 @@ import React from 'react';
 import carIcon from '../assets/car-icon.png';
 
 /** Ícone de carro (line-art) para UI */
-const CarIcon = ({ size = 24, className = '', color, strokeWidth, absoluteStrokeWidth, ...props }) => (
+const CarIcon = ({
+  size = 24,
+  className = '',
+  invert = true,
+  color,
+  strokeWidth,
+  absoluteStrokeWidth,
+  ...props
+}) => (
   <img
     src={carIcon}
     alt=""
@@ -14,7 +22,7 @@ const CarIcon = ({ size = 24, className = '', color, strokeWidth, absoluteStroke
       height: size,
       objectFit: 'contain',
       display: 'block',
-      filter: 'brightness(0) invert(1)',
+      filter: invert ? 'brightness(0) invert(1)' : 'none',
     }}
     draggable={false}
     {...props}
