@@ -134,3 +134,241 @@
 :root.dark .gerenciar-page .btn-arrow {
   color: #ffffff;
 }
+
+/* ===== Integrações (tema claro/escuro) ===== */
+.integration-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.integration-header h2 {
+  margin: 0;
+}
+
+.integration-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.integration-back:hover {
+  background: var(--border-color);
+}
+
+.integration-card {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.integration-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.integration-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.integration-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.integration-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.integration-input:focus {
+  border-color: var(--accent-blue);
+}
+
+.integration-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.integration-secret {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.integration-secret .integration-input {
+  padding-right: 44px;
+}
+
+.integration-secret__toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.integration-secret__toggle:hover {
+  color: var(--text-primary);
+  background: var(--border-color);
+}
+
+.integration-panel {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.integration-panel__title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.integration-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  list-style: disc;
+}
+
+.integration-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.integration-radios--row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.integration-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.integration-radio input {
+  accent-color: var(--accent-blue);
+  width: auto;
+  margin: 0;
+}
+
+.integration-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  align-self: flex-start;
+  background: var(--accent-blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.integration-btn:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.integration-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.integration-btn--secondary {
+  background: var(--bg-main);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.integration-divider {
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.integration-test-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.integration-result {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+:root.dark .integration-secret__toggle svg {
+  color: var(--text-secondary);
+  stroke: currentColor;
+}
+
+:root.dark .integration-btn--secondary {
+  background: var(--bg-main);
+  color: var(--text-primary);
+}

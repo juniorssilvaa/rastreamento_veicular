@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import './Gerenciar.css';
-import { Search, Link as LinkIcon, Package, Box, FileText, Users, UserCog, ArrowLeft, CreditCard, MapPin, Save, MessageSquare, Image as ImageIcon, Trash2, IdCard } from 'lucide-react';
+import {
+  Search, Link as LinkIcon, Package, Box, FileText, Users, UserCog, ArrowLeft,
+  CreditCard, MapPin, Save, MessageSquare, Image as ImageIcon, Trash2, IdCard,
+  Eye, EyeOff,
+} from 'lucide-react';
 import CarIcon from '../components/CarIcon';
 
 const normalizeMapDeviceLabelMode = (value) => {
@@ -27,6 +31,10 @@ const Gerenciar = ({ onNavigate }) => {
   const [placaFipeTest, setPlacaFipeTest] = useState('');
   const [placaFipeResult, setPlacaFipeResult] = useState(null);
   const [placaFipeLoading, setPlacaFipeLoading] = useState(false);
+  const [showAsaasToken, setShowAsaasToken] = useState(false);
+  const [showGmapsKey, setShowGmapsKey] = useState(false);
+  const [showSmsToken, setShowSmsToken] = useState(false);
+  const [showPlacaToken, setShowPlacaToken] = useState(false);
   
   // States for icons
   const [vehicleIcons, setVehicleIcons] = useState([]);
@@ -242,16 +250,13 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'integracoes' && (
         <>
           <div className="section-block">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-              <button 
-                onClick={() => setCurrentView('main')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
-              >
+            <div className="integration-header">
+              <button type="button" className="integration-back" onClick={() => setCurrentView('main')}>
                 <ArrowLeft size={24} />
               </button>
-              <h2 style={{ margin: 0 }}>Integrações</h2>
+              <h2>Integrações</h2>
             </div>
-            
+
             <div className="grid-cards">
               <div className="action-card" onClick={() => setCurrentView('asaas')}>
                 <CreditCard size={32} className="action-icon" />
@@ -262,8 +267,6 @@ const Gerenciar = ({ onNavigate }) => {
                 <MapPin size={32} className="action-icon" />
                 <span>Google Maps</span>
               </div>
-
-
 
               <div className="action-card" onClick={() => setCurrentView('smsmarket')}>
                 <MessageSquare size={32} className="action-icon" />
@@ -282,74 +285,75 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'gmaps' && (
         <>
           <div className="section-block">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-              <button 
-                onClick={() => setCurrentView('integracoes')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
-              >
+            <div className="integration-header">
+              <button type="button" className="integration-back" onClick={() => setCurrentView('integracoes')}>
                 <ArrowLeft size={24} />
               </button>
-              <h2 style={{ margin: 0 }}>Integração Google Maps</h2>
+              <h2>Integração Google Maps</h2>
             </div>
-            
-            <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '600px' }}>
-              <p style={{ color: '#4B5563', fontSize: '14px', marginBottom: '20px' }}>
+
+            <div className="integration-card">
+              <p className="integration-desc">
                 Insira sua chave de API do Google Maps. Essa chave permitirá que seus clientes visualizem os veículos em diferentes modos de mapa (Satélite, Relevo, Padrão) com alta precisão.
               </p>
-              
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Chave de API (API Key)</label>
-                <input 
-                  type="text" 
-                  value={gmapsKey}
-                  onChange={(e) => setGmapsKey(e.target.value)}
-                  placeholder="AIzaSyA..." 
-                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
-                />
+
+              <div className="integration-field">
+                <label className="integration-label">Chave de API (API Key)</label>
+                <div className="integration-secret">
+                  <input
+                    type={showGmapsKey ? 'text' : 'password'}
+                    value={gmapsKey}
+                    onChange={(e) => setGmapsKey(e.target.value)}
+                    placeholder="AIzaSyA..."
+                    className="integration-input"
+                    autoComplete="off"
+                  />
+                  <button
+                    type="button"
+                    className="integration-secret__toggle"
+                    onClick={() => setShowGmapsKey((v) => !v)}
+                    title={showGmapsKey ? 'Ocultar chave' : 'Mostrar chave'}
+                    aria-label={showGmapsKey ? 'Ocultar chave' : 'Mostrar chave'}
+                  >
+                    {showGmapsKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
-              <div style={{ marginBottom: '24px', padding: '16px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E5E7EB' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
-                  Visualização dos carros no mapa
-                </label>
-                <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: '#4B5563' }}>
+              <div className="integration-panel">
+                <label className="integration-label">Visualização dos carros no mapa</label>
+                <div className="integration-radios">
+                  <label className="integration-radio">
                     <input
                       type="radio"
                       value="nome_placa"
                       checked={mapDeviceLabelMode === 'nome_placa'}
                       onChange={() => setMapDeviceLabelMode('nome_placa')}
-                      style={{ cursor: 'pointer' }}
                     />
                     Nome + placa
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: '#4B5563' }}>
+                  <label className="integration-radio">
                     <input
                       type="radio"
                       value="nome"
                       checked={mapDeviceLabelMode === 'nome'}
                       onChange={() => setMapDeviceLabelMode('nome')}
-                      style={{ cursor: 'pointer' }}
                     />
                     Apenas nome
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: '#4B5563' }}>
+                  <label className="integration-radio">
                     <input
                       type="radio"
                       value="placa"
                       checked={mapDeviceLabelMode === 'placa'}
                       onChange={() => setMapDeviceLabelMode('placa')}
-                      style={{ cursor: 'pointer' }}
                     />
                     Apenas placa
                   </label>
                 </div>
               </div>
 
-              <button 
-                onClick={handleSaveGmaps}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#3B82F6', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
-              >
+              <button type="button" className="integration-btn" onClick={handleSaveGmaps}>
                 <Save size={18} /> Salvar Configuração
               </button>
             </div>
@@ -360,61 +364,68 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'asaas' && (
         <>
           <div className="section-block">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-              <button 
-                onClick={() => setCurrentView('integracoes')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
-              >
+            <div className="integration-header">
+              <button type="button" className="integration-back" onClick={() => setCurrentView('integracoes')}>
                 <ArrowLeft size={24} />
               </button>
-              <h2 style={{ margin: 0 }}>Integração Asaas (Financeiro)</h2>
+              <h2>Integração Asaas (Financeiro)</h2>
             </div>
-            
-            <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '600px' }}>
-              <p style={{ color: '#4B5563', fontSize: '14px', marginBottom: '20px' }}>
+
+            <div className="integration-card">
+              <p className="integration-desc">
                 Configure o token da sua conta Asaas. Esta integração automatiza a criação de clientes, emissão de faturas, cobranças recorrentes e gestão financeira geral diretamente pela plataforma BL Rastreamento.
               </p>
-              
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Ambiente de Integração</label>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      value="sandbox" 
-                      checked={asaasEnv === 'sandbox'} 
-                      onChange={() => setAsaasEnv('sandbox')} 
-                      style={{ cursor: 'pointer' }}
+
+              <div className="integration-field">
+                <label className="integration-label">Ambiente de Integração</label>
+                <div className="integration-radios integration-radios--row">
+                  <label className="integration-radio">
+                    <input
+                      type="radio"
+                      value="sandbox"
+                      checked={asaasEnv === 'sandbox'}
+                      onChange={() => setAsaasEnv('sandbox')}
                     />
                     Modo Debug (Sandbox)
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      value="production" 
-                      checked={asaasEnv === 'production'} 
+                  <label className="integration-radio">
+                    <input
+                      type="radio"
+                      value="production"
+                      checked={asaasEnv === 'production'}
                       onChange={() => setAsaasEnv('production')}
-                      style={{ cursor: 'pointer' }}
                     />
                     Produção
                   </label>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Token de Acesso (API Token)</label>
-                <input 
-                  type="password" 
-                  value={asaasToken}
-                  onChange={(e) => setAsaasToken(e.target.value)}
-                  placeholder={`Insira seu Access Token do Asaas (${asaasEnv === 'sandbox' ? 'Sandbox' : 'Produção'})`}
-                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
-                />
+              <div className="integration-field">
+                <label className="integration-label">Token de Acesso (API Token)</label>
+                <div className="integration-secret">
+                  <input
+                    type={showAsaasToken ? 'text' : 'password'}
+                    value={asaasToken}
+                    onChange={(e) => setAsaasToken(e.target.value)}
+                    placeholder={`Insira seu Access Token do Asaas (${asaasEnv === 'sandbox' ? 'Sandbox' : 'Produção'})`}
+                    className="integration-input"
+                    autoComplete="off"
+                  />
+                  <button
+                    type="button"
+                    className="integration-secret__toggle"
+                    onClick={() => setShowAsaasToken((v) => !v)}
+                    title={showAsaasToken ? 'Ocultar token' : 'Mostrar token'}
+                    aria-label={showAsaasToken ? 'Ocultar token' : 'Mostrar token'}
+                  >
+                    {showAsaasToken ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
-              <div style={{ marginBottom: '24px', padding: '16px', background: '#F3F4F6', borderRadius: '8px' }}>
-                <h4 style={{ fontSize: '14px', color: '#1F2937', marginBottom: '8px', marginTop: 0 }}>Recursos ativados com essa integração:</h4>
-                <ul style={{ fontSize: '13px', color: '#4B5563', paddingLeft: '20px', margin: 0 }}>
+              <div className="integration-panel">
+                <h4 className="integration-panel__title">Recursos ativados com essa integração:</h4>
+                <ul className="integration-list">
                   <li>Sincronização automática de clientes</li>
                   <li>Geração de faturas e carnês</li>
                   <li>Notificações automáticas de cobrança</li>
@@ -422,10 +433,7 @@ const Gerenciar = ({ onNavigate }) => {
                 </ul>
               </div>
 
-              <button 
-                onClick={handleSaveAsaas}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#3B82F6', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
-              >
+              <button type="button" className="integration-btn" onClick={handleSaveAsaas}>
                 <Save size={18} /> Conectar ao Asaas
               </button>
             </div>
@@ -433,52 +441,57 @@ const Gerenciar = ({ onNavigate }) => {
         </>
       )}
 
-
-
       {currentView === 'smsmarket' && (
         <>
           <div className="section-block">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-              <button 
-                onClick={() => setCurrentView('integracoes')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
-              >
+            <div className="integration-header">
+              <button type="button" className="integration-back" onClick={() => setCurrentView('integracoes')}>
                 <ArrowLeft size={24} />
               </button>
-              <h2 style={{ margin: 0 }}>Integração SMS Market</h2>
+              <h2>Integração SMS Market</h2>
             </div>
-            
-            <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '600px' }}>
-              <p style={{ color: '#4B5563', fontSize: '14px', marginBottom: '20px' }}>
+
+            <div className="integration-card">
+              <p className="integration-desc">
                 Configure a sua conta SMS Market para habilitar o envio de SMS a partir do servidor. Ao salvar, as configurações do Traccar serão atualizadas automaticamente para utilizar este Gateway SMS.
               </p>
-              
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Usuário SMS Market</label>
-                <input 
-                  type="text" 
+
+              <div className="integration-field">
+                <label className="integration-label">Usuário SMS Market</label>
+                <input
+                  type="text"
                   value={smsmarketLogin}
                   onChange={(e) => setSmsmarketLogin(e.target.value)}
-                  placeholder="Seu usuário da SMS Market" 
-                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
+                  placeholder="Seu usuário da SMS Market"
+                  className="integration-input"
+                  autoComplete="username"
                 />
               </div>
 
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Senha SMS Market</label>
-                <input 
-                  type="password" 
-                  value={smsmarketToken}
-                  onChange={(e) => setSmsmarketToken(e.target.value)}
-                  placeholder="Sua senha da SMS Market" 
-                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
-                />
+              <div className="integration-field">
+                <label className="integration-label">Senha SMS Market</label>
+                <div className="integration-secret">
+                  <input
+                    type={showSmsToken ? 'text' : 'password'}
+                    value={smsmarketToken}
+                    onChange={(e) => setSmsmarketToken(e.target.value)}
+                    placeholder="Sua senha da SMS Market"
+                    className="integration-input"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="integration-secret__toggle"
+                    onClick={() => setShowSmsToken((v) => !v)}
+                    title={showSmsToken ? 'Ocultar senha' : 'Mostrar senha'}
+                    aria-label={showSmsToken ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showSmsToken ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
-              <button 
-                onClick={() => handleSaveSmsGateway('smsmarket')}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#3B82F6', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
-              >
+              <button type="button" className="integration-btn" onClick={() => handleSaveSmsGateway('smsmarket')}>
                 <Save size={18} /> Salvar Integração SMS Market
               </button>
             </div>
@@ -489,60 +502,67 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'placafipe' && (
         <>
           <div className="section-block">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-              <button
-                onClick={() => setCurrentView('integracoes')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
-              >
+            <div className="integration-header">
+              <button type="button" className="integration-back" onClick={() => setCurrentView('integracoes')}>
                 <ArrowLeft size={24} />
               </button>
-              <h2 style={{ margin: 0 }}>Integração Consulta de Placa</h2>
+              <h2>Integração Consulta de Placa</h2>
             </div>
 
-            <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '600px' }}>
-              <p style={{ color: '#4B5563', fontSize: '14px', marginBottom: '20px' }}>
+            <div className="integration-card">
+              <p className="integration-desc">
                 Informe o token JWT da API placas.app.br. Com ele, a tela de veículo consulta a placa e preenche marca, modelo, ano, cor e demais dados automaticamente.
               </p>
 
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Token</label>
-                <input
-                  type="password"
-                  value={placaFipeToken}
-                  onChange={(e) => setPlacaFipeToken(e.target.value)}
-                  placeholder="Cole o token JWT de placas.app.br"
-                  style={{ width: '100%', padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
-                />
+              <div className="integration-field">
+                <label className="integration-label">Token</label>
+                <div className="integration-secret">
+                  <input
+                    type={showPlacaToken ? 'text' : 'password'}
+                    value={placaFipeToken}
+                    onChange={(e) => setPlacaFipeToken(e.target.value)}
+                    placeholder="Cole o token JWT de placas.app.br"
+                    className="integration-input"
+                    autoComplete="off"
+                  />
+                  <button
+                    type="button"
+                    className="integration-secret__toggle"
+                    onClick={() => setShowPlacaToken((v) => !v)}
+                    title={showPlacaToken ? 'Ocultar token' : 'Mostrar token'}
+                    aria-label={showPlacaToken ? 'Ocultar token' : 'Mostrar token'}
+                  >
+                    {showPlacaToken ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
-              <button
-                onClick={handleSavePlacaFipe}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#3B82F6', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', marginBottom: '24px' }}
-              >
+              <button type="button" className="integration-btn" onClick={handleSavePlacaFipe}>
                 <Save size={18} /> Salvar token
               </button>
 
-              <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '20px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Testar consulta por placa</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="integration-divider">
+                <label className="integration-label">Testar consulta por placa</label>
+                <div className="integration-test-row">
                   <input
                     type="text"
                     value={placaFipeTest}
                     onChange={(e) => setPlacaFipeTest(e.target.value.toUpperCase())}
                     placeholder="ABC1D23"
                     maxLength={8}
-                    style={{ flex: 1, padding: '12px 16px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '14px' }}
+                    className="integration-input"
                   />
                   <button
+                    type="button"
+                    className="integration-btn integration-btn--secondary"
                     onClick={handleTestPlacaFipe}
                     disabled={placaFipeLoading}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#111827', color: '#fff', padding: '10px 16px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
                   >
                     <Search size={16} /> {placaFipeLoading ? 'Consultando...' : 'Pesquisar'}
                   </button>
                 </div>
                 {placaFipeResult && (
-                  <div style={{ marginTop: '16px', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#374151' }}>
+                  <div className="integration-result">
                     <div><strong>{placaFipeResult.marca}</strong> {placaFipeResult.modelo}</div>
                     <div>Ano: {placaFipeResult.ano} · Cor: {placaFipeResult.cor}</div>
                     <div>Combustível: {placaFipeResult.combustivel}</div>
