@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Map, { Marker } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -149,12 +149,16 @@ const LoginMapBackground = () => {
       ...pointOnRoute(r, r.progress, r.direction),
     })),
   );
-  const vehiclesRef = useRef(vehicles);
-  vehiclesRef.current = vehicles;
+  const vehiclesRef = useRef(null);
+
+  useEffect(() => {
+    vehiclesRef.current = vehicles;
+  }, [vehicles]);
 
   useEffect(() => {
     const id = setInterval(() => {
       const current = vehiclesRef.current;
+      if (!current) return;
 
       const next = current.map((v) => {
         let { progress, direction } = v;
@@ -187,6 +191,7 @@ const LoginMapBackground = () => {
         return { ...v, progress, direction, ...pointOnRoute(v, progress, direction) };
       });
 
+      vehiclesRef.current = next;
       setVehicles(next);
     }, 50);
 

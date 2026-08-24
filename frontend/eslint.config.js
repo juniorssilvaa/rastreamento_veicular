@@ -27,6 +27,7 @@ export default defineConfig([
       'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/rules-of-hooks': 'warn',
       'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'warn',
       'no-useless-escape': 'warn',
       'no-undef': 'warn'
     },
