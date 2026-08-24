@@ -1582,19 +1582,19 @@
 }
 
 .geofence-btn-save {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    background: #22c55e;
     border: none;
-    color: #1a1a1d;
+    color: #ffffff;
     font-weight: 700;
     box-shadow: none;
 }
 
 .geofence-btn-save svg {
-    color: #1a1a1d;
+    color: #ffffff;
 }
 
 .geofence-btn-save:hover {
-    background: linear-gradient(135deg, #fcd34d, #fbbf24);
+    background: #16a34a;
     box-shadow: none;
     transform: none;
 }

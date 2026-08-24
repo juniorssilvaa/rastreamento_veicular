@@ -423,193 +423,520 @@ import datetime
 
 class AsaasCustomerView(APIView):
     """Proxy view para criar clientes no Asaas, salvar no banco local, e opcionalmente criar assinatura"""
-    
-    def get(self, request):
-        customers = Customer.objects.all().order_by('-created_at')
-        data = []
-        for c in customers:
-            user = getattr(c, 'user', None)
-            data.append({
-                "id": c.id,
-                "asaas_id": c.asaas_id,
-                "cpf_cnpj": c.cpf_cnpj,
-                "name": c.name,
-                "email": c.email,
-                "phone": c.phone,
-                "mobile_phone": c.mobile_phone,
-                "monthly_value": float(c.monthly_value) if c.monthly_value else None,
-                "due_day": c.due_day,
-                "created_at": c.created_at.isoformat() if c.created_at else None,
-                "rg": c.rg,
-                "birth_date": str(c.birth_date) if c.birth_date else None,
-                "postal_code": c.postal_code,
-                "address": c.address,
-                "address_number": c.address_number,
-                "complement": c.complement,
-                "province": c.province,
-                "city": c.city,
-                "state": c.state,
-                "contract_name": c.contract_name,
-                "income": float(c.income) if c.income else None,
-                "has_access": user is not None,
-                "is_active": user.is_active if user else False,
-                "has_2fa": bool(c.otp_secret and c.otp_secret != '-')
-            })
-        return Response(data, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    def _serialize_local(self, c):
+        user = getattr(c, 'user', None)
+        return {
+            "id": c.id,
+            "asaas_id": c.asaas_id,
+            "cpf_cnpj": c.cpf_cnpj,
+            "name": c.name,
+            "email": c.email,
+            "phone": c.phone,
+            "mobile_phone": c.mobile_phone,
+            "monthly_value": float(c.monthly_value) if c.monthly_value else None,
+            "due_day": c.due_day,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+            "rg": c.rg,
+            "birth_date": str(c.birth_date) if c.birth_date else None,
+            "postal_code": c.postal_code,
+            "address": c.address,
+            "address_number": c.address_number,
+            "complement": c.complement,
+            "province": c.province,
+            "city": c.city,
+            "state": c.state,
+            "contract_name": c.contract_name,
+            "income": float(c.income) if c.income else None,
+            "is_recurring": bool(getattr(c, "is_recurring", False)),
+            "has_access": user is not None,
+            "is_active": user.is_active if user else False,
+            "has_2fa": bool(c.otp_secret and c.otp_secret != '-'),
+            "source": "local",
+        }
+
+    def get(self, request):
         asaas_token = request.headers.get('X-Asaas-Token')
         asaas_env = request.headers.get('X-Asaas-Env', 'sandbox')
-        logger.info("[ASAAS] criar cliente env=%s token=%s", asaas_env, mask_secret(asaas_token))
 
+        local_customers = list(Customer.objects.all().order_by('-created_at'))
+        local_by_asaas = {c.asaas_id: c for c in local_customers if c.asaas_id}
+
+        # Sem token: lista apenas o banco local
         if not asaas_token:
-            return Response({"error": "Token do Asaas não fornecido no cabeçalho X-Asaas-Token"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                [self._serialize_local(c) for c in local_customers],
+                status=status.HTTP_200_OK,
+            )
 
         base_url = "https://api-sandbox.asaas.com/v3" if asaas_env == 'sandbox' else "https://api.asaas.com/v3"
         headers = {
             "accept": "application/json",
-            "content-type": "application/json",
-            "access_token": asaas_token
+            "access_token": asaas_token,
         }
-
-        data = request.data
-        
-        # 1. Payload do Cliente para o Asaas
-        customer_payload = {
-            "name": data.get("name", ""),
-            "cpfCnpj": data.get("cpf_cnpj", ""),
-            "email": data.get("email", ""),
-            "phone": data.get("phone", ""),
-            "mobilePhone": data.get("mobile_phone", ""),
-            "postalCode": data.get("postal_code", ""),
-            "address": data.get("address", ""),
-            "addressNumber": data.get("address_number", ""),
-            "complement": data.get("complement", ""),
-            "province": data.get("province", ""),
-            "externalReference": data.get("contract_name", ""),
-            "notificationDisabled": True
-        }
-
-        # Remove empty keys so Asaas doesn't complain
-        customer_payload = {k: v for k, v in customer_payload.items() if v}
 
         try:
-            # Chama API do Asaas para Criar Cliente
-            response = requests.post(f"{base_url}/customers", json=customer_payload, headers=headers)
-            asaas_data = response.json()
-            log_api_call("ASAAS", "POST", f"{base_url}/customers", response.status_code)
-            
-            if response.status_code >= 400:
-                return Response(asaas_data, status=response.status_code)
-                
-            asaas_id = asaas_data.get('id')
-            
-            # Desabilita explicitamente todas as notificações (desmarca as caixas no painel do Asaas)
-            try:
-                notif_resp = requests.get(f"{base_url}/customers/{asaas_id}/notifications", headers=headers)
-                if notif_resp.status_code == 200:
-                    for notif in notif_resp.json().get('data', []):
-                        notif_id = notif.get('id')
-                        requests.put(
-                            f"{base_url}/notifications/{notif_id}",
-                            json={
-                                "emailEnabledForProvider": False,
-                                "smsEnabledForProvider": False,
-                                "emailEnabledForCustomer": False,
-                                "smsEnabledForCustomer": False,
-                                "phoneCallEnabledForCustomer": False,
-                                "whatsappEnabledForCustomer": False
-                            },
-                            headers=headers
-                        )
-            except Exception:
-                pass # Ignora erros de notificação para não bloquear a criação
-            
-            # Formata datas e numeros para o DB
-            birth_date = data.get('birth_date')
-            if not birth_date:
-                birth_date = None
-                
-            monthly_value = data.get('monthly_value')
-            if monthly_value:
-                monthly_value = float(monthly_value)
-            else:
-                monthly_value = None
+            asaas_customers = []
+            offset = 0
+            limit = 100
+            while True:
+                resp = requests.get(
+                    f"{base_url}/customers",
+                    headers=headers,
+                    params={"limit": limit, "offset": offset},
+                    timeout=30,
+                )
+                log_api_call("ASAAS", "GET", f"{base_url}/customers?offset={offset}", resp.status_code)
+                if resp.status_code >= 400:
+                    logger.warning("[ASAAS] falha ao listar customers: %s", resp.text[:300])
+                    # Fallback para lista local se Asaas falhar
+                    return Response(
+                        [self._serialize_local(c) for c in local_customers],
+                        status=status.HTTP_200_OK,
+                    )
 
-            due_day = data.get('due_day')
-            if due_day:
-                due_day = int(due_day)
-            else:
-                due_day = None
-                
-            income = data.get('income')
-            if income:
-                income = float(income)
-            else:
-                income = None
+                payload = resp.json() if resp.content else {}
+                page = payload.get("data") or []
+                asaas_customers.extend(page)
+                has_more = bool(payload.get("hasMore"))
+                if not has_more or not page:
+                    break
+                offset += limit
+                if offset > 2000:  # segurança
+                    break
 
-            # 2. Salva no Banco de Dados Local
-            customer = Customer.objects.create(
-                asaas_id=asaas_id,
-                cpf_cnpj=data.get('cpf_cnpj', ''),
-                name=data.get('name', ''),
-                contract_name=data.get('contract_name', ''),
-                rg=data.get('rg', ''),
-                birth_date=birth_date,
-                postal_code=data.get('postal_code', ''),
-                address=data.get('address', ''),
-                address_number=data.get('address_number', ''),
-                complement=data.get('complement', ''),
-                province=data.get('province', ''),
-                city=data.get('city', ''),
-                state=data.get('state', ''),
-                mobile_phone=data.get('mobile_phone', ''),
-                phone=data.get('phone', ''),
-                email=data.get('email', ''),
-                monthly_value=monthly_value,
-                due_day=due_day,
-                income=income
+            logger.info("[ASAAS] listados %s clientes (env=%s)", len(asaas_customers), asaas_env)
+
+            merged = []
+            seen_asaas_ids = set()
+
+            for ac in asaas_customers:
+                asaas_id = ac.get("id")
+                if not asaas_id or asaas_id in seen_asaas_ids:
+                    continue
+                seen_asaas_ids.add(asaas_id)
+
+                local = local_by_asaas.get(asaas_id)
+                if local:
+                    item = self._serialize_local(local)
+                    # Prefere dados frescos do Asaas nos campos principais
+                    item["name"] = ac.get("name") or item["name"]
+                    item["email"] = ac.get("email") or item["email"]
+                    item["cpf_cnpj"] = ac.get("cpfCnpj") or item["cpf_cnpj"]
+                    item["phone"] = ac.get("phone") or item["phone"]
+                    item["mobile_phone"] = ac.get("mobilePhone") or item["mobile_phone"]
+                    item["postal_code"] = ac.get("postalCode") or item["postal_code"]
+                    item["address"] = ac.get("address") or item["address"]
+                    item["address_number"] = ac.get("addressNumber") or item["address_number"]
+                    item["complement"] = ac.get("complement") or item["complement"]
+                    item["province"] = ac.get("province") or item["province"]
+                    item["city"] = ac.get("city") or item.get("city")
+                    item["state"] = ac.get("state") or item.get("state")
+                    item["contract_name"] = ac.get("externalReference") or item["contract_name"]
+                    item["source"] = "asaas+local"
+                else:
+                    item = {
+                        "id": None,
+                        "asaas_id": asaas_id,
+                        "cpf_cnpj": ac.get("cpfCnpj") or "",
+                        "name": ac.get("name") or "Sem nome",
+                        "email": ac.get("email"),
+                        "phone": ac.get("phone"),
+                        "mobile_phone": ac.get("mobilePhone"),
+                        "monthly_value": None,
+                        "due_day": None,
+                        "created_at": ac.get("dateCreated"),
+                        "rg": None,
+                        "birth_date": None,
+                        "postal_code": ac.get("postalCode"),
+                        "address": ac.get("address"),
+                        "address_number": ac.get("addressNumber"),
+                        "complement": ac.get("complement"),
+                        "province": ac.get("province"),
+                        "city": ac.get("city"),
+                        "state": ac.get("state"),
+                        "contract_name": ac.get("externalReference"),
+                        "income": None,
+                        "has_access": False,
+                        "is_active": False,
+                        "has_2fa": False,
+                        "source": "asaas",
+                    }
+                merged.append(item)
+
+            # Locais sem asaas_id (ainda não sincronizados) ficam no fim
+            for c in local_customers:
+                if not c.asaas_id or c.asaas_id not in seen_asaas_ids:
+                    merged.append(self._serialize_local(c))
+
+            return Response(merged, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception("[ASAAS] erro ao listar clientes: %s", e)
+            return Response(
+                [self._serialize_local(c) for c in local_customers],
+                status=status.HTTP_200_OK,
             )
 
+    def _as_bool(self, value, default=False):
+        if value is None:
+            return default
+        if isinstance(value, bool):
+            return value
+        return str(value).strip().lower() in {"1", "true", "yes", "on", "sim"}
+
+    def _parse_customer_fields(self, data):
+        birth_date = data.get("birth_date") or None
+
+        monthly_value = data.get("monthly_value")
+        monthly_value = float(monthly_value) if monthly_value not in (None, "") else None
+
+        due_day = data.get("due_day")
+        due_day = int(due_day) if due_day not in (None, "") else None
+
+        income = data.get("income")
+        income = float(income) if income not in (None, "") else None
+
+        return {
+            "cpf_cnpj": data.get("cpf_cnpj", "") or "",
+            "name": data.get("name", "") or "",
+            "contract_name": data.get("contract_name", "") or "",
+            "rg": data.get("rg", "") or "",
+            "birth_date": birth_date,
+            "postal_code": data.get("postal_code", "") or "",
+            "address": data.get("address", "") or "",
+            "address_number": data.get("address_number", "") or "",
+            "complement": data.get("complement", "") or "",
+            "province": data.get("province", "") or "",
+            "city": data.get("city", "") or "",
+            "state": data.get("state", "") or "",
+            "mobile_phone": data.get("mobile_phone", "") or "",
+            "phone": data.get("phone", "") or "",
+            "email": data.get("email", "") or "",
+            "monthly_value": monthly_value,
+            "due_day": due_day,
+            "income": income,
+            "is_recurring": self._as_bool(data.get("is_recurring") if data.get("is_recurring") is not None else data.get("recurring"), False),
+        }
+
+    def _disable_customer_notifications(self, base_url, headers, asaas_id):
+        try:
+            notif_resp = requests.get(f"{base_url}/customers/{asaas_id}/notifications", headers=headers, timeout=30)
+            if notif_resp.status_code != 200:
+                return
+            for notif in notif_resp.json().get("data", []):
+                notif_id = notif.get("id")
+                if not notif_id:
+                    continue
+                requests.put(
+                    f"{base_url}/notifications/{notif_id}",
+                    json={
+                        "enabled": False,
+                        "emailEnabledForProvider": False,
+                        "smsEnabledForProvider": False,
+                        "emailEnabledForCustomer": False,
+                        "smsEnabledForCustomer": False,
+                        "phoneCallEnabledForCustomer": False,
+                        "whatsappEnabledForCustomer": False,
+                    },
+                    headers=headers,
+                    timeout=30,
+                )
+        except Exception:
+            pass
+
+    def post(self, request):
+        data = request.data
+        send_to_asaas = self._as_bool(data.get("send_to_asaas"), False)
+        disable_notifications = self._as_bool(data.get("disable_asaas_notifications"), True)
+        local_id = data.get("local_id") or data.get("id")
+        existing_asaas_id = data.get("asaas_id") or None
+        fields = self._parse_customer_fields(data)
+
+        if not fields["name"] or not fields["cpf_cnpj"]:
+            return Response(
+                {"error": "Nome e CPF/CNPJ são obrigatórios"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Salvar apenas no banco local (sem criar cliente/fatura no Asaas)
+        if not send_to_asaas:
+            try:
+                if local_id:
+                    customer = Customer.objects.filter(id=local_id).first()
+                    if not customer:
+                        return Response({"error": "Cliente local não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+                    for key, value in fields.items():
+                        setattr(customer, key, value)
+                    customer.save()
+                    return Response(
+                        {
+                            "message": "Cliente salvo localmente!",
+                            "customer_id": customer.id,
+                            "asaas_id": customer.asaas_id,
+                            **self._serialize_local(customer),
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+
+                if existing_asaas_id:
+                    customer = Customer.objects.filter(asaas_id=existing_asaas_id).first()
+                    if customer:
+                        for key, value in fields.items():
+                            setattr(customer, key, value)
+                        customer.save()
+                    else:
+                        customer = Customer.objects.create(asaas_id=existing_asaas_id, **fields)
+                    return Response(
+                        {
+                            "message": "Cliente salvo localmente!",
+                            "customer_id": customer.id,
+                            "asaas_id": customer.asaas_id,
+                            **self._serialize_local(customer),
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+
+                customer = Customer.objects.create(asaas_id=None, **fields)
+                return Response(
+                    {
+                        "message": "Cliente salvo localmente!",
+                        "customer_id": customer.id,
+                        "asaas_id": None,
+                        **self._serialize_local(customer),
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        asaas_token = request.headers.get("X-Asaas-Token")
+        asaas_env = request.headers.get("X-Asaas-Env", "sandbox")
+        logger.info("[ASAAS] criar/enviar cliente env=%s token=%s", asaas_env, mask_secret(asaas_token))
+
+        if not asaas_token:
+            return Response(
+                {"error": "Token do Asaas não fornecido no cabeçalho X-Asaas-Token"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        base_url = "https://api-sandbox.asaas.com/v3" if asaas_env == "sandbox" else "https://api.asaas.com/v3"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "access_token": asaas_token,
+        }
+
+        customer_payload = {
+            "name": fields["name"],
+            "cpfCnpj": fields["cpf_cnpj"],
+            "email": fields["email"],
+            "phone": fields["phone"],
+            "mobilePhone": fields["mobile_phone"],
+            "postalCode": fields["postal_code"],
+            "address": fields["address"],
+            "addressNumber": fields["address_number"],
+            "complement": fields["complement"],
+            "province": fields["province"],
+            "externalReference": fields["contract_name"],
+            "notificationDisabled": bool(disable_notifications),
+        }
+        customer_payload = {k: v for k, v in customer_payload.items() if v or k == "notificationDisabled"}
+
+        try:
+            existing = Customer.objects.filter(id=local_id).first() if local_id else None
+            if not existing and existing_asaas_id:
+                existing = Customer.objects.filter(asaas_id=existing_asaas_id).first()
+            asaas_id = (existing.asaas_id if existing and existing.asaas_id else None) or existing_asaas_id
+
+            if asaas_id:
+                response = requests.put(
+                    f"{base_url}/customers/{asaas_id}",
+                    json={k: v for k, v in customer_payload.items() if k != "cpfCnpj" or v},
+                    headers=headers,
+                    timeout=30,
+                )
+            else:
+                response = requests.post(f"{base_url}/customers", json=customer_payload, headers=headers, timeout=30)
+
+            asaas_data = response.json() if response.content else {}
+            log_api_call(
+                "ASAAS",
+                "PUT" if asaas_id else "POST",
+                f"{base_url}/customers" + (f"/{asaas_id}" if asaas_id else ""),
+                response.status_code,
+            )
+
+            if response.status_code >= 400:
+                return Response(asaas_data, status=response.status_code)
+
+            asaas_id = asaas_data.get("id") or asaas_id
+
+            if disable_notifications and asaas_id:
+                self._disable_customer_notifications(base_url, headers, asaas_id)
+
+            if existing:
+                for key, value in fields.items():
+                    setattr(existing, key, value)
+                existing.asaas_id = asaas_id
+                existing.save()
+                customer = existing
+            else:
+                customer = Customer.objects.create(asaas_id=asaas_id, **fields)
+
             subscription_data = None
-            # 3. Cria Assinatura Automática se preenchido
-            if monthly_value and due_day:
-                # Calcula proximo vencimento
+            monthly_value = fields["monthly_value"]
+            due_day = fields["due_day"]
+            if fields.get("is_recurring") and monthly_value and due_day and asaas_id:
                 today = datetime.date.today()
-                next_due_date = datetime.date(today.year, today.month, due_day)
+                try:
+                    next_due_date = datetime.date(today.year, today.month, due_day)
+                except ValueError:
+                    next_due_date = datetime.date(today.year, today.month + 1, 1) - datetime.timedelta(days=1) if today.month < 12 else datetime.date(today.year, 12, 31)
                 if next_due_date <= today:
-                    # Joga pro proximo mes se o dia ja passou ou é hoje
                     if today.month == 12:
                         next_due_date = datetime.date(today.year + 1, 1, due_day)
                     else:
-                        next_due_date = datetime.date(today.year, today.month + 1, due_day)
+                        try:
+                            next_due_date = datetime.date(today.year, today.month + 1, due_day)
+                        except ValueError:
+                            next_due_date = datetime.date(today.year, today.month + 2, 1) - datetime.timedelta(days=1)
 
                 sub_payload = {
                     "customer": asaas_id,
-                    "billingType": "BOLETO", # Padrão
+                    "billingType": "BOLETO",
                     "value": monthly_value,
                     "nextDueDate": next_due_date.strftime("%Y-%m-%d"),
                     "cycle": "MONTHLY",
-                    "description": f"Mensalidade Rastreador - {data.get('name')}",
-                    "notificationDisabled": True
+                    "description": f"Mensalidade Rastreador - {fields['name']}",
                 }
-                
-                sub_response = requests.post(f"{base_url}/subscriptions", json=sub_payload, headers=headers)
+                if disable_notifications:
+                    sub_payload["notificationDisabled"] = True
+
+                if customer.asaas_subscription_id:
+                    sub_response = requests.put(
+                        f"{base_url}/subscriptions/{customer.asaas_subscription_id}",
+                        json={
+                            "value": monthly_value,
+                            "nextDueDate": next_due_date.strftime("%Y-%m-%d"),
+                            "updatePendingPayments": True,
+                        },
+                        headers=headers,
+                        timeout=30,
+                    )
+                else:
+                    sub_response = requests.post(
+                        f"{base_url}/subscriptions",
+                        json=sub_payload,
+                        headers=headers,
+                        timeout=30,
+                    )
+
                 if sub_response.status_code < 400:
                     subscription_data = sub_response.json()
-                    customer.asaas_subscription_id = subscription_data.get('id')
+                    customer.asaas_subscription_id = subscription_data.get("id") or customer.asaas_subscription_id
                     customer.save()
 
-            return Response({
-                "message": "Cliente criado com sucesso!",
-                "customer_id": customer.id,
-                "asaas_id": asaas_id,
-                "asaas_data": asaas_data,
-                "subscription": subscription_data
-            }, status=status.HTTP_201_CREATED)
-
+            return Response(
+                {
+                    "message": "Cliente enviado ao Asaas com sucesso!",
+                    "customer_id": customer.id,
+                    "asaas_id": asaas_id,
+                    "asaas_data": asaas_data,
+                    "subscription": subscription_data,
+                    **self._serialize_local(customer),
+                },
+                status=status.HTTP_201_CREATED if not existing else status.HTTP_200_OK,
+            )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AsaasCustomerFinanceView(APIView):
+    """Resumo financeiro do cliente no Asaas (último pagamento, assinatura, faturas)."""
+
+    def get(self, request, asaas_id):
+        asaas_token = request.headers.get('X-Asaas-Token')
+        asaas_env = request.headers.get('X-Asaas-Env', 'sandbox')
+        if not asaas_token:
+            return Response({"error": "Token do Asaas não fornecido"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        base_url = "https://api-sandbox.asaas.com/v3" if asaas_env == 'sandbox' else "https://api.asaas.com/v3"
+        headers = {"accept": "application/json", "access_token": asaas_token}
+
+        try:
+            pay_resp = requests.get(
+                f"{base_url}/payments",
+                headers=headers,
+                params={"customer": asaas_id, "limit": 50},
+                timeout=30,
+            )
+            log_api_call("ASAAS", "GET", f"{base_url}/payments?customer={asaas_id}", pay_resp.status_code)
+            payments = (pay_resp.json() or {}).get("data", []) if pay_resp.status_code < 400 else []
+
+            sub_resp = requests.get(
+                f"{base_url}/subscriptions",
+                headers=headers,
+                params={"customer": asaas_id, "limit": 20},
+                timeout=30,
+            )
+            log_api_call("ASAAS", "GET", f"{base_url}/subscriptions?customer={asaas_id}", sub_resp.status_code)
+            subscriptions = (sub_resp.json() or {}).get("data", []) if sub_resp.status_code < 400 else []
+
+            paid_statuses = {"RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"}
+            paid = [p for p in payments if p.get("status") in paid_statuses]
+            paid.sort(key=lambda p: p.get("paymentDate") or p.get("clientPaymentDate") or p.get("dueDate") or "", reverse=True)
+            last_paid = paid[0] if paid else None
+
+            pending = [p for p in payments if p.get("status") in {"PENDING", "OVERDUE"}]
+            pending.sort(key=lambda p: p.get("dueDate") or "")
+            next_bill = pending[0] if pending else None
+
+            active_sub = next((s for s in subscriptions if s.get("status") == "ACTIVE"), None)
+            if not active_sub and subscriptions:
+                active_sub = subscriptions[0]
+
+            overdue_count = sum(1 for p in payments if p.get("status") == "OVERDUE")
+            local = Customer.objects.filter(asaas_id=asaas_id).first()
+
+            today = datetime.date.today()
+            days_until = None
+            next_due = None
+            if next_bill and next_bill.get("dueDate"):
+                next_due = next_bill["dueDate"]
+                try:
+                    days_until = (datetime.datetime.strptime(next_due, "%Y-%m-%d").date() - today).days
+                except Exception:
+                    days_until = None
+            elif active_sub and active_sub.get("nextDueDate"):
+                next_due = active_sub.get("nextDueDate")
+                try:
+                    days_until = (datetime.datetime.strptime(next_due, "%Y-%m-%d").date() - today).days
+                except Exception:
+                    days_until = None
+
+            account_active = bool(active_sub and active_sub.get("status") == "ACTIVE") or overdue_count == 0
+
+            return Response({
+                "asaas_id": asaas_id,
+                "last_paid_value": last_paid.get("value") if last_paid else None,
+                "last_paid_date": (last_paid.get("paymentDate") or last_paid.get("clientPaymentDate") or last_paid.get("dueDate")) if last_paid else None,
+                "next_due_date": next_due,
+                "days_until_due": days_until,
+                "account_active": account_active,
+                "overdue": overdue_count > 0,
+                "overdue_count": overdue_count,
+                "payments_count": len(payments),
+                "subscriptions_count": len(subscriptions),
+                "recurring": bool(active_sub),
+                "monthly_value": (
+                    active_sub.get("value") if active_sub
+                    else (float(local.monthly_value) if local and local.monthly_value else None)
+                ),
+                "subscription_status": active_sub.get("status") if active_sub else None,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception("[ASAAS] finance customer=%s: %s", asaas_id, e)
+            return Response({"error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
 
 class AsaasCustomerDetailView(APIView):
     """Proxy view para atualizar ou deletar clientes no Asaas e localmente"""
@@ -789,7 +1116,40 @@ class AsaasOverdueCustomersView(APIView):
             # Agrupa as faturas por cliente, somando o valor e pegando o maior atraso
             overdue_customers = {}
             today = datetime.date.today()
-            
+            asaas_name_cache = {}
+
+            def resolve_customer_name(customer_id):
+                if not customer_id:
+                    return "Cliente sem identificação"
+
+                # 1) Banco local
+                customer_obj = Customer.objects.filter(asaas_id=customer_id).first()
+                if customer_obj and customer_obj.name:
+                    return customer_obj.name
+
+                # 2) Cache da requisição
+                if customer_id in asaas_name_cache:
+                    return asaas_name_cache[customer_id]
+
+                # 3) API Asaas
+                try:
+                    cust_res = requests.get(
+                        f"{base_url}/customers/{customer_id}",
+                        headers=headers,
+                        timeout=10,
+                    )
+                    if cust_res.status_code < 400:
+                        cust_data = cust_res.json() or {}
+                        name = (cust_data.get("name") or "").strip()
+                        if name:
+                            asaas_name_cache[customer_id] = name
+                            return name
+                except Exception:
+                    pass
+
+                asaas_name_cache[customer_id] = "Cliente sem nome"
+                return asaas_name_cache[customer_id]
+
             for payment in data:
                 customer_id = payment.get('customer')
                 due_date_str = payment.get('dueDate')
@@ -800,13 +1160,9 @@ class AsaasOverdueCustomersView(APIView):
                 days_overdue = (today - due_date).days
                 
                 if customer_id not in overdue_customers:
-                    # Tenta pegar o nome do banco local (mais rapido)
-                    customer_obj = Customer.objects.filter(asaas_id=customer_id).first()
-                    customer_name = customer_obj.name if customer_obj else f"Cliente {customer_id}"
-                    
                     overdue_customers[customer_id] = {
                         "asaas_id": customer_id,
-                        "name": customer_name,
+                        "name": resolve_customer_name(customer_id),
                         "total_value": value,
                         "max_days_overdue": days_overdue
                     }

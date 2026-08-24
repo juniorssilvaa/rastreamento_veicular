@@ -1,37 +1,51 @@
 :root {
-  --bg-main: #F4F7FE;
-  --bg-sidebar: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --text-primary: #2B3674;
-  --text-secondary: #A3AED0;
-  --text-gray: #707EAE;
-  --icon-color: #2B3674;
-  --icon-muted: #707EAE;
-  --accent-purple: #6F42C1;
-  --accent-blue-light: #4318FF;
-  --accent-cyan: #00B8E2;
-  --accent-green: #05CD99;
-  --accent-blue: #3965FF;
+  /* Base (ACS / NIO HUB) */
+  --bg-main: #f4f6f9;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-gray: #4b5563;
+  --icon-color: #374151;
+  --icon-muted: #6b7280;
+
+  /* Acentos — dourado BL + cores semânticas */
   --accent-gold: #D4AF37;
-  --border-color: #E0E5F2;
+  --accent-gold-hover: #C5A028;
+  --accent-orange: #D4AF37; /* Novo / primário = dourado (não laranja ACS) */
+  --accent-orange-hover: #C5A028;
+  --accent-green: #22c55e;
+  --accent-green-hover: #16a34a;
+  --accent-red: #dc2626;
+  --accent-red-hover: #b91c1c;
+  --accent-blue: #2563eb;
+  --accent-amber: #eab308;
+  --accent-amber-deep: #f59e0b;
+  --accent-purple: #7c3aed;
+  --accent-cyan: #0891b2;
+  --accent-blue-light: #2563eb;
+
+  --border-color: #e5e7eb;
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 78px;
-  --shadow-sm: 0px 4px 12px rgba(112, 144, 176, 0.08);
-  --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow-card: 0 0.35rem 0.85rem rgba(0, 0, 0, 0.12);
 }
 
 :root.dark {
-  --bg-main: #1e1e1e;       /* Fundo cinza escuro */
-  --bg-sidebar: #2a2a2a;    /* Sidebar em cinza */
-  --bg-card: #2a2a2a;       /* Cards em cinza */
-  --text-primary: #ffffff;  /* Texto principal branco */
-  --text-secondary: #a1a1aa;/* Texto secundário cinza */
-  --text-gray: #d4d4d8;     /* Texto geral cinza claro */
-  --icon-color: #ffffff;    /* Ícones brancos */
-  --icon-muted: #e4e4e7;    /* Ícones secundários claros */
-  --border-color: #3a3a3a;  /* Borda cinza suave */
-  --shadow-sm: 0px 4px 12px rgba(0, 0, 0, 0.45);
-  --shadow-card: 0px 18px 40px rgba(0, 0, 0, 0.55);
+  --bg-main: #18181b;
+  --bg-sidebar: #2b2b2b;
+  --bg-card: #27272a;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-gray: #d4d4d8;
+  --icon-color: #ffffff;
+  --icon-muted: #e4e4e7;
+  --border-color: #3f3f46;
+  --shadow-sm: 0 0.125rem 0.35rem rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 0.35rem 0.85rem rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -41,7 +55,7 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
@@ -55,6 +69,164 @@ ul {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+/* ===== Botões globais estilo ACS =====
+   Laranja = Novo / primário
+   Verde   = Salvar
+   Azul    = Atualizar
+   Vermelho = Excluir / Sair
+*/
+.btn-acs-primary,
+.btn-primary,
+.btn-novo,
+.btn-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-orange) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-acs-primary:hover,
+.btn-primary:hover,
+.btn-novo:hover,
+.btn-new:hover {
+  background: var(--accent-orange-hover) !important;
+}
+
+.btn-acs-success,
+.btn-save,
+.btn-salvar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-green) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-acs-success:hover,
+.btn-save:hover,
+.btn-salvar:hover {
+  background: var(--accent-green-hover) !important;
+}
+
+.btn-acs-update,
+.btn-atualizar,
+.btn-update {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-blue) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-acs-update:hover,
+.btn-atualizar:hover,
+.btn-update:hover {
+  background: #1d4ed8 !important;
+}
+
+.btn-acs-danger,
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-red) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.btn-acs-danger:hover,
+.btn-logout:hover {
+  background: var(--accent-red-hover) !important;
+}
+
+.btn-acs-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.btn-acs-ghost:hover {
+  border-color: var(--accent-orange) !important;
+  color: var(--accent-orange) !important;
+}
+
+/* Cards padrão ACS */
+.card,
+.card-box,
+.kpi-card,
+.action-card,
+.overview-card {
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  background: var(--bg-card);
+}
+
+/* Badges sólidos ACS */
+.badge-online,
+.status-pill.online,
+.connection-pill.is-online,
+.status-chip--online,
+.status-chip--moving {
+  background: var(--accent-green) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.badge-offline,
+.status-pill.offline,
+.connection-pill.is-offline,
+.status-chip--offline {
+  background: var(--accent-red) !important;
+  color: #ffffff !important;
+  border: none !important;
 }
 
 /* ==========================================
@@ -164,34 +336,42 @@ a {
   color: var(--text-primary) !important;
 }
 
-:root.dark p:not(.dcp *),
-:root.dark span:not(.dcp *),
-:root.dark label:not(.dcp *),
-:root.dark small:not(.dcp *) {
+:root.dark p:not(.dcp *):not(.clientes-page *),
+:root.dark span:not(.dcp *):not(.clientes-page *),
+:root.dark label:not(.dcp *):not(.clientes-page *),
+:root.dark small:not(.dcp *):not(.clientes-page *) {
   color: var(--text-gray) !important;
 }
 
-/* Sobrescrita de Badges e Status Pills para Tema Escuro */
+/* Sobrescrita de Badges e Status Pills para Tema Escuro (sólidos ACS) */
 :root.dark .status-pill.online,
 :root.dark .connection-pill.is-online,
 :root.dark .status-chip--online,
 :root.dark .status-chip--moving,
-:root.dark .stat-pill--online strong {
-  background-color: rgba(16, 185, 129, 0.15) !important;
-  background: rgba(16, 185, 129, 0.15) !important;
-  color: #34d399 !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
+:root.dark .stat-pill--online strong,
+:root.dark .badge-online {
+  background-color: #22c55e !important;
+  background: #22c55e !important;
+  color: #ffffff !important;
+  border: none !important;
 }
 
 :root.dark .status-pill.offline,
 :root.dark .connection-pill.is-offline,
 :root.dark .status-chip--offline,
 :root.dark .overdue-badge,
+:root.dark .badge-offline {
+  background-color: #dc2626 !important;
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
 :root.dark .overdue-total-pill {
-  background-color: rgba(255, 51, 51, 0.2) !important;
-  background: rgba(255, 51, 51, 0.2) !important;
-  color: #ff3333 !important;
-  border-color: rgba(255, 51, 51, 0.35) !important;
+  background-color: rgba(220, 38, 38, 0.15) !important;
+  background: rgba(220, 38, 38, 0.15) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(220, 38, 38, 0.35) !important;
 }
 
 :root.dark .overdue-total-pill span,
@@ -199,20 +379,25 @@ a {
 :root.dark .overdue-badge span,
 :root.dark .status-pill.offline span,
 :root.dark .status-pill.offline {
-  color: #ff3333 !important;
+  color: #ffffff !important;
+}
+
+:root.dark .overdue-total-pill span,
+:root.dark .overdue-total-pill strong {
+  color: #f87171 !important;
 }
 
 :root.dark .badge-id {
-  background-color: rgba(59, 130, 246, 0.15) !important;
-  background: rgba(59, 130, 246, 0.15) !important;
-  color: #60a5fa !important;
+  background-color: #2563eb !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
 }
 
 :root.dark .sync-tag {
-  background-color: rgba(67, 24, 255, 0.15) !important;
-  background: rgba(67, 24, 255, 0.15) !important;
-  color: #a3b8ff !important;
-  border-color: rgba(67, 24, 255, 0.3) !important;
+  background-color: #7c3aed !important;
+  background: #7c3aed !important;
+  color: #ffffff !important;
+  border: none !important;
 }
 
 :root.dark .nav-item span,

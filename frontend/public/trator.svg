@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 96" fill="none">
+  <!-- Trator agrícola top-down -->
+  <rect x="18" y="8" width="28" height="22" rx="4" fill="#F59E0B"/>
+  <rect x="22" y="12" width="20" height="10" rx="2" fill="#1F2937"/>
+  <rect x="14" y="28" width="36" height="40" rx="5" fill="#D97706"/>
+  <rect x="20" y="34" width="24" height="18" rx="2" fill="#92400E"/>
+  <!-- rodas grandes -->
+  <circle cx="12" cy="72" r="14" fill="#111827"/>
+  <circle cx="12" cy="72" r="7" fill="#6B7280"/>
+  <circle cx="52" cy="72" r="14" fill="#111827"/>
+  <circle cx="52" cy="72" r="7" fill="#6B7280"/>
+  <!-- rodas dianteiras -->
+  <circle cx="22" cy="18" r="6" fill="#111827"/>
+  <circle cx="42" cy="18" r="6" fill="#111827"/>
+</svg>

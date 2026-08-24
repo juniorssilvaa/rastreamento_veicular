@@ -572,7 +572,7 @@ const GestaoAlertas = ({ onNavigate }) => {
               </button>
               <button
                 type="button"
-                className="ai-btn ai-btn--primary"
+                className="ai-btn ai-btn--save"
                 disabled={selectedDevices.length === 0 || saving}
                 onClick={handleSave}
               >

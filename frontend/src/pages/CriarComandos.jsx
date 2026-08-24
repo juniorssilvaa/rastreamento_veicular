@@ -220,7 +220,11 @@ const CriarComandos = () => {
               <span className="help-text">Feche a chave {'}'} ou pressione Enter para adicionar o comando.</span>
             </div>
             
-            <button type="submit" className="btn-salvar-comando" disabled={isLoading}>
+            <button
+              type="submit"
+              className={editandoId ? 'btn-atualizar-comando' : 'btn-salvar-comando'}
+              disabled={isLoading}
+            >
               <Save size={18} /> {isLoading ? 'Salvando...' : (editandoId ? 'Atualizar Combo' : 'Salvar Combo')}
             </button>
           </form>

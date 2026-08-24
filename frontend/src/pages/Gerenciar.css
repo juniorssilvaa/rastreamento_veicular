@@ -67,7 +67,9 @@
 .section-block {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 20px;
+  width: 100%;
 }
 
 .section-block h2 {
@@ -75,12 +77,19 @@
   color: #1F2937;
   font-weight: 600;
   letter-spacing: -0.5px;
+  align-self: center;
+  width: 100%;
+  max-width: 960px;
+  text-align: left;
 }
 
 .grid-cards {
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 960px;
 }
 
 .action-card {

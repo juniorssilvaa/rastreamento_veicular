@@ -615,7 +615,7 @@ const Gerenciar = ({ onNavigate }) => {
                 </div>
                 <button 
                   onClick={handleAddIcon}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent-gold, #D4AF37)', color: '#111827', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', height: '42px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent-gold, #D4AF37)', color: '#ffffff', padding: '10px 20px', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', height: '42px', textTransform: 'uppercase', fontSize: '13px' }}
                 >
                   <Save size={18} /> Adicionar
                 </button>

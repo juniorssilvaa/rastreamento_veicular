@@ -474,7 +474,7 @@ const Dashboard = () => {
                   overdueData.customers.map(c => (
                     <div className="overdue-item" key={c.asaas_id}>
                       <div className="overdue-item-info">
-                        <strong>{c.name}</strong>
+                        <strong>{c.name || 'Cliente sem nome'}</strong>
                         <span className="overdue-badge">{c.max_days_overdue} dias de atraso</span>
                       </div>
                       <div className="overdue-item-value">

@@ -1,0 +1,2 @@
+.login-page{position:relative;min-height:100vh;overflow:hidden}
+.login-card{position:relative;z-index:10;width:min(420px,calc(100% - 32px));margin-left:clamp(16px,7vw,120px);top:50vh;transform:translateY(-50%);padding:32px;border-radius:20px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);box-shadow:0 20px 60px rgba(0,0,0,.14)}

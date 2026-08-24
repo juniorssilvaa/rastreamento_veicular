@@ -345,16 +345,16 @@
 }
 
 .btn-save {
-  background-color: #3B82F6;
+  background-color: #22c55e;
   color: white;
   border: none;
   padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 500;
+  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .btn-save:hover {
-  background-color: #2563EB;
+  background-color: #16a34a;
 }

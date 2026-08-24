@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Key } from 'lucide-react';
-import LoginMapBackground from './LoginMapBackground';
+import AnimatedMarabaMap from '../components/AnimatedMarabaMap/AnimatedMarabaMap';
 import * as OTPAuth from 'otpauth';
 import './Login.css';
 
@@ -127,6 +127,11 @@ const Login = ({ onLogin }) => {
                 <button type="submit" className="btn-acessar">
                   ACESSAR
                 </button>
+
+                <div className="login-footer-meta">
+                  <span>© 2026 BL RASTREAMENTO</span>
+                  <span>Versão 1.0.0</span>
+                </div>
               </>
             ) : (
               <>
@@ -152,6 +157,11 @@ const Login = ({ onLogin }) => {
                 <button type="submit" className="btn-acessar">
                   VERIFICAR CÓDIGO
                 </button>
+
+                <div className="login-footer-meta">
+                  <span>© 2026 BL RASTREAMENTO</span>
+                  <span>Versão 1.0.0</span>
+                </div>
                 
                 <button 
                   type="button" 
@@ -175,7 +185,7 @@ const Login = ({ onLogin }) => {
         </div>
       </div>
       <div className="login-right">
-        <LoginMapBackground />
+        <AnimatedMarabaMap />
       </div>
     </div>
   );

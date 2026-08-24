@@ -173,25 +173,37 @@
   color: var(--text-secondary, #6b7280);
 }
 
-.btn-salvar-comando {
+.btn-salvar-comando,
+.btn-atualizar-comando {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: #1f2937;
   color: #fff;
-  border: 1px solid #1f2937;
+  border: none;
   border-radius: 6px;
   padding: 10px 32px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
   margin-top: 8px;
 }
 
+.btn-salvar-comando {
+  background-color: #22c55e;
+}
+
 .btn-salvar-comando:hover {
-  background-color: #111827;
+  background-color: #16a34a;
+}
+
+.btn-atualizar-comando {
+  background-color: #2563eb;
+}
+
+.btn-atualizar-comando:hover {
+  background-color: #1d4ed8;
 }
 
 .comandos-list {
@@ -331,12 +343,20 @@
 }
 
 :root.dark .btn-salvar-comando {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: #22c55e;
+  border-color: #22c55e;
 }
 
 :root.dark .btn-salvar-comando:hover {
+  background: #16a34a;
+}
+
+:root.dark .btn-atualizar-comando {
   background: #2563eb;
+}
+
+:root.dark .btn-atualizar-comando:hover {
+  background: #1d4ed8;
 }
 
 :root.dark .comando-item {

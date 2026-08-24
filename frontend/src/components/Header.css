@@ -65,13 +65,18 @@
 }
 
 .btn-logout {
-  background-color: #ef4444;
+  background-color: #dc2626;
   color: #ffffff;
 }
 
 .btn-logout:hover {
-  background-color: #dc2626;
+  background-color: #b91c1c;
   color: #ffffff;
+}
+
+.btn-logout svg {
+  color: #ffffff !important;
+  stroke: #ffffff;
 }
 
 @media (max-width: 640px) {

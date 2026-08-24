@@ -59,13 +59,35 @@
 }
 
 .ai-btn--primary {
-  background: #2563eb;
+  background: #D4AF37;
   color: #fff;
+}
+
+.ai-btn--primary:hover {
+  background: #C5A028;
 }
 
 .ai-btn--primary:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+.ai-btn--save {
+  background: #22c55e;
+  color: #fff;
+}
+
+.ai-btn--save:hover {
+  background: #16a34a;
+}
+
+.ai-btn--update {
+  background: #2563eb;
+  color: #fff;
+}
+
+.ai-btn--update:hover {
+  background: #1d4ed8;
 }
 
 .ai-stats {

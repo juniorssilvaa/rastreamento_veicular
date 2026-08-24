@@ -155,40 +155,46 @@
   gap: 0;
 }
 
-.nav-item svg {
+.nav-item svg,
+.nav-item .car-icon {
   color: var(--icon-color);
   stroke-width: 1.5px;
   flex-shrink: 0;
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(212, 175, 55, 0.1);
   color: var(--text-primary);
 }
 
 .nav-item.active {
   font-weight: 700;
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(212, 175, 55, 0.16);
 }
 
 :root.dark .nav-item {
-  color: #e5e5e5;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-:root.dark .nav-item svg {
+:root.dark .nav-item svg,
+:root.dark .nav-item .car-icon {
   color: #ffffff;
 }
 
 :root.dark .nav-item:hover,
 :root.dark .nav-item.active {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(212, 175, 55, 0.2);
 }
 
 :root.dark .nav-item:hover svg,
 :root.dark .nav-item.active svg {
   color: #ffffff;
+}
+
+:root.dark .nav-item.active {
+  box-shadow: inset 3px 0 0 #D4AF37;
 }
 
 :root.dark .sidebar-brand__logo strong {

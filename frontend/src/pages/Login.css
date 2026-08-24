@@ -160,6 +160,21 @@
   transform: translateY(0);
 }
 
+.login-footer-meta {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.login-footer-meta span {
+  color: #6b7280 !important;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
 .login-error {
   color: #DC2626 !important;
   font-size: 14px;
@@ -174,12 +189,7 @@
 .login-right {
   flex: 1;
   position: relative;
-}
-
-/* Esconder os créditos do mapa conforme solicitado */
-.maplibregl-ctrl-attrib,
-.maplibregl-ctrl-bottom-right,
-.maplibregl-ctrl {
-  display: none !important;
+  overflow: hidden;
+  background: #eef2f3;
 }
 
