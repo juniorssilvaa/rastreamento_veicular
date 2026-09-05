@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CarIcon from '../components/CarIcon';
+import ClienteFinanceiroTab from '../components/ClienteFinanceiroTab';
 import './Clientes.css';
 
 const DonutCard = ({ title, total, segments, accent = '#f97316' }) => {
@@ -59,7 +60,7 @@ const emptyForm = {
   recurring: false,
 };
 
-const EDIT_TABS = ['PRINCIPAL', 'CLIENTE', 'PERMISSÕES', 'VEÍCULOS', 'APP'];
+const EDIT_TABS = ['PRINCIPAL', 'CLIENTE', 'FINANCEIRO', 'PERMISSÕES', 'VEÍCULOS', 'APP'];
 
 const PERMISSION_ROWS = [
   { key: 'devices', label: 'Dispositivos' },
@@ -556,11 +557,11 @@ const Clientes = () => {
 
   const handleDeleteCustomer = async (asaas_id) => {
     if (!asaas_id) return;
-    if (!window.confirm('Tem certeza que deseja excluir este cliente? Removerá também no Asaas.')) return;
+    if (!window.confirm('Tem certeza que deseja excluir este cliente? A exclusão também será feita na plataforma de cobrança.')) return;
 
     const { headers, asaasToken } = getAsaasHeaders();
     if (!asaasToken) {
-      toast.error('Token do Asaas não configurado.');
+      toast.error('Integração financeira não configurada.');
       return;
     }
 
@@ -641,7 +642,7 @@ const Clientes = () => {
     const { headers, asaasToken } = getAsaasHeaders();
 
     if (sendToAsaas && !asaasToken) {
-      toast.error('Token do Asaas não configurado. Vá em Gerenciar > Integrações.');
+      toast.error('Integração financeira não configurada. Vá em Gerenciar > Integrações.');
       setIsLoading(false);
       return;
     }
@@ -723,11 +724,11 @@ const Clientes = () => {
       if (sendToAsaas) {
         toast.success(
           data.subscription
-            ? 'Cliente enviado ao Asaas e fatura/assinatura gerada!'
-            : `Cliente enviado ao Asaas! (${data.asaas_id || ''})`
+            ? 'Cliente sincronizado e fatura/assinatura gerada!'
+            : 'Cliente sincronizado com sucesso!'
         );
       } else {
-        toast.success(editingCustomer ? 'Cliente atualizado localmente!' : 'Cliente salvo localmente (sem Asaas)!');
+        toast.success(editingCustomer ? 'Cliente atualizado localmente!' : 'Cliente salvo localmente!');
       }
       setEditOpen(false);
       fetchCustomers();
@@ -917,12 +918,12 @@ const Clientes = () => {
 
       <div className="clientes-shell">
         {isFetching ? (
-          <div className="clientes-loading">Carregando clientes do Asaas...</div>
+          <div className="clientes-loading">Carregando clientes...</div>
         ) : filteredCustomers.length === 0 ? (
           <div className="clientes-empty-state">
             <User size={48} className="empty-icon" />
             <h3>Nenhum cliente encontrado</h3>
-            <p>Confira o token Asaas em Gerenciar → Integrações ou ajuste os filtros.</p>
+            <p>Confira a integração financeira em Gerenciar → Integrações ou ajuste os filtros.</p>
           </div>
         ) : (
           <div className="clientes-table-wrap">
@@ -1268,7 +1269,7 @@ const Clientes = () => {
                           <Calendar size={16} className="select-icon" />
                         </div>
                         <div className="due-check-row">
-                          <label className="asaas-notif-check" title="Desmarca todas as notificações de cobrança no Asaas (e-mail, SMS, WhatsApp)">
+                          <label className="asaas-notif-check" title="Desmarca todas as notificações de cobrança (e-mail, SMS, WhatsApp)">
                             <input
                               type="checkbox"
                               checked={!!formData.disable_asaas_notifications}
@@ -1279,9 +1280,9 @@ const Clientes = () => {
                                 }))
                               }
                             />
-                            <span>Sem notificação Asaas</span>
+                            <span>Sem notificação automática</span>
                           </label>
-                          <label className="asaas-notif-check" title="Gera assinatura mensal recorrente no Asaas ao enviar">
+                          <label className="asaas-notif-check" title="Gera assinatura mensal recorrente ao sincronizar">
                             <input
                               type="checkbox"
                               checked={!!formData.recurring}
@@ -1339,6 +1340,25 @@ const Clientes = () => {
                     />
                   </div>
                 </div>
+              )}
+
+              {editTab === 'FINANCEIRO' && (
+                <ClienteFinanceiroTab
+                  asaasId={editingCustomer?.asaas_id || null}
+                  customerEmail={formData.email || formData.billing_email || ''}
+                  customerPhone={formData.mobile_phone || formData.phone || ''}
+                  customerName={formData.name || ''}
+                  vehicles={allDevices.filter((d) => linkedDeviceIds.includes(d.id))}
+                  getAsaasHeaders={getAsaasHeaders}
+                  onFinanceUpdated={(data) => {
+                    if (editingCustomer?.asaas_id) {
+                      setFinanceMap((prev) => ({
+                        ...prev,
+                        [editingCustomer.asaas_id]: data,
+                      }));
+                    }
+                  }}
+                />
               )}
 
               {editTab === 'PERMISSÕES' && (
@@ -1544,10 +1564,10 @@ const Clientes = () => {
                   className="btn-save-asaas"
                   disabled={isLoading}
                   onClick={(e) => handleSaveCustomer(e, true)}
-                  title="Cria/atualiza o cliente no Asaas e gera fatura se houver mensalidade e dia de vencimento"
+                  title="Cria/atualiza o cliente na plataforma de cobrança e gera fatura se houver mensalidade e dia de vencimento"
                 >
                   <Send size={16} />
-                  {isLoading ? 'Enviando...' : 'Salvar e enviar ao Asaas'}
+                  {isLoading ? 'Enviando...' : 'Salvar e sincronizar'}
                 </button>
               </div>
             </form>

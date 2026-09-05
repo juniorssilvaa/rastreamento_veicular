@@ -199,7 +199,7 @@ function App() {
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebar}
         />
-        <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''} ${vehicleView ? 'main-content--veiculo-form' : ''}`}>
+        <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''} ${activeItem === 'Clientes' ? 'main-content--clientes' : ''} ${vehicleView ? 'main-content--veiculo-form' : ''}`}>
           {activeItem === 'Dashboard' && <Dashboard />}
           {activeItem === 'Gerenciar' && <Gerenciar onNavigate={handlePageChange} />}
           {activeItem === 'Mapa' && <Mapa />}

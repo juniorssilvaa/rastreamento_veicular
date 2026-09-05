@@ -932,9 +932,221 @@ class AsaasCustomerFinanceView(APIView):
                     else (float(local.monthly_value) if local and local.monthly_value else None)
                 ),
                 "subscription_status": active_sub.get("status") if active_sub else None,
+                "payments": [
+                    {
+                        "id": p.get("id"),
+                        "status": p.get("status"),
+                        "value": p.get("value"),
+                        "netValue": p.get("netValue"),
+                        "dueDate": p.get("dueDate"),
+                        "paymentDate": p.get("paymentDate") or p.get("clientPaymentDate"),
+                        "billingType": p.get("billingType"),
+                        "invoiceUrl": p.get("invoiceUrl"),
+                        "bankSlipUrl": p.get("bankSlipUrl"),
+                        "invoiceNumber": p.get("invoiceNumber"),
+                        "description": p.get("description") or "",
+                        "subscription": p.get("subscription"),
+                        "installment": p.get("installment"),
+                        "externalReference": p.get("externalReference"),
+                    }
+                    for p in payments
+                ],
+                "subscriptions": [
+                    {
+                        "id": s.get("id"),
+                        "status": s.get("status"),
+                        "value": s.get("value"),
+                        "cycle": s.get("cycle"),
+                        "nextDueDate": s.get("nextDueDate"),
+                        "billingType": s.get("billingType"),
+                    }
+                    for s in subscriptions
+                ],
             }, status=status.HTTP_200_OK)
         except Exception as e:
             logger.exception("[ASAAS] finance customer=%s: %s", asaas_id, e)
+            return Response({"error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+def _asaas_base_and_headers(request):
+    asaas_token = request.headers.get("X-Asaas-Token")
+    asaas_env = request.headers.get("X-Asaas-Env", "sandbox")
+    if not asaas_token:
+        return None, None, Response({"error": "Token do Asaas não fornecido"}, status=status.HTTP_401_UNAUTHORIZED)
+    base_url = "https://api-sandbox.asaas.com/v3" if asaas_env == "sandbox" else "https://api.asaas.com/v3"
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "access_token": asaas_token,
+    }
+    return base_url, headers, None
+
+
+class AsaasPaymentView(APIView):
+    """Ações de fatura Asaas: criar, receber em dinheiro, cancelar."""
+
+    def post(self, request, payment_id=None):
+        base_url, headers, err = _asaas_base_and_headers(request)
+        if err:
+            return err
+
+        data = request.data or {}
+        action = (data.get("action") or "").strip().lower()
+
+        # Criar cobrança / recorrência / carnê (sem payment_id)
+        if not payment_id:
+            kind = (data.get("kind") or "avulsa").strip().lower()
+            customer_id = data.get("customer") or data.get("asaas_id")
+            value = data.get("value")
+            due_date = data.get("due_date") or data.get("dueDate")
+            billing_type = (data.get("billing_type") or data.get("billingType") or "BOLETO").upper()
+            description = data.get("description") or ""
+
+            if not customer_id or value in (None, ""):
+                return Response(
+                    {"error": "Cliente e valor são obrigatórios"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                return Response({"error": "Valor inválido"}, status=status.HTTP_400_BAD_REQUEST)
+
+            extras = {}
+            interest = data.get("interest")
+            if interest not in (None, "", 0, "0"):
+                extras["interest"] = {"value": float(interest)}
+            fine_value = data.get("fine") or data.get("fine_value")
+            if fine_value not in (None, "", 0, "0"):
+                extras["fine"] = {
+                    "value": float(fine_value),
+                    "type": (data.get("fine_type") or "PERCENTAGE").upper(),
+                }
+            discount_value = data.get("discount") or data.get("discount_value")
+            if discount_value not in (None, "", 0, "0"):
+                extras["discount"] = {
+                    "value": float(discount_value),
+                    "dueDateLimitDays": int(data.get("discount_days") or 0),
+                    "type": (data.get("discount_type") or "FIXED").upper(),
+                }
+
+            try:
+                if kind in ("recorrencia", "subscription", "recurring"):
+                    cycle = (data.get("cycle") or "MONTHLY").upper()
+                    payload = {
+                        "customer": customer_id,
+                        "billingType": billing_type,
+                        "value": value,
+                        "nextDueDate": due_date,
+                        "cycle": cycle,
+                        "description": description or "Assinatura",
+                        **extras,
+                    }
+                    if not due_date:
+                        return Response({"error": "Data do próximo vencimento é obrigatória"}, status=status.HTTP_400_BAD_REQUEST)
+                    resp = requests.post(f"{base_url}/subscriptions", json=payload, headers=headers, timeout=30)
+                    log_api_call("ASAAS", "POST", f"{base_url}/subscriptions", resp.status_code)
+                    body = resp.json() if resp.content else {}
+                    if resp.status_code >= 400:
+                        return Response(body or {"error": "Falha ao criar recorrência"}, status=resp.status_code)
+                    return Response(body, status=status.HTTP_201_CREATED)
+
+                if kind in ("carne", "installment", "parcelado"):
+                    installments = int(data.get("installments") or data.get("installmentCount") or 0)
+                    if installments < 2:
+                        return Response({"error": "Informe a quantidade de parcelas (mín. 2)"}, status=status.HTTP_400_BAD_REQUEST)
+                    if not due_date:
+                        return Response({"error": "Data da 1ª parcela é obrigatória"}, status=status.HTTP_400_BAD_REQUEST)
+                    payload = {
+                        "customer": customer_id,
+                        "billingType": billing_type,
+                        "value": value,
+                        "dueDate": due_date,
+                        "installmentCount": installments,
+                        "totalValue": value,
+                        "description": description or f"Carnê {installments}x",
+                    }
+                    resp = requests.post(f"{base_url}/payments", json=payload, headers=headers, timeout=30)
+                    log_api_call("ASAAS", "POST", f"{base_url}/payments", resp.status_code)
+                    body = resp.json() if resp.content else {}
+                    if resp.status_code >= 400:
+                        return Response(body or {"error": "Falha ao criar carnê"}, status=resp.status_code)
+                    return Response(body, status=status.HTTP_201_CREATED)
+
+                # Cobrança avulsa
+                if not due_date:
+                    return Response({"error": "Data de vencimento é obrigatória"}, status=status.HTTP_400_BAD_REQUEST)
+                payload = {
+                    "customer": customer_id,
+                    "billingType": billing_type,
+                    "value": value,
+                    "dueDate": due_date,
+                    "description": description or "Cobrança avulsa",
+                }
+                resp = requests.post(f"{base_url}/payments", json=payload, headers=headers, timeout=30)
+                log_api_call("ASAAS", "POST", f"{base_url}/payments", resp.status_code)
+                body = resp.json() if resp.content else {}
+                if resp.status_code >= 400:
+                    return Response(body or {"error": "Falha ao criar cobrança"}, status=resp.status_code)
+                return Response(body, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                logger.exception("[ASAAS] create payment: %s", e)
+                return Response({"error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        # Ações sobre fatura existente
+        if action in ("receive", "receive_in_cash", "marcar_recebida"):
+            payload = {
+                "paymentDate": data.get("payment_date") or data.get("paymentDate") or datetime.date.today().isoformat(),
+                "value": data.get("value"),
+            }
+            # value opcional — Asaas aceita só paymentDate
+            payload = {k: v for k, v in payload.items() if v not in (None, "")}
+            try:
+                resp = requests.post(
+                    f"{base_url}/payments/{payment_id}/receiveInCash",
+                    json=payload,
+                    headers=headers,
+                    timeout=30,
+                )
+                log_api_call("ASAAS", "POST", f"{base_url}/payments/{payment_id}/receiveInCash", resp.status_code)
+                body = resp.json() if resp.content else {}
+                if resp.status_code >= 400:
+                    return Response(body or {"error": "Falha ao marcar como recebida"}, status=resp.status_code)
+                return Response(body, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.exception("[ASAAS] receive payment=%s: %s", payment_id, e)
+                return Response({"error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        return Response({"error": "Ação inválida"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, payment_id=None):
+        if not payment_id:
+            return Response({"error": "ID da fatura é obrigatório"}, status=status.HTTP_400_BAD_REQUEST)
+
+        base_url, headers, err = _asaas_base_and_headers(request)
+        if err:
+            return err
+
+        reason = ""
+        if hasattr(request, "data"):
+            reason = (request.data.get("reason") or request.data.get("motivo") or "").strip()
+        if not reason:
+            reason = (request.query_params.get("reason") or "").strip()
+        if not reason:
+            return Response({"error": "Informe o motivo do cancelamento"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Asaas: DELETE cancela a cobrança; motivo fica no log local
+            resp = requests.delete(f"{base_url}/payments/{payment_id}", headers=headers, timeout=30)
+            log_api_call("ASAAS", "DELETE", f"{base_url}/payments/{payment_id}", resp.status_code)
+            body = resp.json() if resp.content else {"deleted": True}
+            if resp.status_code >= 400:
+                return Response(body or {"error": "Falha ao cancelar boleto"}, status=resp.status_code)
+            logger.info("[ASAAS] payment %s canceled reason=%s", payment_id, reason)
+            return Response({"ok": True, "reason": reason, "asaas": body}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception("[ASAAS] cancel payment=%s: %s", payment_id, e)
             return Response({"error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
 
 

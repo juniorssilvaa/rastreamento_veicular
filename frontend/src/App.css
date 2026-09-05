@@ -32,6 +32,11 @@
   padding: 8px;
 }
 
+.main-content--clientes {
+  padding: 20px 18px 28px;
+  overflow-x: clip;
+}
+
 .main-content--mapa {
   padding: 0;
   overflow: hidden;

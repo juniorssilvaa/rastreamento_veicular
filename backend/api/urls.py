@@ -24,6 +24,7 @@ from .views import (
     AsaasCustomerView,
     AsaasCustomerDetailView,
     AsaasCustomerFinanceView,
+    AsaasPaymentView,
     AsaasOverdueCustomersView,
     ConfigSmsGatewayView,
     SmsInboundView,
@@ -67,6 +68,8 @@ urlpatterns = [
     # Asaas Integrations
     path('asaas/customers/', AsaasCustomerView.as_view(), name='asaas_customers'),
     path('asaas/customers/<str:asaas_id>/finance/', AsaasCustomerFinanceView.as_view(), name='asaas_customer_finance'),
+    path('asaas/payments/', AsaasPaymentView.as_view(), name='asaas_payments_create'),
+    path('asaas/payments/<str:payment_id>/', AsaasPaymentView.as_view(), name='asaas_payment_action'),
     path('asaas/customers/<str:asaas_id>/', AsaasCustomerDetailView.as_view(), name='asaas_customer_detail'),
     path('asaas/overdue-customers/', AsaasOverdueCustomersView.as_view(), name='asaas_overdue_customers'),
 
