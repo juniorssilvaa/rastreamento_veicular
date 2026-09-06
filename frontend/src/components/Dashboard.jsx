@@ -148,6 +148,7 @@ const Dashboard = () => {
   const [financial, setFinancial] = useState({ receber: 0, a_pagar: 0 });
   const [events, setEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [snapshotTime, setSnapshotTime] = useState(0);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -183,6 +184,8 @@ const Dashboard = () => {
         if (overdueRes?.ok) {
           setOverdueData(await overdueRes.json());
         }
+
+        setSnapshotTime(Date.now());
       } catch (err) {
         console.error('Erro ao carregar dashboard:', err);
       }
@@ -241,7 +244,7 @@ const Dashboard = () => {
     const offline = total - online;
     const moving = enrichedDevices.filter((d) => d.speedKmh > 0).length;
 
-    const now = Date.now();
+    const now = snapshotTime || 0;
     const oneDay = 24 * 60 * 60 * 1000;
     const twoDays = 48 * 60 * 60 * 1000;
 
@@ -280,7 +283,7 @@ const Dashboard = () => {
       overdueTotalValue: overdueData.total_value ?? 0,
       overdueCustomers,
     };
-  }, [enrichedDevices, events, overdueData]);
+  }, [enrichedDevices, events, overdueData, snapshotTime]);
 
   const statusDonut = useMemo(() => {
     const segments = [
