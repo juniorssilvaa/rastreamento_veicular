@@ -82,6 +82,13 @@ const Comando = () => {
   };
 
   const buildCommandPayload = (deviceId, cmdText, viaSms) => {
+    if (!viaSms && (cmdText === 'engineStop' || cmdText === 'engineResume')) {
+      return {
+        deviceId,
+        type: cmdText,
+      };
+    }
+
     const payload = {
       deviceId,
       textChannel: Boolean(viaSms),

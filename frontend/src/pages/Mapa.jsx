@@ -25,6 +25,7 @@ import {
   X,
   Pencil,
   Lock,
+  Unlock,
   Wallet,
   UserRound,
   BarChart3,
@@ -380,7 +381,7 @@ const Mapa = () => {
   const [devicesPanelOpen, setDevicesPanelOpen] = useState(true);
   const [listLimit, setListLimit] = useState(DEVICE_LIST_PAGE_SIZE);
   const [detailTab, setDetailTab] = useState('geral');
-  const [blocking, setBlocking] = useState(false);
+  const [commandPending, setCommandPending] = useState(null);
   const [isViewConfigOpen, setIsViewConfigOpen] = useState(false);
   const [mapDeviceLabelMode, setMapDeviceLabelMode] = useState(() =>
     normalizeMapDeviceLabelMode(localStorage.getItem('mapDeviceLabelMode'))
@@ -591,23 +592,26 @@ const Mapa = () => {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  const handleBlockDevice = async () => {
-    if (!selectedDevice?.id || blocking) return;
-    setBlocking(true);
+  const sendDeviceCommand = async (type, label) => {
+    if (!selectedDevice?.id || commandPending) return;
+    setCommandPending(type);
     try {
       const res = await fetch('/api/traccar/commands/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deviceId: selectedDevice.id, type: 'engineStop' }),
+        body: JSON.stringify({ deviceId: selectedDevice.id, type }),
       });
       if (!res.ok) throw new Error('command');
-      toast.success('Comando de bloqueio enviado');
+      toast.success(`Comando de ${label} enviado`);
     } catch {
-      toast.error('Não foi possível enviar o bloqueio');
+      toast.error(`Não foi possível enviar o ${label}`);
     } finally {
-      setBlocking(false);
+      setCommandPending(null);
     }
   };
+
+  const handleBlockDevice = () => sendDeviceCommand('engineStop', 'bloqueio');
+  const handleUnlockDevice = () => sendDeviceCommand('engineResume', 'desbloqueio');
 
   const displayAddress = resolvedAddress || (addressError ? 'Endereço indisponível' : 'Buscando endereço…');
   const selectedPrimaryLabel =
@@ -918,11 +922,27 @@ const Mapa = () => {
             </div>
 
             <div className="vdp-actions">
-              <button type="button" className="vdp-action" onClick={handleBlockDevice} disabled={blocking}>
+              <button
+                type="button"
+                className="vdp-action"
+                onClick={handleBlockDevice}
+                disabled={Boolean(commandPending)}
+              >
                 <span className="vdp-action__icon vdp-action__icon--lock">
                   <Lock size={20} strokeWidth={1.75} />
                 </span>
-                <span>{blocking ? 'Enviando…' : 'Bloquear'}</span>
+                <span>{commandPending === 'engineStop' ? 'Enviando…' : 'Bloquear'}</span>
+              </button>
+              <button
+                type="button"
+                className="vdp-action"
+                onClick={handleUnlockDevice}
+                disabled={Boolean(commandPending)}
+              >
+                <span className="vdp-action__icon vdp-action__icon--unlock">
+                  <Unlock size={20} strokeWidth={1.75} />
+                </span>
+                <span>{commandPending === 'engineResume' ? 'Enviando…' : 'Desbloquear'}</span>
               </button>
               <button
                 type="button"
