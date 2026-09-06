@@ -6,6 +6,7 @@ from .views import (
     TraccarDevicesView,
     TraccarPositionsView,
     TraccarEventsView,
+    TraccarReportLigadoDesligadoView,
     TraccarCommandView,
     CreateTestDeviceView,
     TraccarNotificationsView,
@@ -84,6 +85,7 @@ urlpatterns = [
     path('photos/<uuid:pk>/', VehiclePhotoServeView.as_view(), name='serve_vehicle_photo'),
     path('traccar/positions/', TraccarPositionsView.as_view(), name='traccar_positions'),
     path('traccar/events/', TraccarEventsView.as_view(), name='traccar_events'),
+    path('traccar/reports/ligado-desligado/', TraccarReportLigadoDesligadoView.as_view(), name='traccar_report_ligado_desligado'),
     path('traccar/commands/', TraccarCommandView.as_view(), name='traccar_commands'),
     path('traccar/init-test/', CreateTestDeviceView.as_view(), name='traccar_init_test'),
     

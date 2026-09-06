@@ -10,7 +10,7 @@ import CarIcon from '../components/CarIcon';
 import ClienteFinanceiroTab from '../components/ClienteFinanceiroTab';
 import './Clientes.css';
 
-const DonutCard = ({ title, total, segments, accent = '#f97316' }) => {
+const DonutCard = ({ title, total, segments, accent = '#ea580c' }) => {
   const sum = segments.reduce((acc, s) => acc + s.value, 0);
   let cursor = 0;
   const stops = sum > 0
@@ -846,27 +846,27 @@ const Clientes = () => {
         <DonutCard
           title="Situação dos clientes"
           total={stats.total}
-          accent="#22c55e"
+          accent="#15803d"
           segments={[
-            { label: 'Em dia', value: stats.emDia, color: '#22c55e' },
-            { label: 'Inadimplentes', value: stats.inadimplentes, color: '#eab308' },
+            { label: 'Em dia', value: stats.emDia, color: '#15803d' },
+            { label: 'Inadimplentes', value: stats.inadimplentes, color: '#ca8a04' },
           ]}
         />
         <DonutCard
           title="Recorrência"
           total={stats.total}
-          accent="#f97316"
+          accent="#ea580c"
           segments={[
-            { label: 'Recorrente', value: stats.recorrentes, color: '#f97316' },
-            { label: 'Avulso', value: stats.avulsos, color: '#2563eb' },
+            { label: 'Recorrente', value: stats.recorrentes, color: '#ea580c' },
+            { label: 'Avulso', value: stats.avulsos, color: '#0369a1' },
           ]}
         />
         <DonutCard
           title="Contrato"
           total={stats.total}
-          accent="#2563eb"
+          accent="#0369a1"
           segments={[
-            { label: 'Com contrato', value: stats.comContrato, color: '#22c55e' },
+            { label: 'Com contrato', value: stats.comContrato, color: '#15803d' },
             { label: 'Sem contrato', value: stats.semContrato, color: '#dc2626' },
           ]}
         />

@@ -10,18 +10,18 @@
   container-type: inline-size;
   container-name: clientes;
 
-  /* Paleta NIO HUB / GenieACS */
-  --nio-orange: #D4AF37;
-  --nio-orange-hover: #C5A028;
-  --nio-green: #22c55e;
-  --nio-green-dark: #16a34a;
-  --nio-red: #dc2626;
-  --nio-red-dark: #b91c1c;
-  --nio-blue: #2563eb;
-  --nio-amber: #eab308;
-  --nio-amber-deep: #f59e0b;
-  --nio-purple: #7c3aed;
-  --nio-gray: #6b7280;
+  /* Paleta NIO HUB */
+  --nio-orange: var(--accent-orange);
+  --nio-orange-hover: var(--accent-orange-hover);
+  --nio-green: var(--accent-green);
+  --nio-green-dark: var(--accent-green-hover);
+  --nio-red: var(--accent-red);
+  --nio-red-dark: var(--accent-red-hover);
+  --nio-blue: var(--accent-blue);
+  --nio-amber: var(--accent-amber);
+  --nio-amber-deep: var(--accent-amber-deep);
+  --nio-purple: var(--accent-purple);
+  --nio-gray: var(--text-secondary);
   --on-gold: #ffffff;
 }
 
@@ -488,7 +488,7 @@
 
 .clientes-page .pill-orange,
 .clientes-page .pill-orange * {
-  background: #D4AF37 !important;
+  background: var(--accent-orange) !important;
   color: #ffffff !important;
 }
 
@@ -610,7 +610,7 @@
   height: 34px;
   border-radius: 6px;
   border: none !important;
-  background: #D4AF37 !important;
+  background: var(--accent-orange) !important;
   color: #ffffff !important;
   display: grid;
   place-items: center;
@@ -624,7 +624,7 @@
 }
 
 .clientes-page .btn-edit-square:hover {
-  background: #C5A028 !important;
+  background: var(--accent-orange-hover) !important;
 }
 
 /* ===== Expanded panel ===== */
@@ -776,7 +776,7 @@
 
 .control-btn:hover:not(:disabled) {
   border-color: var(--nio-orange);
-  background: rgba(212, 175, 55, 0.1);
+  background: rgba(234, 88, 12, 0.1);
   color: var(--text-primary) !important;
 }
 
@@ -893,9 +893,9 @@
 }
 
 .fs-tab.active {
-  background: rgba(212, 175, 55, 0.16);
-  border-color: rgba(212, 175, 55, 0.45);
-  color: #D4AF37 !important;
+  background: rgba(234, 88, 12, 0.16);
+  border-color: rgba(234, 88, 12, 0.45);
+  color: var(--accent-orange) !important;
 }
 
 .fs-body {
@@ -1818,7 +1818,7 @@
   width: 16px !important;
   height: 16px !important;
   margin: 0;
-  accent-color: #D4AF37;
+  accent-color: var(--accent-orange);
   cursor: pointer;
 }
 
@@ -2565,8 +2565,8 @@
 }
 
 .rec-vehicle.is-selected {
-  border-color: rgba(212, 175, 55, 0.55);
-  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(234, 88, 12, 0.55);
+  background: rgba(234, 88, 12, 0.08);
 }
 
 .rec-vehicle__main {

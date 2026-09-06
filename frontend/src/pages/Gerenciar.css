@@ -67,61 +67,61 @@
 .section-block {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
   width: 100%;
 }
 
 .section-block h2 {
   font-size: 20px;
-  color: #1F2937;
+  color: var(--text-primary);
   font-weight: 600;
   letter-spacing: -0.5px;
-  align-self: center;
   width: 100%;
-  max-width: 960px;
+  max-width: none;
   text-align: left;
+  margin: 0;
 }
 
 .grid-cards {
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
-  max-width: 960px;
+  max-width: none;
 }
 
 .action-card {
   width: 220px;
   height: 160px;
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .action-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.05);
-  border-color: #D1D5DB;
+  box-shadow: var(--shadow-card);
+  border-color: #a1a1aa;
 }
 
 .action-card span {
   font-size: 14px;
-  color: #4B5563;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .action-icon {
-  color: #1F2937;
+  color: var(--text-primary);
 }
 
 :root.dark .gerenciar-page .section-block h2 {
@@ -146,30 +146,11 @@
 
 /* ===== Integrações (tema claro/escuro) ===== */
 .integration-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
   margin-bottom: 8px;
 }
 
 .integration-header h2 {
   margin: 0;
-}
-
-.integration-back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-primary);
-  padding: 4px;
-  border-radius: 8px;
-}
-
-.integration-back:hover {
-  background: var(--border-color);
 }
 
 .integration-card {

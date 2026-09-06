@@ -250,8 +250,8 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'integracoes' && (
         <>
           <div className="section-block">
-            <div className="integration-header">
-              <button type="button" className="integration-back" onClick={() => setCurrentView('main')}>
+            <div className="integration-header page-back-header">
+              <button type="button" className="integration-back page-back-btn" onClick={() => setCurrentView('main')}>
                 <ArrowLeft size={24} />
               </button>
               <h2>Integrações</h2>
@@ -285,8 +285,8 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'gmaps' && (
         <>
           <div className="section-block">
-            <div className="integration-header">
-              <button type="button" className="integration-back" onClick={() => setCurrentView('integracoes')}>
+            <div className="integration-header page-back-header">
+              <button type="button" className="integration-back page-back-btn" onClick={() => setCurrentView('integracoes')}>
                 <ArrowLeft size={24} />
               </button>
               <h2>Integração Google Maps</h2>
@@ -364,8 +364,8 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'asaas' && (
         <>
           <div className="section-block">
-            <div className="integration-header">
-              <button type="button" className="integration-back" onClick={() => setCurrentView('integracoes')}>
+            <div className="integration-header page-back-header">
+              <button type="button" className="integration-back page-back-btn" onClick={() => setCurrentView('integracoes')}>
                 <ArrowLeft size={24} />
               </button>
               <h2>Integração Asaas (Financeiro)</h2>
@@ -444,8 +444,8 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'smsmarket' && (
         <>
           <div className="section-block">
-            <div className="integration-header">
-              <button type="button" className="integration-back" onClick={() => setCurrentView('integracoes')}>
+            <div className="integration-header page-back-header">
+              <button type="button" className="integration-back page-back-btn" onClick={() => setCurrentView('integracoes')}>
                 <ArrowLeft size={24} />
               </button>
               <h2>Integração SMS Market</h2>
@@ -502,8 +502,8 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'placafipe' && (
         <>
           <div className="section-block">
-            <div className="integration-header">
-              <button type="button" className="integration-back" onClick={() => setCurrentView('integracoes')}>
+            <div className="integration-header page-back-header">
+              <button type="button" className="integration-back page-back-btn" onClick={() => setCurrentView('integracoes')}>
                 <ArrowLeft size={24} />
               </button>
               <h2>Integração Consulta de Placa</h2>
@@ -577,14 +577,16 @@ const Gerenciar = ({ onNavigate }) => {
       {currentView === 'icones' && (
         <>
           <div className="section-block">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-              <button 
+            <div className="integration-header page-back-header">
+              <button
+                type="button"
+                className="integration-back page-back-btn"
                 onClick={() => setCurrentView('main')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#4B5563' }}
+                aria-label="Voltar"
               >
                 <ArrowLeft size={24} />
               </button>
-              <h2 style={{ margin: 0 }}>Gerenciar Ícones de Veículos</h2>
+              <h2>Gerenciar Ícones de Veículos</h2>
             </div>
             
             <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '800px' }}>
@@ -615,7 +617,7 @@ const Gerenciar = ({ onNavigate }) => {
                 </div>
                 <button 
                   onClick={handleAddIcon}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent-gold, #D4AF37)', color: '#ffffff', padding: '10px 20px', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', height: '42px', textTransform: 'uppercase', fontSize: '13px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent-gold, #ea580c)', color: '#ffffff', padding: '10px 20px', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', height: '42px', textTransform: 'uppercase', fontSize: '13px' }}
                 >
                   <Save size={18} /> Adicionar
                 </button>

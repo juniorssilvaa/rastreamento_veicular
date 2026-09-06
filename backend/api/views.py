@@ -143,6 +143,34 @@ class TraccarEventsView(APIView):
         )
         return Response(events, status=status.HTTP_200_OK)
 
+
+class TraccarReportLigadoDesligadoView(APIView):
+    def get(self, request):
+        from datetime import datetime, timedelta, timezone
+        from .report_service import build_ligado_desligado_report
+
+        device_id = request.query_params.get('deviceId')
+        from_time = request.query_params.get('from')
+        to_time = request.query_params.get('to')
+
+        if not device_id:
+            return Response({'error': 'deviceId é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
+
+        now = datetime.now(timezone.utc)
+        if not to_time:
+            to_time = now.isoformat().replace('+00:00', 'Z')
+        if not from_time:
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            from_time = start.isoformat().replace('+00:00', 'Z')
+
+        try:
+            report = build_ligado_desligado_report(client, device_id, from_time, to_time)
+            return Response(report, status=status.HTTP_200_OK)
+        except Exception as exc:
+            logger.exception('[REPORT] ligado-desligado deviceId=%s erro=%s', device_id, exc)
+            return Response({'error': 'Falha ao gerar relatório'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class TraccarCommandView(APIView):
     def post(self, request):
         device_id = request.data.get('deviceId')

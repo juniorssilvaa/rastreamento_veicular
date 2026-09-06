@@ -1,12 +1,12 @@
 .top-header {
-  height: 64px;
+  height: var(--header-height, 48px);
   width: 100%;
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 0 24px;
+  padding: 0 16px;
   position: fixed;
   top: 0;
   left: 0;
@@ -21,22 +21,23 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 
 .btn-header-action {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: none;
   border: none;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-gray);
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 6px;
   transition: all 0.2s;
+  height: 32px;
 }
 
 .btn-header-action svg {
@@ -65,13 +66,17 @@
 }
 
 .btn-logout {
-  background-color: #dc2626;
-  color: #ffffff;
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  padding: 6px 12px;
+  font-size: 12px;
+  height: 32px;
+  border: none;
 }
 
 .btn-logout:hover {
-  background-color: #b91c1c;
-  color: #ffffff;
+  background-color: #b91c1c !important;
+  color: #ffffff !important;
 }
 
 .btn-logout svg {

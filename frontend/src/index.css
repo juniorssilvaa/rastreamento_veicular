@@ -1,51 +1,99 @@
 :root {
-  /* Base (ACS / NIO HUB) */
-  --bg-main: #f4f6f9;
+  /* Base — paleta NIO HUB (hub.niohub.com.br) */
+  --bg-main: #f4f4f5;
   --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-gray: #4b5563;
-  --icon-color: #374151;
-  --icon-muted: #6b7280;
+  --text-primary: #1c1917;
+  --text-secondary: #78716c;
+  --text-gray: #57534e;
+  --icon-color: #57534e;
+  --icon-muted: #78716c;
 
-  /* Acentos — dourado BL + cores semânticas */
-  --accent-gold: #D4AF37;
-  --accent-gold-hover: #C5A028;
-  --accent-orange: #D4AF37; /* Novo / primário = dourado (não laranja ACS) */
-  --accent-orange-hover: #C5A028;
-  --accent-green: #22c55e;
-  --accent-green-hover: #16a34a;
+  /* Sidebar */
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-fg: #1c1917;
+  --sidebar-active: #a1a1aa;
+
+  /* Acentos — laranja NIO HUB + semânticas */
+  --accent-gold: #ea580c;
+  --accent-gold-hover: #c2410c;
+  --accent-orange: #ea580c;
+  --accent-orange-hover: #c2410c;
+  --accent-orange-soft: #f97316;
+  --accent-green: #15803d;
+  --accent-green-hover: #166534;
   --accent-red: #dc2626;
   --accent-red-hover: #b91c1c;
-  --accent-blue: #2563eb;
-  --accent-amber: #eab308;
-  --accent-amber-deep: #f59e0b;
+  --accent-blue: #0369a1;
+  --accent-blue-hover: #075985;
+  --accent-amber: #ca8a04;
+  --accent-amber-deep: #eab308;
   --accent-purple: #7c3aed;
   --accent-cyan: #0891b2;
-  --accent-blue-light: #2563eb;
+  --accent-blue-light: #0369a1;
+
+  /* Gráficos dashboard */
+  --chart-1: #ea580c;
+  --chart-2: #f97316;
+  --chart-3: #fb923c;
+  --chart-4: #15803d;
+  --chart-5: #c2410c;
 
   --border-color: #e5e7eb;
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 78px;
+  --input-bg: #ffffff;
+  --bg-surface: #f9fafb;
+  --bg-surface-inset: #f9fafb;
+  --ring-color: #a1a1aa;
+  --header-height: 48px;
+  --sidebar-width: 210px;
+  --sidebar-collapsed-width: 64px;
   --radius-sm: 6px;
   --radius-md: 10px;
-  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  --shadow-card: 0 0.35rem 0.85rem rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 0.35rem 0.85rem rgba(0, 0, 0, 0.08);
 }
 
 :root.dark {
-  --bg-main: #18181b;
-  --bg-sidebar: #2b2b2b;
-  --bg-card: #27272a;
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-gray: #d4d4d8;
-  --icon-color: #ffffff;
-  --icon-muted: #e4e4e7;
-  --border-color: #3f3f46;
-  --shadow-sm: 0 0.125rem 0.35rem rgba(0, 0, 0, 0.35);
-  --shadow-card: 0 0.35rem 0.85rem rgba(0, 0, 0, 0.45);
+  --bg-main: #2c2c2c;
+  --bg-sidebar: #232323;
+  --bg-card: #232323;
+  --bg-surface: #1e1e1e;
+  --bg-surface-inset: #1a1a1a;
+  --text-primary: #f5f5f5;
+  --text-secondary: #b0b0b0;
+  --text-gray: #9ca3af;
+  --icon-color: #f5f5f5;
+  --icon-muted: #b0b0b0;
+
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-fg: #f5f5f5;
+  --sidebar-active: #71717a;
+
+  --accent-gold: #fb923c;
+  --accent-gold-hover: #f97316;
+  --accent-orange: #fb923c;
+  --accent-orange-hover: #f97316;
+  --accent-orange-soft: #fdba74;
+  --accent-green: #4ade80;
+  --accent-green-hover: #22c55e;
+  --accent-red: #dc2626;
+  --accent-red-hover: #b91c1c;
+  --accent-blue: #38bdf8;
+  --accent-blue-hover: #0ea5e9;
+  --accent-amber: #fbbf24;
+  --accent-amber-deep: #f59e0b;
+
+  --chart-1: #fb923c;
+  --chart-2: #fdba74;
+  --chart-3: #ea580c;
+  --chart-4: #4ade80;
+  --chart-5: #f472b6;
+
+  --border-color: #3a3a3a;
+  --input-bg: #1e1e1e;
+  --ring-color: rgba(161, 161, 170, 0.65);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.28);
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -69,6 +117,65 @@ ul {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+/* ===== Cabeçalho com botão voltar (todas as telas) ===== */
+.page-back-header,
+.integration-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.page-back-header h1,
+.page-back-header h2,
+.integration-header h1,
+.integration-header h2 {
+  margin: 0;
+  text-align: left;
+}
+
+.page-back-btn,
+.integration-back,
+.ai-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 6px 8px 6px 0;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.page-back-btn:hover,
+.integration-back:hover {
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.ai-back {
+  padding: 0 12px;
+  height: 38px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.ai-back:hover {
+  background: var(--bg-main);
+  color: var(--text-primary);
 }
 
 /* ===== Botões globais estilo ACS =====
@@ -151,7 +258,7 @@ a {
 .btn-acs-update:hover,
 .btn-atualizar:hover,
 .btn-update:hover {
-  background: #1d4ed8 !important;
+  background: var(--accent-blue-hover) !important;
 }
 
 .btn-acs-danger,
@@ -160,7 +267,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--accent-red) !important;
+  background: #dc2626 !important;
   color: #ffffff !important;
   border: none !important;
   border-radius: var(--radius-sm);
@@ -173,7 +280,7 @@ a {
 
 .btn-acs-danger:hover,
 .btn-logout:hover {
-  background: var(--accent-red-hover) !important;
+  background: #b91c1c !important;
 }
 
 .btn-acs-ghost {
@@ -290,11 +397,24 @@ a {
 
 :root.dark .action-icon,
 :root.dark .search-icon,
-:root.dark .nav-item svg,
 :root.dark .kpi-label svg,
 :root.dark .metric-icon,
 :root.dark .icon-btn svg,
 :root.dark .btn-header-action:not(.btn-logout) svg {
+  color: var(--icon-color) !important;
+  stroke: var(--icon-color);
+}
+
+:root.dark .nav-item svg,
+:root.dark .nav-item .car-icon {
+  color: var(--icon-muted) !important;
+  stroke: var(--icon-muted);
+}
+
+:root.dark .nav-item.active svg,
+:root.dark .nav-item.active .car-icon,
+:root.dark .nav-item:hover svg,
+:root.dark .nav-item:hover .car-icon {
   color: #ffffff !important;
   stroke: #ffffff;
 }
@@ -350,9 +470,9 @@ a {
 :root.dark .status-chip--moving,
 :root.dark .stat-pill--online strong,
 :root.dark .badge-online {
-  background-color: #22c55e !important;
-  background: #22c55e !important;
-  color: #ffffff !important;
+  background-color: var(--accent-green) !important;
+  background: var(--accent-green) !important;
+  color: #14532d !important;
   border: none !important;
 }
 
@@ -361,9 +481,9 @@ a {
 :root.dark .status-chip--offline,
 :root.dark .overdue-badge,
 :root.dark .badge-offline {
-  background-color: #dc2626 !important;
-  background: #dc2626 !important;
-  color: #ffffff !important;
+  background-color: var(--accent-red) !important;
+  background: var(--accent-red) !important;
+  color: #450a0a !important;
   border: none !important;
 }
 
@@ -388,16 +508,16 @@ a {
 }
 
 :root.dark .badge-id {
-  background-color: #2563eb !important;
-  background: #2563eb !important;
-  color: #ffffff !important;
+  background-color: var(--accent-blue) !important;
+  background: var(--accent-blue) !important;
+  color: #0c4a6e !important;
 }
 
 :root.dark .sync-tag {
-  background-color: #7c3aed !important;
-  background: #7c3aed !important;
-  color: #ffffff !important;
-  border: none !important;
+  background-color: rgba(251, 146, 60, 0.15) !important;
+  background: rgba(251, 146, 60, 0.15) !important;
+  color: var(--accent-orange) !important;
+  border: 1px solid rgba(251, 146, 60, 0.35) !important;
 }
 
 :root.dark .nav-item span,
@@ -426,15 +546,15 @@ a {
 :root.dark .veiculos-table th,
 :root.dark .clientes-table th,
 :root.dark .table-head {
-  background-color: var(--bg-main) !important;
-  background: var(--bg-main) !important;
-  border-bottom: 2px solid var(--border-color) !important;
+  background-color: var(--bg-surface) !important;
+  background: var(--bg-surface) !important;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
 :root.dark tr:hover,
 :root.dark .table-row:hover,
 :root.dark .clientes-table tbody tr:hover,
 :root.dark .veiculos-table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(251, 146, 60, 0.06) !important;
+  background: rgba(251, 146, 60, 0.06) !important;
 }

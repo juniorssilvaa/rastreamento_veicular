@@ -15,6 +15,7 @@ import Login from './pages/Login';
 import Clientes from './pages/Clientes';
 import CriarComandos from './pages/CriarComandos';
 import Tecnicos from './pages/Tecnicos';
+import Relatorios from './pages/Relatorios';
 import ClienteApp from './pages/cliente/ClienteApp';
 import { Toaster } from 'react-hot-toast';
 
@@ -40,6 +41,7 @@ const parsePathname = (pathname) => {
     '/clientes': 'Clientes',
     '/criar-comandos': 'Criar Comandos',
     '/tecnicos': 'Técnicos',
+    '/relatorios': 'Relatórios',
   };
 
   return {
@@ -199,7 +201,7 @@ function App() {
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebar}
         />
-        <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''} ${activeItem === 'Clientes' ? 'main-content--clientes' : ''} ${vehicleView ? 'main-content--veiculo-form' : ''}`}>
+        <div className={`main-content ${activeItem === 'Mapa' ? 'main-content--mapa' : ''} ${activeItem === 'Clientes' ? 'main-content--clientes' : ''} ${activeItem === 'Dashboard' ? 'main-content--dashboard' : ''} ${activeItem === 'Comando' ? 'main-content--comando' : ''} ${activeItem === 'Relatórios' ? 'main-content--relatorios' : ''} ${vehicleView ? 'main-content--veiculo-form' : ''}`}>
           {activeItem === 'Dashboard' && <Dashboard />}
           {activeItem === 'Gerenciar' && <Gerenciar onNavigate={handlePageChange} />}
           {activeItem === 'Mapa' && <Mapa />}
@@ -219,6 +221,7 @@ function App() {
           {activeItem === 'Clientes' && <Clientes />}
           {activeItem === 'Criar Comandos' && <CriarComandos />}
           {activeItem === 'Técnicos' && <Tecnicos />}
+          {activeItem === 'Relatórios' && <Relatorios />}
           {activeItem !== 'Dashboard' && 
            activeItem !== 'Gerenciar' && 
            activeItem !== 'Mapa' && 
@@ -229,7 +232,8 @@ function App() {
            activeItem !== 'Cercas Virtuais' &&
            activeItem !== 'Clientes' && 
            activeItem !== 'Criar Comandos' &&
-           activeItem !== 'Técnicos' && (
+           activeItem !== 'Técnicos' &&
+           activeItem !== 'Relatórios' && (
              <div style={{padding: '40px'}}>
                <h2>{activeItem}</h2>
                <p style={{color: '#6B7280', marginTop: '12px'}}>Página em construção...</p>

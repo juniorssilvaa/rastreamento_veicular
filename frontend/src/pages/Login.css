@@ -105,7 +105,7 @@
 
 .input-styled-wrapper:focus-within {
   border-color: var(--accent-gold);
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.15);
 }
 
 .input-styled-icon {
@@ -147,13 +147,13 @@
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3);
 }
 
 .btn-acessar:hover {
-  background-color: #C5A028; /* Slightly darker gold */
+  background-color: var(--accent-orange-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
 }
 
 .btn-acessar:active {

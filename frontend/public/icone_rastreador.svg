@@ -1,0 +1,26 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Conector -->
+  <path d="M12 3H20V6H22V9H20V11H12V9H10V6H12V3Z"
+        stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+
+  <!-- Cabo -->
+  <path d="M14 11V15.5M18 11V15.5"
+        stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- Corpo do rastreador -->
+  <rect x="9" y="15" width="14" height="14" rx="2.5"
+        stroke="currentColor" stroke-width="1.8"/>
+
+  <!-- Detalhe superior -->
+  <path d="M12 18H20"
+        stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Símbolo em V -->
+  <path d="M12.5 22L16 25.5L19.5 22"
+        stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M13.8 20.5L16 22.7L18.2 20.5"
+        stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

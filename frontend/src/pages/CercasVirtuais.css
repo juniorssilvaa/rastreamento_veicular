@@ -1,4 +1,14 @@
 .cercas-page {
+    --cerca-card: var(--bg-card);
+    --cerca-card-border: var(--border-color);
+    --cerca-text: var(--text-primary);
+    --cerca-muted: var(--text-secondary);
+    --cerca-surface: var(--bg-surface);
+    --cerca-input-bg: var(--input-bg);
+    --cerca-line: var(--border-color);
+    --cerca-card-shadow: var(--shadow-sm);
+    --cerca-hover-bg: #f4f4f5;
+
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -6,6 +16,18 @@
     width: 100%;
     background: transparent;
     border-radius: 24px;
+}
+
+:root.dark .cercas-page {
+    --cerca-card: var(--bg-card);
+    --cerca-card-border: var(--border-color);
+    --cerca-text: var(--text-primary);
+    --cerca-muted: var(--text-secondary);
+    --cerca-surface: var(--bg-surface);
+    --cerca-input-bg: var(--input-bg);
+    --cerca-line: var(--border-color);
+    --cerca-card-shadow: var(--shadow-card);
+    --cerca-hover-bg: var(--bg-surface);
 }
 
 .cercas-top-header {
@@ -30,16 +52,20 @@
     gap: 4px;
     min-height: 78px;
     padding: 16px 20px;
-    background: #202024;
-    border: 1px solid #2e2e33;
-    border-radius: 14px;
-    box-shadow: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    background: var(--cerca-card);
+    border: 1px solid var(--cerca-card-border);
+    border-radius: 16px;
+    box-shadow: var(--cerca-card-shadow);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .cercas-stat-card:hover {
-    background: #26262b;
-    border-color: #3a3a40;
+    border-color: #d1d5db;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+:root.dark .cercas-stat-card:hover {
+    border-color: #525252;
 }
 
 .cercas-stat-card__top {
@@ -61,17 +87,17 @@
 .cercas-stat-card__top strong {
     font-size: 24px;
     line-height: 1;
-    color: #ffffff;
+    color: var(--cerca-text);
     font-weight: 700;
 }
 
 .cercas-stat-card span {
     font-size: 11px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--cerca-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding-left: 16px; /* align with number */
+    padding-left: 16px;
 }
 
 .cercas-stat-card.is-total .cercas-stat-card__icon {
@@ -91,11 +117,11 @@
 }
 
 .cercas-list-shell {
-    background: #202024;
-    border: 1px solid #2e2e33;
-    border-radius: 18px;
+    background: var(--cerca-card);
+    border: 1px solid var(--cerca-card-border);
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: none;
+    box-shadow: var(--cerca-card-shadow);
 }
 
 .cercas-list-toolbar {
@@ -120,10 +146,10 @@
     gap: 6px;
     height: 32px;
     padding: 0 16px;
-    border-radius: 9999px; /* pill shape */
-    border: 1px solid #34343a;
-    background: #26262b;
-    color: #d4d4d8;
+    border-radius: 9999px;
+    border: 1px solid var(--cerca-line);
+    background: var(--cerca-surface);
+    color: var(--cerca-text);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -131,14 +157,18 @@
 }
 
 .cercas-filter-tab:hover {
-    background: #2d2d33;
-    border-color: #45454c;
+    background: var(--cerca-hover-bg);
+    border-color: #d1d5db;
+}
+
+:root.dark .cercas-filter-tab:hover {
+    border-color: #525252;
 }
 
 .cercas-filter-tab.active {
-    background: #f4f4f5;
-    color: #18181b;
-    border-color: #f4f4f5;
+    background: var(--cerca-text);
+    color: var(--cerca-card);
+    border-color: var(--cerca-text);
 }
 
 /* Custom Colors for Tabs */
@@ -187,22 +217,22 @@
 .cercas-search input {
     width: 100%;
     padding: 11px 14px 11px 40px;
-    border: 1px solid #34343a;
+    border: 1px solid var(--cerca-card-border);
     border-radius: 12px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    background: #26262b;
-    color: #f4f4f5;
+    background: var(--cerca-input-bg);
+    color: var(--cerca-text);
 }
 
 .cercas-search input:focus {
-    border-color: #f59e0b;
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.14);
+    border-color: #a1a1aa;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
 }
 
 .cercas-search input::placeholder {
-    color: #71717a;
+    color: var(--cerca-muted);
 }
 
 .cercas-search-icon {
@@ -210,7 +240,7 @@
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #a1a1aa;
+    color: var(--cerca-muted);
 }
 
 .cercas-list {
@@ -227,24 +257,33 @@
     align-items: center;
     padding: 14px 16px;
     border-radius: 14px;
-    border: 1px solid #2e2e33;
+    border: 1px solid var(--cerca-line);
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
     margin-bottom: 10px;
-    background: #26262b;
+    background: var(--cerca-surface);
     box-shadow: none;
 }
 
 .cerca-item:hover {
-    background: #2c2c32;
-    border-color: #3f3f46;
+    background: var(--cerca-hover-bg);
+    border-color: #d1d5db;
     transform: translateY(-1px);
 }
 
+:root.dark .cerca-item:hover {
+    border-color: #525252;
+}
+
 .cerca-item.active {
-    background: #2c2c32;
-    border-color: rgba(245, 158, 11, 0.55);
-    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25);
+    background: var(--cerca-hover-bg);
+    border-color: #a1a1aa;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+:root.dark .cerca-item.active {
+    border-color: #71717a;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .cerca-info {
@@ -261,7 +300,7 @@
     width: 38px;
     height: 38px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--cerca-line);
     flex-shrink: 0;
 }
 
@@ -275,7 +314,7 @@
 .cerca-name {
     font-size: 14px;
     font-weight: 700;
-    color: #f4f4f5;
+    color: var(--cerca-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -283,7 +322,7 @@
 
 .cerca-meta {
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--cerca-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -307,17 +346,17 @@
     width: 34px;
     height: 34px;
     border-radius: 10px;
-    border: 1px solid #3a3a40;
-    background: #1c1c20;
-    color: #d4d4d8;
+    border: 1px solid var(--cerca-line);
+    background: var(--cerca-card);
+    color: var(--cerca-muted);
     cursor: pointer;
     transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .btn-cerca-action:hover {
-    background: rgba(245, 158, 11, 0.14);
-    border-color: rgba(245, 158, 11, 0.45);
-    color: #fbbf24;
+    background: var(--cerca-hover-bg);
+    border-color: #d1d5db;
+    color: var(--cerca-text);
 }
 
 .btn-cerca-action.delete:hover {
@@ -572,19 +611,19 @@
     justify-content: center;
     gap: 8px;
     padding: 11px 16px;
-    background: linear-gradient(135deg, #f59e0b, #d97706); /* Gold */
+    background: #ea580c;
     color: white;
     border: none;
     border-radius: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, background 0.2s;
     box-shadow: none;
 }
 
 .btn-new-cerca:hover {
     transform: translateY(-1px);
-    box-shadow: none;
+    background: #c2410c;
 }
 
 .cercas-empty-state {
@@ -597,11 +636,11 @@
     padding: 24px 16px;
     background: transparent;
     text-align: center;
-    color: #71717a;
+    color: var(--cerca-muted);
 }
 
 .cercas-empty-state span {
-    color: #a1a1aa;
+    color: var(--cerca-muted);
     font-size: 14px;
     font-weight: 500;
 }
@@ -977,7 +1016,7 @@
     width: 100vw;
     height: 100vh;
     z-index: 1000;
-    background: #1a1a1d;
+    background: var(--bg-main);
     display: flex;
 }
 
@@ -996,7 +1035,7 @@
     width: 356px;
     max-height: calc(100vh - 112px);
     overflow-y: auto;
-    background: #2a2a2a;
+    background: var(--bg-surface);
     border: 1px solid #3a3a3a;
     border-radius: 20px;
     box-shadow: none;
@@ -1031,7 +1070,7 @@
     align-items: flex-start;
     gap: 12px;
     padding: 22px 22px 18px;
-    background: #2a2a2a;
+    background: var(--bg-surface);
     border-bottom: 1px solid #3a3a3a;
     border-radius: 20px 20px 0 0;
 }
@@ -1327,7 +1366,7 @@
     width: 100%;
     height: 46px;
     padding: 0 6px 0 16px;
-    background: #26262b;
+    background: var(--bg-surface);
     border: 1px solid #3a3a40;
     border-radius: 999px;
     box-shadow: none;
@@ -1401,7 +1440,7 @@
     border: none;
     border-radius: 50%;
     background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    color: #1a1a1d;
+    color: var(--bg-main);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1411,7 +1450,7 @@
 }
 
 .geofence-search-field__go svg {
-    color: #1a1a1d;
+    color: var(--bg-main);
 }
 
 .geofence-search-field__go:hover:not(:disabled) {
@@ -1430,7 +1469,7 @@
     height: 14px;
     border-radius: 50%;
     border: 2px solid rgba(26, 26, 29, 0.3);
-    border-top-color: #1a1a1d;
+    border-top-color: var(--bg-main);
     animation: geofence-spin 0.7s linear infinite;
 }
 
@@ -1545,7 +1584,7 @@
     display: flex;
     gap: 10px;
     padding: 16px 22px 20px;
-    background: #2a2a2a;
+    background: var(--bg-surface);
     border-top: 1px solid #3a3a3a;
     border-radius: 0 0 20px 20px;
 }

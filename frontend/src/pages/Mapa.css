@@ -236,8 +236,8 @@
 .mdc-select-hint {
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent-gold, #d4af37);
-  border: 1px solid var(--accent-gold, #d4af37);
+  color: var(--accent-gold, #ea580c);
+  border: 1px solid var(--accent-gold, #ea580c);
   border-radius: 999px;
   padding: 3px 10px;
 }
@@ -1837,7 +1837,7 @@
 :root.dark .device-list li.active {
   background: #333333;
   border-color: var(--accent-gold);
-  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.35), 0 8px 22px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 1px rgba(234, 88, 12, 0.35), 0 8px 22px rgba(0, 0, 0, 0.3);
 }
 
 :root.dark .vehicle-card {
@@ -1878,16 +1878,16 @@
 :root.dark .add-btn {
   background: var(--accent-gold);
   color: #111827;
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
 }
 
 :root.dark .select-btn {
-  border-color: var(--accent-gold, #D4AF37);
-  color: var(--accent-gold, #D4AF37);
+  border-color: var(--accent-gold, #ea580c);
+  color: var(--accent-gold, #ea580c);
 }
 
 :root.dark .select-btn:hover {
-  background: var(--accent-gold, #D4AF37);
+  background: var(--accent-gold, #ea580c);
   color: #111827;
 }
 

@@ -13,11 +13,11 @@ const Header = ({ onLogout, theme, toggleTheme }) => {
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
         >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           <span>{theme === 'dark' ? 'Claro' : 'Escuro'}</span>
         </button>
         <button className="btn-header-action btn-logout" onClick={onLogout}>
-          <LogOut size={18} />
+          <LogOut size={16} />
           <span>Sair</span>
         </button>
       </div>

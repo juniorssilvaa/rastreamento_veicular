@@ -212,108 +212,117 @@ const Tecnicos = () => {
 
   return (
     <div className="tecnicos-page">
-      <div className="tecnicos-header">
-        <div className="header-title">
-          <UserCog size={24} color="#3B82F6" />
-          <h2>Técnicos</h2>
-        </div>
-        
-        <div className="filters-container">
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Pesquisa"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="search-btn"><Search size={18} /></button>
+      <div className="tecnicos-shell">
+        <div className="tecnicos-toolbar">
+          <div className="tecnicos-toolbar__left">
+            <div className="tecnicos-toolbar__icon">
+              <UserCog size={20} />
+            </div>
+            <div>
+              <h2>Técnicos</h2>
+              <p>Equipe de instalação e manutenção</p>
+            </div>
           </div>
-          
-          <div className="filter-group">
-            <label>Cidade:</label>
-            <select value={cityFilter} onChange={(e) => setCityFilter(e.target.value)}>
-              {cities.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          
-          <div className="filter-group">
-            <label>Estado:</label>
-            <select value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
-              {states.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          
-          <div className="filter-group">
-            <label>Status do Técnico:</label>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="Todos">Nada selecionado</option>
-              <option value="Ativo">Ativo</option>
-              <option value="Inativo">Inativo</option>
-            </select>
+
+          <div className="tecnicos-toolbar__right">
+            <div className="tecnicos-search">
+              <Search size={16} />
+              <input
+                type="text"
+                placeholder="Buscar por nome ou CPF..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className="tecnicos-filters">
+              <div className="tecnicos-filter">
+                <label>Cidade</label>
+                <select value={cityFilter} onChange={(e) => setCityFilter(e.target.value)}>
+                  {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              <div className="tecnicos-filter">
+                <label>Estado</label>
+                <select value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
+                  {states.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              <div className="tecnicos-filter">
+                <label>Status</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="Todos">Todos</option>
+                  <option value="Ativo">Ativo</option>
+                  <option value="Inativo">Inativo</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="button" className="tecnicos-btn-add" onClick={() => handleOpenModal()}>
+              <Plus size={16} />
+              Novo técnico
+            </button>
           </div>
         </div>
 
-        <button className="btn-add" onClick={() => handleOpenModal()}>
-          <UserCog size={20} />
-          <span className="plus-badge">+</span>
-        </button>
-      </div>
-
-      <div className="tecnicos-table-container">
-        {loading ? (
-          <div className="loading">Carregando...</div>
-        ) : (
-          <table className="tecnicos-table">
-            <thead>
-              <tr>
-                <th width="40"><input type="checkbox" /></th>
-                <th>Nome do Técnico</th>
-                <th>CPF do Técnico</th>
-                <th>Cidade</th>
-                <th>Estado</th>
-                <th>Total de Estoque</th>
-                <th>Status do Técnico</th>
-                <th className="actions-col">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTechnicians.map(tech => (
-                <tr key={tech.id}>
-                  <td><input type="checkbox" /></td>
-                  <td className="uppercase">{tech.name}</td>
-                  <td>{tech.cpf}</td>
-                  <td>{tech.city || '-'}</td>
-                  <td>{tech.state || '-'}</td>
-                  <td>
-                    <span className="stock-badge">{tech.stock_total}</span>
-                  </td>
-                  <td>
-                    <span 
-                      className={`status-badge ${tech.is_active ? 'active' : 'inactive'}`} 
-                      onClick={() => handleToggleStatus(tech)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {tech.is_active ? 'Sim' : 'Não'}
-                    </span>
-                  </td>
-                  <td className="actions-cell">
-                    <button className="btn-icon edit" onClick={() => handleOpenModal(tech)}>
-                      <Edit2 size={16} />
-                    </button>
-                    <button className="btn-icon delete" onClick={() => handleDelete(tech.id)}>
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredTechnicians.length === 0 && (
+        <div className="tecnicos-table-wrap">
+          {loading ? (
+            <div className="tecnicos-loading">Carregando técnicos...</div>
+          ) : (
+            <table className="tecnicos-table">
+              <thead>
                 <tr>
-                  <td colSpan="9" className="empty-message">Nenhum técnico encontrado.</td>
+                  <th width="40"><input type="checkbox" aria-label="Selecionar todos" /></th>
+                  <th>Nome do Técnico</th>
+                  <th>CPF do Técnico</th>
+                  <th>Cidade</th>
+                  <th>Estado</th>
+                  <th>Total de Estoque</th>
+                  <th>Status do Técnico</th>
+                  <th className="actions-col">Ações</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {filteredTechnicians.map(tech => (
+                  <tr key={tech.id}>
+                    <td><input type="checkbox" aria-label={`Selecionar ${tech.name}`} /></td>
+                    <td className="uppercase">{tech.name}</td>
+                    <td>{tech.cpf}</td>
+                    <td>{tech.city || '—'}</td>
+                    <td>{tech.state || '—'}</td>
+                    <td>
+                      <span className="stock-badge">{tech.stock_total}</span>
+                    </td>
+                    <td>
+                      <span
+                        className={`status-badge ${tech.is_active ? 'active' : 'inactive'}`}
+                        onClick={() => handleToggleStatus(tech)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {tech.is_active ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
+                    <td className="actions-cell">
+                      <button type="button" className="btn-icon edit" onClick={() => handleOpenModal(tech)} aria-label="Editar">
+                        <Edit2 size={16} />
+                      </button>
+                      <button type="button" className="btn-icon delete" onClick={() => handleDelete(tech.id)} aria-label="Excluir">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredTechnicians.length === 0 && (
+                  <tr>
+                    <td colSpan="8" className="empty-message">Nenhum técnico encontrado.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
 
       {isModalOpen && (

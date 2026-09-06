@@ -36,7 +36,7 @@
 }
 
 :root.dark .veiculos-search {
-    background: #2a2a2a;
+    background: var(--bg-surface);
     border-color: #3a3a3a;
     color: #ffffff;
 }
@@ -65,7 +65,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background-color: #D4AF37;
+    background-color: var(--accent-orange);
     color: white;
     padding: 10px 20px;
     border-radius: 6px;
@@ -78,7 +78,7 @@
 }
 
 .btn-add-veiculo:hover {
-    background-color: #C5A028;
+    background-color: var(--accent-orange-hover);
 }
 
 /* TABELA TÉCNICA */
@@ -396,7 +396,7 @@
 }
 
 :root.dark .mini-map-empty__btn {
-    background: #2a2a2a;
+    background: var(--bg-surface);
     border-color: #3a3a3a;
     color: #f3f4f6;
 }
@@ -631,7 +631,7 @@ tr.expanded-parent td {
 }
 
 :root.dark .device-create-page {
-  background: #1e1e1e;
+  background: var(--bg-surface);
 }
 
 :root.dark .device-create-header h1,
@@ -644,7 +644,7 @@ tr.expanded-parent td {
 }
 
 :root.dark .device-create-close {
-  background: #2a2a2a;
+  background: var(--bg-surface);
   color: #ffffff;
   box-shadow: none;
   border: 1px solid #3a3a3a;
@@ -1540,7 +1540,7 @@ tr.expanded-parent td {
 :root.dark .vehicle-section-shell,
 :root.dark .device-icon-modal,
 :root.dark .vehicle-users-dropdown {
-  background: #2a2a2a;
+  background: var(--bg-surface);
   border-color: #3a3a3a;
   box-shadow: none;
 }
@@ -1564,13 +1564,13 @@ tr.expanded-parent td {
 :root.dark .vehicle-field select,
 :root.dark .vehicle-notes,
 :root.dark .placa-input {
-  background: #202024 !important;
+  background: var(--bg-card) !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
 }
 
 :root.dark .vehicle-status-card {
-  background: #202024;
+  background: var(--bg-card);
   border-color: #3a3a3a;
 }
 

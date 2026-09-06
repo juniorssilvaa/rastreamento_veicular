@@ -695,51 +695,64 @@ const Comando = () => {
             </div>
           </div>
 
-          <div className="cmd-search-box">
-            <div className="cmd-search-input-wrapper">
-              <Search size={16} className="search-icon" />
-              <input 
-                type="text" 
-                placeholder="Buscar veículo..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="cmd-selection-header">
-            <span>{selectedDevices.size} selecionados</span>
-            <div className="cmd-selection-actions">
-              <span onClick={handleToggleSelectAll}>Selecionar todos</span>
-              <span onClick={() => setSelectedDevices(new Set())}>Limpar</span>
-            </div>
-          </div>
-
-          <div className="cmd-device-list">
-            {filteredDevices.map(d => {
-              const foto = d.attributes?.foto || 'https://via.placeholder.com/150';
-              const statusColor = d.status === 'online' ? '#10b981' : d.status === 'offline' ? '#ef4444' : '#f59e0b';
-              const lastUpdate = d.lastUpdate ? new Date(d.lastUpdate).toLocaleString('pt-BR') : 'Sem comunicação';
-              const statusText = d.status === 'online' ? 'Online' : d.status === 'offline' ? 'Offline' : 'Desconhecido';
-              
-              return (
-              <div 
-                key={d.id} 
-                className={`cmd-device-item ${selectedDevices.has(d.id) ? 'selected' : ''}`}
-                onClick={() => handleToggleDevice(d.id)}
-              >
-                <div className="device-checkbox">
-                  {selectedDevices.has(d.id) ? <CheckSquare size={18} color="var(--accent-gold)" /> : <Square size={18} color="#9ca3af" />}
-                </div>
-                <div className="device-photo" style={{ backgroundImage: `url(${foto})` }}></div>
-                <div className="device-info-rich">
-                  <strong className="device-name">{d.name}</strong>
-                  <div className="device-detail"><span className="device-status-dot" style={{backgroundColor: statusColor}}></span> {statusText}</div>
-                  <div className="device-detail">ID: {d.uniqueId}</div>
-                  <div className="device-detail">Últ. com.: {lastUpdate}</div>
-                </div>
+          <div className="cmd-vehicles-panel">
+            <div className="cmd-search-box">
+              <div className="cmd-search-input-wrapper">
+                <Search size={16} className="search-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar veículo..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-            )})}
+            </div>
+
+            <div className="cmd-selection-header">
+              <span>{selectedDevices.size} selecionados</span>
+              <div className="cmd-selection-actions">
+                <span onClick={handleToggleSelectAll}>Selecionar todos</span>
+                <span onClick={() => setSelectedDevices(new Set())}>Limpar</span>
+              </div>
+            </div>
+
+            <div className="cmd-device-list">
+              {filteredDevices.length === 0 ? (
+                <div className="cmd-device-empty">
+                  {searchQuery.trim()
+                    ? 'Nenhum veículo encontrado para esta busca.'
+                    : 'Nenhum veículo disponível no momento.'}
+                </div>
+              ) : (
+                filteredDevices.map((d) => {
+                  const foto = d.attributes?.foto || 'https://via.placeholder.com/150';
+                  const statusColor = d.status === 'online' ? '#10b981' : d.status === 'offline' ? '#ef4444' : '#71717a';
+                  const lastUpdate = d.lastUpdate ? new Date(d.lastUpdate).toLocaleString('pt-BR') : 'Sem comunicação';
+                  const statusText = d.status === 'online' ? 'Online' : d.status === 'offline' ? 'Offline' : 'Desconhecido';
+
+                  return (
+                    <div
+                      key={d.id}
+                      className={`cmd-device-item ${selectedDevices.has(d.id) ? 'selected' : ''}`}
+                      onClick={() => handleToggleDevice(d.id)}
+                    >
+                      <div className="device-checkbox">
+                        {selectedDevices.has(d.id) ? <CheckSquare size={18} color="#71717a" /> : <Square size={18} color="#9ca3af" />}
+                      </div>
+                      <div className="device-photo" style={{ backgroundImage: `url(${foto})` }} />
+                      <div className="device-info-rich">
+                        <strong className="device-name">{d.name}</strong>
+                        <div className="device-detail">
+                          <span className="device-status-dot" style={{ backgroundColor: statusColor }} /> {statusText}
+                        </div>
+                        <div className="device-detail">ID: {d.uniqueId}</div>
+                        <div className="device-detail">Últ. com.: {lastUpdate}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
           <div className="cmd-section channel-section">
@@ -833,7 +846,7 @@ const Comando = () => {
 
                   <div className="shortcut-card">
                     <div className="shortcut-title">
-                      <Zap size={16} className="text-orange" />
+                      <Zap size={16} className="text-blue" />
                       <strong>SERVER,1,dns... (Template GPRS)</strong>
                     </div>
                     <span className="shortcut-sub">template_812</span>
@@ -848,7 +861,7 @@ const Comando = () => {
                       {commandCombos.map(combo => (
                         <div key={combo.id} className="shortcut-card combo-card" onClick={() => executeComboSequence(combo)}>
                           <div className="shortcut-title">
-                            <List size={16} className="text-gold" />
+                            <List size={16} className="text-muted" />
                             <strong>{combo.nome}</strong>
                           </div>
                           <span className="shortcut-sub">{combo.comandos.length} comandos em sequência</span>
